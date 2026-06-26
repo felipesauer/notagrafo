@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-8
-  state: READY
+  state: DONE
   title: Parser NFe (nfe.parser) + fixtures
   description: >-
     Criar nfe.parser.ts (extrai NF do XML para os tipos com fast-xml-parser; XSD
@@ -18,10 +18,12 @@ mnema:
     - 'Testes: completa, opcionais ausentes, devolução, cancelada — verdes'
   estimate: 5
   priority: 1
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
+  epic_key: NOTA-EPIC-2
+  sprint_key: NOTA-SPRINT-2
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T00:55:22.098Z'
+  updated_at: '2026-06-26T16:02:46.080Z'
 ---
 # Parser NFe (nfe.parser) + fixtures

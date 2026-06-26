@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-9
-  state: IN_REVIEW
+  state: DONE
   title: '[MANUAL] Baixar e commitar XSDs oficiais da SEFAZ'
   description: >-
     Tarefa MANUAL do Felipe. Baixar os XSDs oficiais da SEFAZ (portal
@@ -22,6 +22,6 @@ mnema:
   sprint_key: NOTA-SPRINT-2
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T15:39:21.873Z'
+  updated_at: '2026-06-26T16:02:48.564Z'
 ---
 # [MANUAL] Baixar e commitar XSDs oficiais da SEFAZ
