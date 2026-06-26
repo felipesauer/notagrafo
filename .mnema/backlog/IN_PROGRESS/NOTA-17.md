@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-17
-  state: READY
+  state: IN_PROGRESS
   title: Auth JWT manual e rotas /auth/* (ADR NOTA-ADR-1)
   description: >-
     Implementar auth com JWT manual (@fastify/jwt) conforme ADR NOTA-ADR-1:
@@ -17,12 +17,12 @@ mnema:
     - Segue ADR NOTA-ADR-1 (sem Better Auth)
   estimate: 5
   priority: 1
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
   epic_key: NOTA-EPIC-5
   sprint_key: NOTA-SPRINT-5
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T23:20:30.182Z'
+  updated_at: '2026-06-26T23:27:04.575Z'
 ---
 # Auth JWT manual e rotas /auth/* (ADR NOTA-ADR-1)

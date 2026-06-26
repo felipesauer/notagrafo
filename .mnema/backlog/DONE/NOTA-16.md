@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-16
-  state: IN_REVIEW
+  state: DONE
   title: Boot Fastify e plugins base (@nfp/api)
   description: >-
     Criar server.ts (boot Fastify, registro de plugins e rotas),
@@ -23,6 +23,6 @@ mnema:
   sprint_key: NOTA-SPRINT-5
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T23:25:58.761Z'
+  updated_at: '2026-06-26T23:26:53.013Z'
 ---
 # Boot Fastify e plugins base (@nfp/api)

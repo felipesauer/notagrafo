@@ -19,7 +19,7 @@ describe('buildApp', () => {
     it('serve a especificação OpenAPI 3.1 (e /docs)', async () => {
         app = await buildApp({ rateLimit: false });
         await app.ready();
-        const spec = app.swagger();
+        const spec = app.swagger() as { openapi: string; info: { title: string } };
         expect(spec.openapi).toBe('3.1.0');
         expect(spec.info.title).toBe('notagrafo API');
 
