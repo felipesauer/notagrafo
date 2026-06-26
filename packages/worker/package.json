@@ -5,7 +5,7 @@
   "type": "module",
   "main": "./dist/worker.js",
   "scripts": {
-    "build": "echo \"@notagrafo/worker: no sources yet\"",
-    "dev": "echo \"@notagrafo/worker: no sources yet\""
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch"
   }
 }

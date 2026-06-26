@@ -6,7 +6,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "echo \"@notagrafo/core: no sources yet\"",
-    "dev": "echo \"@notagrafo/core: no sources yet\""
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch"
   }
 }

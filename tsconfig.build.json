@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@notagrafo/core": ["packages/core/src"],
+      "@notagrafo/graph": ["packages/graph/src"],
+      "@notagrafo/api": ["packages/api/src"],
+      "@notagrafo/worker": ["packages/worker/src"],
+      "@notagrafo/dashboard": ["packages/dashboard/src"]
+    }
+  }
+}

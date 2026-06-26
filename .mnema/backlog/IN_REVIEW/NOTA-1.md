@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-1
-  state: IN_PROGRESS
+  state: IN_REVIEW
   title: Setup do monorepo pnpm
   description: >-
     Criar a base do monorepo: pnpm-workspace.yaml apontando para packages/*,
@@ -23,6 +23,6 @@ mnema:
   sprint_key: NOTA-SPRINT-1
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T11:49:46.759Z'
+  updated_at: '2026-06-26T11:51:45.878Z'
 ---
 # Setup do monorepo pnpm
