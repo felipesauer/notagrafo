@@ -5,7 +5,7 @@
   "type": "module",
   "main": "./dist/server.js",
   "scripts": {
-    "build": "echo \"@notagrafo/api: no sources yet\"",
-    "dev": "echo \"@notagrafo/api: no sources yet\""
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch"
   }
 }

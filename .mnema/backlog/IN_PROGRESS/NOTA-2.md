@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-2
-  state: READY
+  state: IN_PROGRESS
   title: TypeScript base do monorepo
   description: >-
     Criar tsconfig.json base na raiz com strict: true e tsconfig.build.json com
@@ -14,10 +14,12 @@ mnema:
     - pnpm typecheck roda sem erros na estrutura vazia
   estimate: 2
   priority: 1
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
+  epic_key: NOTA-EPIC-1
+  sprint_key: NOTA-SPRINT-1
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T00:54:58.555Z'
+  updated_at: '2026-06-26T11:53:19.566Z'
 ---
 # TypeScript base do monorepo

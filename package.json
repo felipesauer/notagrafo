@@ -21,5 +21,9 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "format": "prettier --write \"packages/**/*.{ts,tsx,json,md}\"",
     "demo": "docker compose --profile app --profile demo up"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.1",
+    "typescript": "^6.0.3"
   }
 }
