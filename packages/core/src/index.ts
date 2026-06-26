@@ -5,3 +5,4 @@ export * from './types/nf.types.js';
 export * from './utils/produto.utils.js';
 export * from './parser/xsd.registry.js';
 export * from './parser/nfe.validator.js';
+export * from './parser/nfe.parser.js';
