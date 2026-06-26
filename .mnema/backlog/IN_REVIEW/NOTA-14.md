@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-14
-  state: READY
+  state: IN_REVIEW
   title: Filas BullMQ e jobs de processamento
   description: >-
     Criar filas BullMQ (Redis) e o job de NFe: parse → validate (XSD) →
@@ -17,10 +17,12 @@ mnema:
     - Métricas de profundidade de fila e jobs falhos expostas
   estimate: 5
   priority: 1
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
+  epic_key: NOTA-EPIC-4
+  sprint_key: NOTA-SPRINT-4
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T00:55:49.914Z'
+  updated_at: '2026-06-26T17:58:54.004Z'
 ---
 # Filas BullMQ e jobs de processamento
