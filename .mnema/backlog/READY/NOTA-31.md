@@ -19,9 +19,9 @@ mnema:
   assignee: null
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
   epic_key: NOTA-EPIC-7
-  sprint_key: null
+  sprint_key: NOTA-SPRINT-7
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T23:21:20.683Z'
+  updated_at: '2026-06-26T23:21:22.570Z'
 ---
 # Documentação open-source (README, CONTRIBUTING, LICENSE)
