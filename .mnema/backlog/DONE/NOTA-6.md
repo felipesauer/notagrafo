@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-6
-  state: IN_REVIEW
+  state: DONE
   title: resolveIdUnico() e utils de produto
   description: >-
     Criar packages/core/src/utils/produto.utils.ts com resolveIdUnico(prod): EAN
@@ -21,6 +21,6 @@ mnema:
   sprint_key: NOTA-SPRINT-2
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T15:30:08.789Z'
+  updated_at: '2026-06-26T15:42:49.035Z'
 ---
 # resolveIdUnico() e utils de produto
