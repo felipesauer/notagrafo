@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-4
-  state: READY
+  state: DONE
   title: .env.example com todas as variáveis
   description: >-
     Criar .env.example com todas as variáveis documentadas com comentários
@@ -17,10 +17,12 @@ mnema:
     - .gitignore ignora .env
   estimate: 1
   priority: 2
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
+  epic_key: NOTA-EPIC-1
+  sprint_key: NOTA-SPRINT-1
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T00:55:06.463Z'
+  updated_at: '2026-06-26T15:20:21.193Z'
 ---
 # .env.example com todas as variáveis
