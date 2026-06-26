@@ -51,6 +51,9 @@ importers:
 
   packages/graph:
     dependencies:
+      '@notagrafo/core':
+        specifier: workspace:*
+        version: link:../core
       neo4j-driver:
         specifier: ^6.1.0
         version: 6.1.0

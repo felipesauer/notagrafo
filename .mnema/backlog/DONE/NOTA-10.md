@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-10
-  state: IN_REVIEW
+  state: DONE
   title: Driver Neo4j e migrations (@nfp/graph)
   description: >-
     Criar packages/graph/src/migrations.ts com as constraints de unicidade e
@@ -21,6 +21,6 @@ mnema:
   sprint_key: NOTA-SPRINT-3
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T16:13:35.717Z'
+  updated_at: '2026-06-26T16:15:01.100Z'
 ---
 # Driver Neo4j e migrations (@nfp/graph)
