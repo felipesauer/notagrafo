@@ -6,7 +6,8 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && pnpm run copy:schemas",
+    "copy:schemas": "node -e \"require('node:fs').cpSync('src/schemas','dist/schemas',{recursive:true})\"",
     "dev": "tsc -p tsconfig.json --watch"
   }
 }
