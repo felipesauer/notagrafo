@@ -1,0 +1,12 @@
+{
+  "name": "@notagrafo/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "echo \"@notagrafo/core: no sources yet\"",
+    "dev": "echo \"@notagrafo/core: no sources yet\""
+  }
+}

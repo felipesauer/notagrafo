@@ -1,0 +1,11 @@
+{
+  "name": "@notagrafo/worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/worker.js",
+  "scripts": {
+    "build": "echo \"@notagrafo/worker: no sources yet\"",
+    "dev": "echo \"@notagrafo/worker: no sources yet\""
+  }
+}

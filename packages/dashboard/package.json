@@ -1,0 +1,10 @@
+{
+  "name": "@notagrafo/dashboard",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "echo \"@notagrafo/dashboard: no sources yet\"",
+    "dev": "echo \"@notagrafo/dashboard: no sources yet\""
+  }
+}
