@@ -23,6 +23,7 @@
     "demo": "docker compose --profile app --profile demo up"
   },
   "devDependencies": {
+    "@testcontainers/minio": "^12.0.3",
     "@testcontainers/neo4j": "^12.0.3",
     "@types/node": "^26.0.1",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
