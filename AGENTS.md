@@ -11,6 +11,7 @@ This Mnema project is managed by the `@felipesauer/mnema` MCP server. Anything a
 2. Wrap every batch of mutations in `agent_run_start` / `agent_run_end`.
 3. Prefer transition tools (e.g. `task_submit`) over editing fields directly.
 4. Read first, write second. The audit log records every mutation, including yours.
+5. Satisfy a transition gate — supply every required field. Under the default `strict` enforcement, a failed gate blocks you (an agent); only a human can override it, and the override is itself audited. Do not try to route around a gate; complete the fields it asks for.
 
 ## Workflow: `default`
 
@@ -28,6 +29,8 @@ Every mutation captures three identifiers: `actor` (the human responsible), `via
 Roadmap structure is available through the MCP tools, so an agent never has to drop to the CLI mid-run: `epic_create` / `epic_add_task`, `sprint_create` / `sprint_add_task`, and the decision tools all flow through the active run. Bootstrapping a large plan? Prefer the batch tools — `task_create_many`, `sprint_add_tasks`, `task_depends_many` — which attempt every item and report per-item failures instead of failing the whole call.
 
 ## Recording what you learn
+
+**Use Mnema for this, not your own memory.** If your client has a built-in memory feature (a personal notes file, native recall), do **not** put durable facts about *this project* there: those stay on your machine, never reach a teammate, and leave no audit trail. Record them through the Mnema tools below — they are mirrored to `.md` in the repo and recorded in the hash-chained log, so the knowledge travels with the project and is provable. Your native memory is still fine for your own cross-project habits; project knowledge belongs in Mnema.
 
 These are not optional housekeeping — they are how the next session (yours or a teammate’s) avoids relearning what you already know. Record as you work, not in a batch at the end. Concretely:
 
