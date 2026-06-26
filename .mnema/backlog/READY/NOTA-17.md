@@ -10,7 +10,7 @@ mnema:
     /me). Usuários como nós no Neo4j. Contrato externo idêntico ao 02
     contratos-api.md.
   acceptance_criteria:
-    - 'POST /auth/login retorna token, expiresAt e user'
+    - POST /auth/login retorna token, expiresAt e user
     - Rotas protegidas exigem Bearer e retornam 401 sem token válido
     - /auth/refresh renova; /auth/me retorna o usuário
     - Usuários no Neo4j com senha hasheada
@@ -19,8 +19,10 @@ mnema:
   priority: 1
   assignee: null
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
+  epic_key: NOTA-EPIC-5
+  sprint_key: NOTA-SPRINT-5
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T00:56:03.749Z'
+  updated_at: '2026-06-26T23:20:30.182Z'
 ---
 # Auth JWT manual e rotas /auth/* (ADR NOTA-ADR-1)

@@ -22,8 +22,10 @@ mnema:
   priority: 2
   assignee: null
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
+  epic_key: NOTA-EPIC-7
+  sprint_key: NOTA-SPRINT-7
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T00:56:49.771Z'
+  updated_at: '2026-06-26T23:21:19.160Z'
 ---
 # GitHub Actions CI e issue templates

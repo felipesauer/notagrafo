@@ -10,7 +10,7 @@ mnema:
     registro público). Rotas protegidas redirecionam a /login sem token.
   acceptance_criteria:
     - Sidebar com os 7 itens e footer com usuário/logout
-    - 'Header com breadcrumb, toggle de tema, idioma e sino'
+    - Header com breadcrumb, toggle de tema, idioma e sino
     - ExportBanner persiste entre navegações e faz polling a cada 10s
     - >-
       /login autentica, trata erro inline e redireciona; rotas protegidas exigem
@@ -19,8 +19,10 @@ mnema:
   priority: 1
   assignee: null
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
+  epic_key: NOTA-EPIC-6
+  sprint_key: NOTA-SPRINT-6
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T00:56:23.784Z'
+  updated_at: '2026-06-26T23:20:54.774Z'
 ---
 # Layout global e página de Login

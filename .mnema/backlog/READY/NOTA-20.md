@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-20
   state: READY
-  title: 'Rotas de empresa, export, stats e health'
+  title: Rotas de empresa, export, stats e health
   description: >-
     Criar empresa.routes.ts (GET /empresa/:cnpj, /empresa/:cnpj/grafo com depth
     máx 4 → 400), export.routes.ts (POST /export e GET /export/:id + /download —
@@ -10,7 +10,7 @@ mnema:
     top-empresas, top-produtos) e health.routes.ts (GET /health sem auth,
     200/503). Schemas correspondentes.
   acceptance_criteria:
-    - '/empresa/:cnpj e /grafo com validação de depth (400 se >4)'
+    - /empresa/:cnpj e /grafo com validação de depth (400 se >4)
     - >-
       Export assíncrono: POST cria job, GET acompanha, download serve, 410 após
       TTL
@@ -20,8 +20,10 @@ mnema:
   priority: 1
   assignee: null
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
+  epic_key: NOTA-EPIC-5
+  sprint_key: NOTA-SPRINT-5
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T00:56:16.824Z'
+  updated_at: '2026-06-26T23:20:40.584Z'
 ---
 # Rotas de empresa, export, stats e health

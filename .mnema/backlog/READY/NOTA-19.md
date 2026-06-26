@@ -19,8 +19,10 @@ mnema:
   priority: 1
   assignee: null
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
+  epic_key: NOTA-EPIC-5
+  sprint_key: NOTA-SPRINT-5
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T00:56:15.318Z'
+  updated_at: '2026-06-26T23:20:36.581Z'
 ---
 # Rotas de NF e hook de auditoria

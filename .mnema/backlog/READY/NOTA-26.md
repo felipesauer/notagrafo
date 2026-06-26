@@ -9,16 +9,18 @@ mnema:
     com convite, Armazenamento somente leitura, Sistema com versões de
     XSD/serviços de /health e botão Verificar saúde).
   acceptance_criteria:
-    - 'Formulário cria job via POST /export com formato, filtros e campos'
+    - Formulário cria job via POST /export com formato, filtros e campos
     - Lista com status badges e polling 10s; download quando ready
-    - 'Configurações com Perfil, Usuários, Armazenamento e Sistema'
+    - Configurações com Perfil, Usuários, Armazenamento e Sistema
     - Seção Sistema lê versões de XSD e status de serviços de /health
   estimate: 5
   priority: 2
   assignee: null
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
+  epic_key: NOTA-EPIC-6
+  sprint_key: NOTA-SPRINT-6
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T00:56:37.067Z'
+  updated_at: '2026-06-26T23:21:05.670Z'
 ---
 # Páginas de Exportações e Configurações

@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-24
   state: READY
-  title: 'Páginas de dados (Overview, NFs, Empresas, Produtos)'
+  title: Páginas de dados (Overview, NFs, Empresas, Produtos)
   description: >-
     Criar Overview (KPI cards, ComposedChart volume/valor, BarChart top
     fornecedores, Treemap por UF, tabela últimas NFs), NFs (NFList com
@@ -11,7 +11,7 @@ mnema:
     compartilhados (NFStatusBadge, CNPJText, CurrencyValue, DateDisplay,
     UploadModal, FilterSidebar, EmptyState, LoadingSkeleton, ErrorBoundary).
   acceptance_criteria:
-    - 'Overview com 4 KPIs, gráficos Recharts e tabela das últimas NFs'
+    - Overview com 4 KPIs, gráficos Recharts e tabela das últimas NFs
     - >-
       NFList com filtros, paginação cursor-based e UploadModal com polling;
       NFDetail com itens e mini-grafo
@@ -22,8 +22,10 @@ mnema:
   priority: 1
   assignee: null
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
+  epic_key: NOTA-EPIC-6
+  sprint_key: NOTA-SPRINT-6
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T00:56:28.082Z'
+  updated_at: '2026-06-26T23:20:58.421Z'
 ---
 # Páginas de dados (Overview, NFs, Empresas, Produtos)
