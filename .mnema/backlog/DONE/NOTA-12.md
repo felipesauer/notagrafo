@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-12
-  state: IN_REVIEW
+  state: DONE
   title: Queries de grafo (empresa, nf, produto)
   description: >-
     Criar queries/empresa.queries.ts (grafo por CNPJ com depth/direction,
@@ -21,6 +21,6 @@ mnema:
   sprint_key: NOTA-SPRINT-3
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T16:35:10.883Z'
+  updated_at: '2026-06-26T17:47:49.934Z'
 ---
 # Queries de grafo (empresa, nf, produto)
