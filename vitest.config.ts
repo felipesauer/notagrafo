@@ -15,5 +15,6 @@ export default defineConfig({
         },
         // Unit e integration rodam separados para evitar timeout de Testcontainers
         include: ['packages/*/src/**/*.test.ts'],
+        exclude: ['**/node_modules/**', '**/dist/**', '**/*.integration.test.ts'],
     },
 });
