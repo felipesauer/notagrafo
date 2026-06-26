@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-15
-  state: IN_REVIEW
+  state: DONE
   title: Seed de demo de NFes fictícias
   description: >-
     Criar o seed de demo: com DEMO=true gera DEMO_NF_COUNT NFes fictícias
@@ -17,10 +17,10 @@ mnema:
   priority: 2
   assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
-  epic_key: null
-  sprint_key: null
+  epic_key: NOTA-EPIC-4
+  sprint_key: NOTA-SPRINT-4
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T23:07:28.904Z'
+  updated_at: '2026-06-26T23:19:46.466Z'
 ---
 # Seed de demo de NFes fictícias

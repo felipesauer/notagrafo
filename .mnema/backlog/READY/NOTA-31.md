@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-31
   state: READY
-  title: 'Documentação open-source (README, CONTRIBUTING, LICENSE)'
+  title: Documentação open-source (README, CONTRIBUTING, LICENSE)
   description: >-
     Criar README.md (descrição + quickstart de 5 min: git clone → cp
     .env.example .env → docker compose --profile app --profile demo up →
@@ -12,14 +12,16 @@ mnema:
   acceptance_criteria:
     - README com quickstart de 5 min funcionando ponta a ponta
     - README documenta variáveis de ambiente e como contribuir
-    - 'CONTRIBUTING com setup, testes, Conventional Commits e fluxo de PR'
+    - CONTRIBUTING com setup, testes, Conventional Commits e fluxo de PR
     - LICENSE MIT na raiz
   estimate: 2
   priority: 2
   assignee: null
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
+  epic_key: NOTA-EPIC-7
+  sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T00:56:52.985Z'
+  updated_at: '2026-06-26T23:21:20.683Z'
 ---
 # Documentação open-source (README, CONTRIBUTING, LICENSE)

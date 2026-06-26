@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-16
-  state: READY
+  state: IN_PROGRESS
   title: Boot Fastify e plugins base (@nfp/api)
   description: >-
     Criar server.ts (boot Fastify, registro de plugins e rotas),
@@ -14,13 +14,15 @@ mnema:
     - /docs serve Swagger UI com OpenAPI 3.1
     - requestId por requisição em logs e erros
     - Rate limit com store Redis
-    - 'Envelope de erro padrão (error, message, detalhes, requestId)'
+    - Envelope de erro padrão (error, message, detalhes, requestId)
   estimate: 3
   priority: 1
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
+  epic_key: NOTA-EPIC-5
+  sprint_key: NOTA-SPRINT-5
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T00:55:56.440Z'
+  updated_at: '2026-06-26T23:20:17.758Z'
 ---
 # Boot Fastify e plugins base (@nfp/api)

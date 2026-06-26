@@ -19,8 +19,10 @@ mnema:
   priority: 1
   assignee: null
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
+  epic_key: NOTA-EPIC-6
+  sprint_key: NOTA-SPRINT-6
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T00:56:20.117Z'
+  updated_at: '2026-06-26T23:20:51.520Z'
 ---
 # Setup do dashboard (@nfp/dashboard)

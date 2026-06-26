@@ -9,7 +9,7 @@ mnema:
     worker replicas 2, dashboard) com depends_on por health; profile demo (seed
     roda uma vez com DEMO=true). Volumes nomeados.
   acceptance_criteria:
-    - 'Infra (redis, neo4j, minio, mailpit) sobe com healthchecks'
+    - Infra (redis, neo4j, minio, mailpit) sobe com healthchecks
     - >-
       Profile app sobe api, worker (2 réplicas) e dashboard com depends_on por
       health
@@ -21,8 +21,10 @@ mnema:
   priority: 1
   assignee: null
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
+  epic_key: NOTA-EPIC-7
+  sprint_key: NOTA-SPRINT-7
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T00:56:46.774Z'
+  updated_at: '2026-06-26T23:21:15.962Z'
 ---
 # docker-compose com profiles app/demo

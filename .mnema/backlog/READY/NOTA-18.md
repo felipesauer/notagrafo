@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-18
   state: READY
-  title: 'Observabilidade da API (telemetry, logger, metrics)'
+  title: Observabilidade da API (telemetry, logger, metrics)
   description: >-
     Criar telemetry.ts (OTel SDK antes do Fastify, exporter via OTEL_EXPORTER,
     instrumentações fastify/http/neo4j/ioredis e spans
@@ -21,8 +21,10 @@ mnema:
   priority: 2
   assignee: null
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
+  epic_key: NOTA-EPIC-5
+  sprint_key: NOTA-SPRINT-5
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T00:56:05.518Z'
+  updated_at: '2026-06-26T23:20:33.477Z'
 ---
 # Observabilidade da API (telemetry, logger, metrics)

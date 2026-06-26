@@ -1,3 +1,4 @@
-// @notagrafo/api — package entrypoint.
-// O servidor Fastify (server.ts) e os plugins chegam na Sprint 5.
-export {};
+// @notagrafo/api — Fastify REST API.
+export * from './app.js';
+export * from './errors.js';
+export { buildApp } from './server.js';
