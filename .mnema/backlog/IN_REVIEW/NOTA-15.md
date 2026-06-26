@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-15
-  state: READY
+  state: IN_REVIEW
   title: Seed de demo de NFes fictícias
   description: >-
     Criar o seed de demo: com DEMO=true gera DEMO_NF_COUNT NFes fictícias
@@ -12,13 +12,15 @@ mnema:
     - DEMO=true gera DEMO_NF_COUNT NFes fictícias e popula o grafo
     - XMLs gerados passam na validação XSD
     - 'Seed roda uma vez e encerra (restart: no)'
-    - 'Após o seed, GET /stats/overview retorna números coerentes'
+    - Após o seed, GET /stats/overview retorna números coerentes
   estimate: 5
   priority: 2
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
+  epic_key: null
+  sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T00:55:53.878Z'
+  updated_at: '2026-06-26T23:07:28.904Z'
 ---
 # Seed de demo de NFes fictícias
