@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-11
-  state: READY
+  state: IN_REVIEW
   title: Repositório mergeNotaFiscal
   description: >-
     Criar nf.repository.ts com mergeNotaFiscal(nf, raw, itens) seguindo o padrão
@@ -19,10 +19,12 @@ mnema:
     - Reprocessar a mesma chave não duplica nós
   estimate: 5
   priority: 1
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
+  epic_key: NOTA-EPIC-3
+  sprint_key: NOTA-SPRINT-3
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T00:55:33.266Z'
+  updated_at: '2026-06-26T16:18:48.008Z'
 ---
 # Repositório mergeNotaFiscal
