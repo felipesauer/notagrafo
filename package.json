@@ -30,5 +30,13 @@
     "eslint": "^8.57.1",
     "typescript": "^6.0.3",
     "vitest": "^4.1.9"
+  },
+  "dependencies": {
+    "libxmljs2": "^0.37.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "libxmljs2"
+    ]
   }
 }
