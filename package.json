@@ -1,0 +1,25 @@
+{
+  "name": "notagrafo",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@10.34.1",
+  "scripts": {
+    "dev": "docker compose up -d && pnpm --parallel dev:packages",
+    "dev:packages": "pnpm --filter @notagrafo/api dev & pnpm --filter @notagrafo/worker dev & pnpm --filter @notagrafo/dashboard dev",
+    "build": "pnpm --filter @notagrafo/core build && pnpm --filter @notagrafo/graph build && pnpm --filter @notagrafo/api build && pnpm --filter @notagrafo/worker build && pnpm --filter @notagrafo/dashboard build",
+    "test": "pnpm test:unit && pnpm test:integration",
+    "test:unit": "vitest run --config vitest.config.ts",
+    "test:unit:watch": "vitest --config vitest.config.ts",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:e2e": "pnpm --filter @notagrafo/dashboard exec playwright test",
+    "test:coverage": "vitest run --config vitest.config.ts --coverage",
+    "lint": "eslint . --ext .ts,.tsx",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "format": "prettier --write \"packages/**/*.{ts,tsx,json,md}\"",
+    "demo": "docker compose --profile app --profile demo up"
+  }
+}

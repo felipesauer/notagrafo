@@ -1,0 +1,11 @@
+{
+  "name": "@notagrafo/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/server.js",
+  "scripts": {
+    "build": "echo \"@notagrafo/api: no sources yet\"",
+    "dev": "echo \"@notagrafo/api: no sources yet\""
+  }
+}
