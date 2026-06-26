@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-2
-  state: IN_PROGRESS
+  state: DONE
   title: TypeScript base do monorepo
   description: >-
     Criar tsconfig.json base na raiz com strict: true e tsconfig.build.json com
@@ -20,6 +20,6 @@ mnema:
   sprint_key: NOTA-SPRINT-1
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T11:53:19.566Z'
+  updated_at: '2026-06-26T11:58:51.777Z'
 ---
 # TypeScript base do monorepo
