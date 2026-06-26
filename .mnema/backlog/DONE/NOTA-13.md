@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-13
-  state: IN_REVIEW
+  state: DONE
   title: Storage de XML configurável (@nfp/worker)
   description: >-
     Criar o módulo de storage de XML com driver configurável via
@@ -21,6 +21,6 @@ mnema:
   sprint_key: NOTA-SPRINT-4
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T17:51:19.012Z'
+  updated_at: '2026-06-26T17:52:55.906Z'
 ---
 # Storage de XML configurável (@nfp/worker)
