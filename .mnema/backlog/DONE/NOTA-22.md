@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-22
-  state: IN_REVIEW
+  state: DONE
   title: Setup do dashboard (@nfp/dashboard)
   description: >-
     Configurar React 18 + Vite, TanStack Router (file-based) em router.tsx,
@@ -23,6 +23,6 @@ mnema:
   sprint_key: NOTA-SPRINT-6
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-27T04:47:45.796Z'
+  updated_at: '2026-06-27T04:51:17.495Z'
 ---
 # Setup do dashboard (@nfp/dashboard)
