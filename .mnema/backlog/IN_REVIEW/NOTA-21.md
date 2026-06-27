@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-21
-  state: READY
+  state: IN_REVIEW
   title: Testes de integração da API (Testcontainers)
   description: >-
     Criar setup.integration.ts (Neo4j e Redis reais via Testcontainers, injeta
@@ -16,12 +16,12 @@ mnema:
     - pnpm test:integration verde
   estimate: 5
   priority: 1
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
   epic_key: NOTA-EPIC-5
   sprint_key: NOTA-SPRINT-5
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T23:20:44.297Z'
+  updated_at: '2026-06-27T04:37:03.392Z'
 ---
 # Testes de integração da API (Testcontainers)
