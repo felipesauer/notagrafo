@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-26
-  state: IN_REVIEW
+  state: DONE
   title: Páginas de Exportações e Configurações
   description: >-
     Criar /exportacoes (formulário de nova exportação → POST /export; lista com
@@ -21,6 +21,6 @@ mnema:
   sprint_key: NOTA-SPRINT-6
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-27T11:45:09.119Z'
+  updated_at: '2026-06-27T11:46:54.373Z'
 ---
 # Páginas de Exportações e Configurações
