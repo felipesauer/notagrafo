@@ -8,9 +8,10 @@ async function main(): Promise<void> {
     startTelemetry(); // OTel deve iniciar antes de montar o Fastify
     const driver = getDriver();
     await runMigrations(driver);
-    const queue = createNFQueue(createRedisConnection());
+    const redis = createRedisConnection();
+    const queue = createNFQueue(redis);
     const storage = createXmlStorage();
-    const app = await buildApp({ logger: true, driver, queue, storage });
+    const app = await buildApp({ logger: true, driver, queue, storage, redis });
     const port = Number(process.env.PORT ?? '3000');
     await app.listen({ port, host: '0.0.0.0' });
 }
