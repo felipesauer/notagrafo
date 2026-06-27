@@ -16,10 +16,12 @@ mnema:
     - pnpm typecheck verde em @nfp/core
   estimate: 2
   priority: 1
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
+  epic_key: NOTA-EPIC-2
+  sprint_key: NOTA-SPRINT-2
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T00:55:10.031Z'
+  updated_at: '2026-06-26T23:20:20.823Z'
 ---
 # Tipos TypeScript do schema (@nfp/core)

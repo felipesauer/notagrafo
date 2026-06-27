@@ -1,0 +1,82 @@
+/** English translations. Keys in the pagina.secao.elemento pattern. */
+export const en = {
+    comum: {
+        carregando: 'Loading…',
+        erro: 'An error occurred.',
+        tentarNovamente: 'Try again',
+        salvar: 'Save',
+        cancelar: 'Cancel',
+        vazio: 'No results.',
+        buscar: 'Search',
+    },
+    login: {
+        titulo: 'Sign in',
+        email: 'E-mail',
+        senha: 'Password',
+        entrar: 'Sign in',
+        erroCredenciais: 'Invalid e-mail or password.',
+    },
+    sidebar: {
+        overview: 'Overview',
+        nfs: 'Invoices',
+        empresas: 'Companies',
+        produtos: 'Products',
+        grafo: 'Graph',
+        exportacoes: 'Exports',
+        configuracoes: 'Settings',
+        sair: 'Sign out',
+    },
+    overview: {
+        titulo: 'Overview',
+        totalNFs: 'Total invoices',
+        totalEmpresas: 'Companies',
+        totalProdutos: 'Products',
+        valorTotal: 'Processed value',
+        volumeTitulo: 'Volume and value per day',
+        topFornecedores: 'Top suppliers',
+        ultimasNFs: 'Latest processed invoices',
+        numero: 'Number',
+        valor: 'Value',
+        processadaEm: 'Processed at',
+    },
+    nf: {
+        numero: 'Number', emitente: 'Issuer', destinatario: 'Recipient', valor: 'Value',
+        status: 'Status', emissao: 'Issued', todosStatus: 'All statuses',
+        uploadTitulo: 'Upload invoice', enviar: 'Upload', uploadOk: 'Invoice queued.',
+        anterior: 'Previous', proxima: 'Next', detalheTitulo: 'Invoice', itens: 'Items',
+        produto: 'Product', qtd: 'Qty', miniGrafo: 'Graph', verNoGrafo: 'View in graph',
+    },
+    empresas: {
+        titulo: 'Companies', cnpj: 'Tax ID', razaoSocial: 'Legal name', uf: 'State',
+        nfsEmitidas: 'Issued invoices', nfsRecebidas: 'Received invoices', verGrafo: 'View in graph',
+    },
+    produtos: {
+        titulo: 'Products', descricao: 'Description', ncm: 'NCM', totalNFs: 'Invoices',
+        quantidade: 'Quantity', valorTotal: 'Total value', precoMedio: 'Average price',
+    },
+    grafo: {
+        buscarEmpresa: 'Search company (Tax ID)', profundidade: 'Depth',
+        ambos: 'Both', emitente: 'Issuer', destinatario: 'Recipient',
+        resetar: 'Reset', exportarPng: 'Export PNG',
+        vazio: 'Search a company to start.',
+    },
+    exportacoes: {
+        nova: 'New export', formato: 'Format', campos: 'Fields', gerar: 'Generate export',
+        historico: 'History', acoes: 'Actions', baixar: 'Download', vazio: 'No exports yet.',
+    },
+    config: {
+        perfil: 'Profile', alterarSenha: 'Change password', usuarios: 'Users', convidar: 'Invite user',
+        armazenamento: 'Storage', driver: 'Driver', sistema: 'System',
+        xsdVersions: 'XSD versions', servicos: 'Services', uptime: 'Uptime', verificarSaude: 'Check health',
+    },
+    header: {
+        alternarTema: 'Toggle theme',
+        alternarIdioma: 'Toggle language',
+        notificacoes: 'Notifications',
+    },
+    export: {
+        pronta: 'Your export is ready.',
+        baixar: 'Download file',
+        fechar: 'Dismiss',
+    },
+} as const;

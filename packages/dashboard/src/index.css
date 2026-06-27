@@ -1,0 +1,200 @@
+/* Variáveis de tema claro/escuro, controladas por [data-theme] no <html>. */
+:root,
+[data-theme='claro'] {
+    --bg: #ffffff;
+    --fg: #1a1a1a;
+    --muted: #666666;
+    --accent: #2563eb;
+    --card: #f5f5f5;
+}
+
+[data-theme='escuro'] {
+    --bg: #121212;
+    --fg: #e8e8e8;
+    --muted: #999999;
+    --accent: #60a5fa;
+    --card: #1e1e1e;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+}
+
+.kpis {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.kpis li {
+    background: var(--card);
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+/* ── Layout global ─────────────────────────────────────────── */
+.app-layout {
+    display: flex;
+    min-height: 100vh;
+}
+.sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--card);
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+}
+.sidebar__brand {
+    font-weight: 700;
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+    color: var(--accent);
+}
+.sidebar__nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+}
+.sidebar__item {
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    color: var(--fg);
+    text-decoration: none;
+}
+.sidebar__item--active {
+    background: var(--accent);
+    color: #fff;
+}
+.sidebar__footer {
+    border-top: 1px solid var(--muted);
+    padding-top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.app-layout__main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.5rem;
+    border-bottom: 1px solid var(--card);
+}
+.header__actions {
+    display: flex;
+    gap: 0.5rem;
+}
+.app-layout__content {
+    padding: 1.5rem;
+    flex: 1;
+}
+.export-banner {
+    background: #16a34a;
+    color: #fff;
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.export-banner a {
+    color: #fff;
+    font-weight: 600;
+}
+.login {
+    display: grid;
+    place-items: center;
+    min-height: 100vh;
+}
+.login__card {
+    background: var(--card);
+    padding: 2rem;
+    border-radius: 12px;
+    width: 320px;
+}
+.login__brand {
+    text-align: center;
+    color: var(--accent);
+}
+.login form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.login__erro {
+    color: #dc2626;
+    margin: 0;
+}
+
+/* ── Páginas de dados (NOTA-24) ────────────────────────────── */
+.kpis-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.kpi-card {
+    background: var(--card);
+    padding: 1rem;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+.kpi-card__label { color: var(--muted); font-size: 0.85rem; }
+.kpi-card__valor { font-size: 1.5rem; }
+.chart, .table-section { margin-bottom: 1.5rem; }
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th, .data-table td { text-align: left; padding: 0.5rem; border-bottom: 1px solid var(--card); }
+.data-table__row--clickable { cursor: pointer; }
+.toolbar { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.pagination { display: flex; gap: 0.5rem; margin-top: 1rem; }
+.badge { color: #fff; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.8rem; }
+.nf-detail { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
+.inline-card { display: flex; gap: 1.5rem; padding: 0.75rem; background: var(--card); border-radius: 6px; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: grid; place-items: center; }
+.modal { background: var(--bg); padding: 1.5rem; border-radius: 12px; width: 360px; }
+.modal__actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
+.skeleton__row { height: 1.5rem; background: var(--card); border-radius: 4px; margin-bottom: 0.5rem; animation: pulse 1.5s infinite; }
+@keyframes pulse { 50% { opacity: 0.5; } }
+.inline-error { color: #dc2626; display: flex; gap: 1rem; align-items: center; }
+.empty-state { color: var(--muted); padding: 2rem; text-align: center; }
+.muted { color: var(--muted); }
+
+/* ── Página de grafo (NOTA-25) ─────────────────────────────── */
+.grafo-page { display: flex; flex-direction: column; height: calc(100vh - 120px); }
+.grafo-area { flex: 1; position: relative; border: 1px solid var(--card); border-radius: 8px; }
+.grafo-no {
+    border-radius: 50%;
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 2px solid rgba(255,255,255,0.4);
+}
+.graph-panel {
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 280px;
+    background: var(--bg);
+    border-left: 1px solid var(--card);
+    padding: 1rem;
+    overflow-y: auto;
+}
+.graph-panel__close { float: right; }
+.grafo-page .toolbar { flex-wrap: wrap; align-items: center; }

@@ -3,9 +3,18 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "main": "./dist/worker.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json --watch"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1075.0",
+    "@notagrafo/core": "workspace:*",
+    "@notagrafo/graph": "workspace:*",
+    "bullmq": "^5.79.1",
+    "ioredis": "^5.10.1",
+    "neo4j-driver": "^6.1.0"
   }
 }

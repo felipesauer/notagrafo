@@ -1,0 +1,97 @@
+import type { FastifyInstance } from 'fastify';
+import type { NFFilters } from '@notagrafo/graph';
+import { ApiError } from '../errors.js';
+import { ExportService, type ExportFormato } from './export.service.js';
+
+interface ExportBody {
+    formato: ExportFormato;
+    filtros?: NFFilters;
+    campos?: string[];
+}
+
+export async function exportRoutes(app: FastifyInstance, service: ExportService): Promise<void> {
+    // POST /export — cria o job assíncrono
+    app.post<{ Body: ExportBody }>(
+        '/export',
+        {
+            preHandler: app.authenticate,
+            schema: {
+                tags: ['export'],
+                summary: 'Cria uma exportação assíncrona',
+                body: {
+                    type: 'object',
+                    required: ['formato'],
+                    properties: {
+                        formato: { type: 'string', enum: ['csv', 'xlsx', 'json'] },
+                        filtros: { type: 'object', additionalProperties: true },
+                        campos: { type: 'array', items: { type: 'string' } },
+                    },
+                },
+                security: [{ bearerAuth: [] }],
+            },
+        },
+        async (request, reply) => {
+            const { formato, filtros, campos } = request.body;
+            const job = service.criar(formato, filtros, campos);
+            reply.status(202).send({
+                exportId: job.exportId,
+                status: job.status,
+                formato: job.formato,
+                estimativa: 'A exportação será processada em segundo plano.',
+            });
+        },
+    );
+
+    // GET /export/:exportId — status; 410 se expirado
+    app.get<{ Params: { exportId: string } }>(
+        '/export/:exportId',
+        {
+            preHandler: app.authenticate,
+            schema: { tags: ['export'], summary: 'Status de uma exportação', params: { type: 'object', properties: { exportId: { type: 'string' } }, required: ['exportId'] }, security: [{ bearerAuth: [] }] },
+        },
+        async (request) => {
+            const job = await service.obter(request.params.exportId);
+            if (job === null) throw ApiError.notFound('EXPORT_NOT_FOUND', 'Exportação não encontrada.');
+            if (job === 'expired') throw new ApiError(410, 'EXPORT_EXPIRED', 'O arquivo de exportação expirou e foi removido.');
+
+            if (job.status === 'ready') {
+                return {
+                    exportId: job.exportId,
+                    status: 'ready',
+                    formato: job.formato,
+                    tamanhoBytes: job.tamanhoBytes,
+                    totalRegistros: job.totalRegistros,
+                    expiresAt: new Date(job.expiresAt).toISOString(),
+                    downloadUrl: `/api/v1/export/${job.exportId}/download`,
+                };
+            }
+            return {
+                exportId: job.exportId,
+                status: job.status,
+                ...(job.erro ? { erro: job.erro } : {}),
+            };
+        },
+    );
+
+    // GET /export/:exportId/download — serve o arquivo
+    app.get<{ Params: { exportId: string } }>(
+        '/export/:exportId/download',
+        {
+            preHandler: app.authenticate,
+            schema: { tags: ['export'], summary: 'Download do arquivo de exportação', params: { type: 'object', properties: { exportId: { type: 'string' } }, required: ['exportId'] }, security: [{ bearerAuth: [] }] },
+        },
+        async (request, reply) => {
+            const job = await service.obter(request.params.exportId);
+            if (job === null) throw ApiError.notFound('EXPORT_NOT_FOUND', 'Exportação não encontrada.');
+            if (job === 'expired') throw new ApiError(410, 'EXPORT_EXPIRED', 'O arquivo de exportação expirou e foi removido.');
+            if (job.status !== 'ready') throw ApiError.badRequest('Exportação ainda não está pronta.');
+
+            const data = await service.ler(job);
+            const date = new Date().toISOString().slice(0, 10);
+            reply
+                .header('Content-Type', service.contentType(job.formato))
+                .header('Content-Disposition', `attachment; filename="nf-export-${date}.${job.formato}"`);
+            return data;
+        },
+    );
+}

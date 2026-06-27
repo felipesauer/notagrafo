@@ -1,0 +1,82 @@
+/** Traduções pt-BR. Chaves no padrão pagina.secao.elemento. */
+export const ptBR = {
+    comum: {
+        carregando: 'Carregando…',
+        erro: 'Ocorreu um erro.',
+        tentarNovamente: 'Tentar novamente',
+        salvar: 'Salvar',
+        cancelar: 'Cancelar',
+        vazio: 'Nenhum resultado.',
+        buscar: 'Buscar',
+    },
+    login: {
+        titulo: 'Entrar',
+        email: 'E-mail',
+        senha: 'Senha',
+        entrar: 'Entrar',
+        erroCredenciais: 'E-mail ou senha inválidos.',
+    },
+    overview: {
+        titulo: 'Visão geral',
+        totalNFs: 'Total de NFs',
+        totalEmpresas: 'Empresas',
+        totalProdutos: 'Produtos',
+        valorTotal: 'Valor processado',
+        volumeTitulo: 'Volume e valor por dia',
+        topFornecedores: 'Top fornecedores',
+        ultimasNFs: 'Últimas NFs processadas',
+        numero: 'Número',
+        valor: 'Valor',
+        processadaEm: 'Processada em',
+    },
+    nf: {
+        numero: 'Número', emitente: 'Emitente', destinatario: 'Destinatário', valor: 'Valor',
+        status: 'Status', emissao: 'Emissão', todosStatus: 'Todos os status',
+        uploadTitulo: 'Enviar NFe', enviar: 'Enviar', uploadOk: 'NFe enfileirada.',
+        anterior: 'Anterior', proxima: 'Próxima', detalheTitulo: 'NF', itens: 'Itens',
+        produto: 'Produto', qtd: 'Qtd', miniGrafo: 'Grafo', verNoGrafo: 'Ver no grafo',
+    },
+    empresas: {
+        titulo: 'Empresas', cnpj: 'CNPJ', razaoSocial: 'Razão social', uf: 'UF',
+        nfsEmitidas: 'NFs emitidas', nfsRecebidas: 'NFs recebidas', verGrafo: 'Ver no grafo',
+    },
+    produtos: {
+        titulo: 'Produtos', descricao: 'Descrição', ncm: 'NCM', totalNFs: 'NFs',
+        quantidade: 'Quantidade', valorTotal: 'Valor total', precoMedio: 'Preço médio',
+    },
+    grafo: {
+        buscarEmpresa: 'Buscar empresa (CNPJ)', profundidade: 'Profundidade',
+        ambos: 'Ambos', emitente: 'Emitente', destinatario: 'Destinatário',
+        resetar: 'Resetar', exportarPng: 'Exportar PNG',
+        vazio: 'Busque uma empresa para começar.',
+    },
+    exportacoes: {
+        nova: 'Nova exportação', formato: 'Formato', campos: 'Campos', gerar: 'Gerar exportação',
+        historico: 'Histórico', acoes: 'Ações', baixar: 'Baixar', vazio: 'Nenhuma exportação ainda.',
+    },
+    config: {
+        perfil: 'Perfil', alterarSenha: 'Alterar senha', usuarios: 'Usuários', convidar: 'Convidar usuário',
+        armazenamento: 'Armazenamento', driver: 'Driver', sistema: 'Sistema',
+        xsdVersions: 'Versões de XSD', servicos: 'Serviços', uptime: 'Uptime', verificarSaude: 'Verificar saúde',
+    },
+    header: {
+        alternarTema: 'Alternar tema',
+        alternarIdioma: 'Alternar idioma',
+        notificacoes: 'Notificações',
+    },
+    sidebar: {
+        overview: 'Visão geral',
+        nfs: 'Notas Fiscais',
+        empresas: 'Empresas',
+        produtos: 'Produtos',
+        grafo: 'Grafo',
+        exportacoes: 'Exportações',
+        configuracoes: 'Configurações',
+        sair: 'Sair',
+    },
+    export: {
+        pronta: 'Sua exportação está pronta.',
+        baixar: 'Baixar arquivo',
+        fechar: 'Dispensar',
+    },
+} as const;

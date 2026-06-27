@@ -8,5 +8,9 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json --watch"
+  },
+  "dependencies": {
+    "@notagrafo/core": "workspace:*",
+    "neo4j-driver": "^6.1.0"
   }
 }

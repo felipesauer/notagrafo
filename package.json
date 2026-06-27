@@ -23,10 +23,25 @@
     "demo": "docker compose --profile app --profile demo up"
   },
   "devDependencies": {
+    "@testcontainers/minio": "^12.0.3",
+    "@testcontainers/neo4j": "^12.0.3",
+    "@testcontainers/redis": "^12.0.3",
     "@types/node": "^26.0.1",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
+    "@vitest/coverage-v8": "^4.1.9",
     "eslint": "^8.57.1",
-    "typescript": "^6.0.3"
+    "testcontainers": "^12.0.3",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.9"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.9.3",
+    "libxmljs2": "^0.37.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "libxmljs2"
+    ]
   }
 }

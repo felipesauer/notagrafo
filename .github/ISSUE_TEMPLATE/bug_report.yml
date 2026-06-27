@@ -1,0 +1,43 @@
+name: Relatório de bug
+description: Reporte um comportamento incorreto no notagrafo
+labels: ["bug"]
+body:
+  - type: textarea
+    id: descricao
+    attributes:
+      label: Descrição
+      description: O que aconteceu? O que você esperava que acontecesse?
+    validations:
+      required: true
+  - type: textarea
+    id: reproducao
+    attributes:
+      label: Passos para reproduzir
+      description: Lista numerada dos passos.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: versao
+    attributes:
+      label: Versão / commit
+      description: Tag, branch ou SHA do commit onde ocorreu.
+    validations:
+      required: false
+  - type: textarea
+    id: ambiente
+    attributes:
+      label: Ambiente
+      description: SO, versão do Docker, navegador (se for o dashboard), etc.
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs relevantes
+      render: shell
+    validations:
+      required: false
