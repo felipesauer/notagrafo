@@ -9,7 +9,8 @@ import { NFDetailPage } from './pages/NFDetail.js';
 import { EmpresasPage } from './pages/Empresas.js';
 import { ProdutosPage } from './pages/Produtos.js';
 import { GrafoPage } from './pages/Grafo.js';
-import { Placeholder } from './pages/Placeholder.js';
+import { ExportacoesPage } from './pages/Exportacoes.js';
+import { ConfiguracoesPage } from './pages/Configuracoes.js';
 
 const rootRoute = createRootRoute({ component: Outlet });
 
@@ -50,8 +51,8 @@ const grafoRoute = createRoute({
     }),
     component: GrafoPage,
 });
-const exportacoesRoute = childRoute('/exportacoes', () => <Placeholder titulo="Exportações" />);
-const configuracoesRoute = childRoute('/configuracoes', () => <Placeholder titulo="Configurações" />);
+const exportacoesRoute = childRoute('/exportacoes', ExportacoesPage);
+const configuracoesRoute = childRoute('/configuracoes', ConfiguracoesPage);
 
 const routeTree = rootRoute.addChildren([
     loginRoute,

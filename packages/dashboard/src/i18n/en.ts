@@ -60,6 +60,15 @@ export const en = {
         resetar: 'Reset', exportarPng: 'Export PNG',
         vazio: 'Search a company to start.',
     },
+    exportacoes: {
+        nova: 'New export', formato: 'Format', campos: 'Fields', gerar: 'Generate export',
+        historico: 'History', acoes: 'Actions', baixar: 'Download', vazio: 'No exports yet.',
+    },
+    config: {
+        perfil: 'Profile', alterarSenha: 'Change password', usuarios: 'Users', convidar: 'Invite user',
+        armazenamento: 'Storage', driver: 'Driver', sistema: 'System',
+        xsdVersions: 'XSD versions', servicos: 'Services', uptime: 'Uptime', verificarSaude: 'Check health',
+    },
     header: {
         alternarTema: 'Toggle theme',
         alternarIdioma: 'Toggle language',
