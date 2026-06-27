@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-19
-  state: IN_REVIEW
+  state: DONE
   title: Rotas de NF e hook de auditoria
   description: >-
     Criar nf.routes.ts: POST /nf/upload (XML ou ZIP, valida XSD antes de
@@ -23,6 +23,6 @@ mnema:
   sprint_key: NOTA-SPRINT-5
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-27T04:20:34.028Z'
+  updated_at: '2026-06-27T04:22:14.970Z'
 ---
 # Rotas de NF e hook de auditoria
