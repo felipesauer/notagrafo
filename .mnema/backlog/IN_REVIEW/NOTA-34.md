@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-34
-  state: READY
+  state: IN_REVIEW
   title: 'API: corrigir GET /nf/:chave/eventos para o contrato'
   description: >-
     GET /api/v1/nf/:chave/eventos: adicionar chaveAcesso no nível raiz; ajustar
@@ -16,12 +16,12 @@ mnema:
     - Teste de integração cobre o endpoint
   estimate: 2
   priority: 2
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f03ba-735c-725c-b52a-22a88c9abe61
   epic_key: NOTA-EPIC-8
   sprint_key: NOTA-SPRINT-8
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-27T22:55:39.816Z'
+  updated_at: '2026-06-27T23:07:22.344Z'
 ---
 # API: corrigir GET /nf/:chave/eventos para o contrato

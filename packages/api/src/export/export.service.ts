@@ -4,7 +4,7 @@ import { writeFile, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { Driver } from 'neo4j-driver';
-import { listNotasFiscais, type NFFilters } from '@notagrafo/graph';
+import { listNotasFiscais, countNotasFiscais, type NFFilters } from '@notagrafo/graph';
 
 export type ExportFormato = 'csv' | 'xlsx' | 'json';
 export type ExportStatus = 'queued' | 'processing' | 'ready' | 'failed';
@@ -13,6 +13,8 @@ export interface ExportJob {
     exportId: string;
     formato: ExportFormato;
     status: ExportStatus;
+    progresso: number; // registros já processados (estado processing)
+    total: number; // total estimado de registros (estado processing)
     totalRegistros: number;
     tamanhoBytes: number;
     expiresAt: number; // epoch ms
@@ -53,6 +55,8 @@ export class ExportService {
             exportId,
             formato,
             status: 'queued',
+            progresso: 0,
+            total: 0,
             totalRegistros: 0,
             tamanhoBytes: 0,
             expiresAt: Date.now() + this.ttlMs,
@@ -83,12 +87,16 @@ export class ExportService {
     private async gerar(job: ExportJob, filtros?: NFFilters, campos?: string[]): Promise<void> {
         job.status = 'processing';
         try {
-            // Busca todas as NFs (paginando até o fim).
+            // Total estimado para reportar progresso durante a geração (contrato §6).
+            job.total = await countNotasFiscais(this.driver, filtros ?? {});
+
+            // Busca todas as NFs (paginando até o fim), atualizando o progresso.
             const linhas: Record<string, unknown>[] = [];
             let cursor: string | undefined;
             do {
                 const page = await listNotasFiscais(this.driver, filtros ?? {}, { limit: 200, ...(cursor ? { cursor } : {}) });
                 linhas.push(...(page.data as unknown as Record<string, unknown>[]));
+                job.progresso = linhas.length;
                 cursor = page.nextCursor ?? undefined;
             } while (cursor);
 
