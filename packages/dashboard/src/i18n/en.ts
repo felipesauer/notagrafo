@@ -22,6 +22,7 @@ export const en = {
         grafo: 'Graph',
         exportacoes: 'Exports',
         configuracoes: 'Settings',
+        sair: 'Sign out',
     },
     overview: {
         titulo: 'Overview',
@@ -29,5 +30,15 @@ export const en = {
         totalEmpresas: 'Companies',
         totalProdutos: 'Products',
         valorTotal: 'Processed value',
+    },
+    header: {
+        alternarTema: 'Toggle theme',
+        alternarIdioma: 'Toggle language',
+        notificacoes: 'Notifications',
+    },
+    export: {
+        pronta: 'Your export is ready.',
+        baixar: 'Download file',
+        fechar: 'Dismiss',
     },
 } as const;
