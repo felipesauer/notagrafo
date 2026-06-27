@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-36
-  state: READY
+  state: IN_REVIEW
   title: 'Dashboard: Overview com Treemap por UF (Recharts)'
   description: >-
     O Overview (.plan/03 seção 4) pede um Treemap por UF (área proporcional ao
@@ -15,12 +15,12 @@ mnema:
     - vite build OK e app sobe
   estimate: 3
   priority: 3
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f03ba-735c-725c-b52a-22a88c9abe61
   epic_key: NOTA-EPIC-8
   sprint_key: NOTA-SPRINT-8
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-27T22:55:50.096Z'
+  updated_at: '2026-06-27T23:14:05.739Z'
 ---
 # Dashboard: Overview com Treemap por UF (Recharts)

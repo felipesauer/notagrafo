@@ -163,6 +163,16 @@ body {
 .data-table__row--clickable { cursor: pointer; }
 .toolbar { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
 .pagination { display: flex; gap: 0.5rem; margin-top: 1rem; }
+.empty-hint { color: var(--muted, #888); padding: 1rem 0; }
+.nf-list--with-sidebar { display: grid; grid-template-columns: 240px 1fr; gap: 1.5rem; align-items: start; }
+.nf-list__main { min-width: 0; }
+.filter-sidebar { display: flex; flex-direction: column; gap: 0.6rem; padding: 1rem; background: var(--card); border-radius: 8px; }
+.filter-sidebar h3 { margin: 0 0 0.25rem; }
+.filter-sidebar label { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.8rem; }
+.filter-sidebar input, .filter-sidebar select { padding: 0.3rem; }
+.filter-sidebar__actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+.filter-sidebar__actions .secondary { background: transparent; }
+@media (max-width: 800px) { .nf-list--with-sidebar { grid-template-columns: 1fr; } }
 .badge { color: #fff; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.8rem; }
 .nf-detail { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
 .inline-card { display: flex; gap: 1.5rem; padding: 0.75rem; background: var(--card); border-radius: 6px; }
