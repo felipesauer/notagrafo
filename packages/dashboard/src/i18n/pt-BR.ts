@@ -24,6 +24,8 @@ export const ptBR = {
         valorTotal: 'Valor processado',
         volumeTitulo: 'Volume e valor por dia',
         topFornecedores: 'Top fornecedores',
+        distribuicaoUf: 'Distribuição por UF (emitente)',
+        distribuicaoUfVazio: 'Sem dados por UF.',
         ultimasNFs: 'Últimas NFs processadas',
         numero: 'Número',
         valor: 'Valor',

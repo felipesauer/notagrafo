@@ -107,6 +107,17 @@ describe('stats', () => {
         expect(prod.statusCode).toBe(200);
         expect(prod.json().ranking.length).toBeGreaterThanOrEqual(1);
     });
+
+    it('GET /stats/por-uf retorna distribuição por UF do emitente', async () => {
+        const res = await app.inject({ method: 'GET', url: `${API_PREFIX}/stats/por-uf`, headers: bearer() });
+        expect(res.statusCode).toBe(200);
+        expect(res.json().tipo).toBe('emitente');
+        const porUf = res.json().porUf as Array<{ uf: string; totalNFs: number; valorTotal: number }>;
+        expect(Array.isArray(porUf)).toBe(true);
+        expect(porUf.length).toBeGreaterThanOrEqual(1);
+        expect(porUf[0].totalNFs).toBeGreaterThanOrEqual(1);
+        expect(porUf[0]).toHaveProperty('valorTotal');
+    });
 });
 
 describe('export (fluxo assíncrono)', () => {

@@ -54,6 +54,19 @@ export function useTopEmpresas() {
     });
 }
 
+export interface UfStat {
+    uf: string;
+    totalNFs: number;
+    valorTotal: number;
+}
+
+export function usePorUf(tipo: 'emitente' | 'destinatario' = 'emitente') {
+    return useQuery({
+        queryKey: ['stats', 'por-uf', tipo],
+        queryFn: () => apiFetch<{ tipo: string; porUf: UfStat[] }>(`/stats/por-uf${qs({ tipo })}`),
+    });
+}
+
 export function useVolume(granularidade = 'dia') {
     return useQuery({
         queryKey: ['stats', 'volume', granularidade],

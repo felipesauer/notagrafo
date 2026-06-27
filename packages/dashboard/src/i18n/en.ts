@@ -34,6 +34,8 @@ export const en = {
         valorTotal: 'Processed value',
         volumeTitulo: 'Volume and value per day',
         topFornecedores: 'Top suppliers',
+        distribuicaoUf: 'Distribution by state (issuer)',
+        distribuicaoUfVazio: 'No data by state.',
         ultimasNFs: 'Latest processed invoices',
         numero: 'Number',
         valor: 'Value',

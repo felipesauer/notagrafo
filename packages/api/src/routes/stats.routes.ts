@@ -194,4 +194,44 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
             return { metrica, ranking };
         },
     );
+
+    // GET /stats/por-uf — distribuição de NFs e valor por UF do emitente (Treemap do Overview)
+    app.get<{ Querystring: { tipo?: string } }>(
+        '/stats/por-uf',
+        {
+            preHandler: app.authenticate,
+            schema: {
+                tags: ['stats'],
+                summary: 'Distribuição de NFs por UF',
+                querystring: {
+                    type: 'object',
+                    properties: { tipo: { type: 'string', enum: ['emitente', 'destinatario'] } },
+                },
+                security: [{ bearerAuth: [] }],
+            },
+        },
+        async (request) => {
+            const tipo = request.query.tipo === 'destinatario' ? 'destinatario' : 'emitente';
+            const rel = tipo === 'emitente' ? '(e:Empresa)-[:EMITIU]->(nf:NotaFiscal)' : '(nf:NotaFiscal)-[:DESTINADA_A]->(e:Empresa)';
+            const session = driver.session();
+            try {
+                const res = await session.run(
+                    `MATCH ${rel}
+                     WITH coalesce(e.uf, 'N/D') AS uf, count(nf) AS totalNFs, sum(nf.valorTotal) AS valorTotal
+                     RETURN uf, totalNFs, valorTotal
+                     ORDER BY totalNFs DESC`,
+                );
+                return {
+                    tipo,
+                    porUf: res.records.map((r) => ({
+                        uf: r.get('uf'),
+                        totalNFs: toNum(r.get('totalNFs')),
+                        valorTotal: toNum(r.get('valorTotal')),
+                    })),
+                };
+            } finally {
+                await session.close();
+            }
+        },
+    );
 }
