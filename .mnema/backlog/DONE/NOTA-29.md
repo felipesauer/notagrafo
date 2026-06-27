@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-29
-  state: IN_REVIEW
+  state: DONE
   title: docker-compose com profiles app/demo
   description: >-
     Criar docker-compose.yml conforme 04 infra-testes.md: infra sempre ativa
@@ -25,6 +25,6 @@ mnema:
   sprint_key: NOTA-SPRINT-7
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-27T12:48:59.233Z'
+  updated_at: '2026-06-27T12:50:11.216Z'
 ---
 # docker-compose com profiles app/demo
