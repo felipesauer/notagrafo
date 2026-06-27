@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-23
-  state: READY
+  state: IN_REVIEW
   title: Layout global e página de Login
   description: >-
     Criar layout global (Sidebar com 7 itens, Header com breadcrumb + toggle de
@@ -17,12 +17,12 @@ mnema:
       token
   estimate: 5
   priority: 1
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
   epic_key: NOTA-EPIC-6
   sprint_key: NOTA-SPRINT-6
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T23:20:54.774Z'
+  updated_at: '2026-06-27T04:57:24.171Z'
 ---
 # Layout global e página de Login
