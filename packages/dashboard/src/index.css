@@ -139,3 +139,38 @@ body {
     color: #dc2626;
     margin: 0;
 }
+
+/* ── Páginas de dados (NOTA-24) ────────────────────────────── */
+.kpis-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.kpi-card {
+    background: var(--card);
+    padding: 1rem;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+.kpi-card__label { color: var(--muted); font-size: 0.85rem; }
+.kpi-card__valor { font-size: 1.5rem; }
+.chart, .table-section { margin-bottom: 1.5rem; }
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th, .data-table td { text-align: left; padding: 0.5rem; border-bottom: 1px solid var(--card); }
+.data-table__row--clickable { cursor: pointer; }
+.toolbar { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.pagination { display: flex; gap: 0.5rem; margin-top: 1rem; }
+.badge { color: #fff; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.8rem; }
+.nf-detail { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
+.inline-card { display: flex; gap: 1.5rem; padding: 0.75rem; background: var(--card); border-radius: 6px; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: grid; place-items: center; }
+.modal { background: var(--bg); padding: 1.5rem; border-radius: 12px; width: 360px; }
+.modal__actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
+.skeleton__row { height: 1.5rem; background: var(--card); border-radius: 4px; margin-bottom: 0.5rem; animation: pulse 1.5s infinite; }
+@keyframes pulse { 50% { opacity: 0.5; } }
+.inline-error { color: #dc2626; display: flex; gap: 1rem; align-items: center; }
+.empty-state { color: var(--muted); padding: 2rem; text-align: center; }
+.muted { color: var(--muted); }

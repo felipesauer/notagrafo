@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-23
-  state: IN_REVIEW
+  state: DONE
   title: Layout global e página de Login
   description: >-
     Criar layout global (Sidebar com 7 itens, Header com breadcrumb + toggle de
@@ -23,6 +23,6 @@ mnema:
   sprint_key: NOTA-SPRINT-6
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-27T04:57:24.171Z'
+  updated_at: '2026-06-27T05:22:52.621Z'
 ---
 # Layout global e página de Login

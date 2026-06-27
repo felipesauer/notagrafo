@@ -6,6 +6,8 @@ export const en = {
         tentarNovamente: 'Try again',
         salvar: 'Save',
         cancelar: 'Cancel',
+        vazio: 'No results.',
+        buscar: 'Search',
     },
     login: {
         titulo: 'Sign in',
@@ -30,6 +32,27 @@ export const en = {
         totalEmpresas: 'Companies',
         totalProdutos: 'Products',
         valorTotal: 'Processed value',
+        volumeTitulo: 'Volume and value per day',
+        topFornecedores: 'Top suppliers',
+        ultimasNFs: 'Latest processed invoices',
+        numero: 'Number',
+        valor: 'Value',
+        processadaEm: 'Processed at',
+    },
+    nf: {
+        numero: 'Number', emitente: 'Issuer', destinatario: 'Recipient', valor: 'Value',
+        status: 'Status', emissao: 'Issued', todosStatus: 'All statuses',
+        uploadTitulo: 'Upload invoice', enviar: 'Upload', uploadOk: 'Invoice queued.',
+        anterior: 'Previous', proxima: 'Next', detalheTitulo: 'Invoice', itens: 'Items',
+        produto: 'Product', qtd: 'Qty', miniGrafo: 'Graph', verNoGrafo: 'View in graph',
+    },
+    empresas: {
+        titulo: 'Companies', cnpj: 'Tax ID', razaoSocial: 'Legal name', uf: 'State',
+        nfsEmitidas: 'Issued invoices', nfsRecebidas: 'Received invoices', verGrafo: 'View in graph',
+    },
+    produtos: {
+        titulo: 'Products', descricao: 'Description', ncm: 'NCM', totalNFs: 'Invoices',
+        quantidade: 'Quantity', valorTotal: 'Total value', precoMedio: 'Average price',
     },
     header: {
         alternarTema: 'Toggle theme',
