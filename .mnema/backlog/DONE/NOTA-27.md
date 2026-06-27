@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-27
-  state: IN_REVIEW
+  state: DONE
   title: Testes e2e do dashboard (Playwright)
   description: >-
     Criar playwright.config.ts (baseURL http://localhost:8080, webServer com
@@ -22,6 +22,6 @@ mnema:
   sprint_key: NOTA-SPRINT-6
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-27T12:06:09.550Z'
+  updated_at: '2026-06-27T12:11:22.470Z'
 ---
 # Testes e2e do dashboard (Playwright)
