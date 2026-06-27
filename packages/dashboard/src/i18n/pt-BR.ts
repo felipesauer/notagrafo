@@ -44,6 +44,12 @@ export const ptBR = {
         titulo: 'Produtos', descricao: 'Descrição', ncm: 'NCM', totalNFs: 'NFs',
         quantidade: 'Quantidade', valorTotal: 'Valor total', precoMedio: 'Preço médio',
     },
+    grafo: {
+        buscarEmpresa: 'Buscar empresa (CNPJ)', profundidade: 'Profundidade',
+        ambos: 'Ambos', emitente: 'Emitente', destinatario: 'Destinatário',
+        resetar: 'Resetar', exportarPng: 'Exportar PNG',
+        vazio: 'Busque uma empresa para começar.',
+    },
     header: {
         alternarTema: 'Alternar tema',
         alternarIdioma: 'Alternar idioma',
