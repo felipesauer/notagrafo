@@ -137,8 +137,16 @@ describe('rotas de NF', () => {
         // o evento consultada é assíncrono — aguarda um tick e verifica
         await new Promise((r) => setTimeout(r, 300));
         const eventos = await app.inject({ method: 'GET', url: `${API_PREFIX}/nf/${CHAVE}/eventos`, headers: bearer() });
-        const tipos = eventos.json().eventos.map((e: { tipo: string }) => e.tipo);
+        const body = eventos.json();
+        // chaveAcesso no topo (contrato §4)
+        expect(body.chaveAcesso).toBe(CHAVE);
+        const tipos = body.eventos.map((e: { tipo: string }) => e.tipo);
         expect(tipos).toContain('consultada');
+        const consultada = body.eventos.find((e: { tipo: string }) => e.tipo === 'consultada');
+        // timestamp ISO8601 (round-trip por Date) e sem campo 'detalhes'
+        expect(new Date(consultada.timestamp).toISOString()).toBe(consultada.timestamp);
+        expect(consultada).not.toHaveProperty('detalhes');
+        expect(consultada.autor).toBeTruthy();
     });
 
     it('GET /nf/:chave inexistente → 404 NF_NOT_FOUND', async () => {

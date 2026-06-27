@@ -186,16 +186,18 @@ export async function nfRoutes(app: FastifyInstance, deps: NFRouteDeps): Promise
             try {
                 const res = await session.run(
                     `MATCH (nf:NotaFiscal {chaveAcesso: $chave})-[:TEM_EVENTO]->(ev:Evento)
-                     RETURN ev.tipo AS tipo, toString(ev.timestamp) AS timestamp, ev.autor AS autor, ev.detalhes AS detalhes
+                     RETURN ev.tipo AS tipo, toString(ev.timestamp) AS timestamp, ev.autor AS autor, ev.ipOrigem AS ipOrigem
                      ORDER BY ev.timestamp DESC`,
                     { chave: request.params.chave },
                 );
                 return {
+                    chaveAcesso: request.params.chave,
                     eventos: res.records.map((r) => ({
                         tipo: r.get('tipo'),
-                        timestamp: r.get('timestamp'),
+                        // Neo4j datetime → ISO8601 com milissegundos (contrato §4).
+                        timestamp: new Date(r.get('timestamp')).toISOString(),
                         autor: r.get('autor'),
-                        ...(r.get('detalhes') ? { detalhes: r.get('detalhes') } : {}),
+                        ...(r.get('ipOrigem') ? { ipOrigem: r.get('ipOrigem') } : {}),
                     })),
                 };
             } finally {
