@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-18
-  state: IN_REVIEW
+  state: DONE
   title: Observabilidade da API (telemetry, logger, metrics)
   description: >-
     Criar telemetry.ts (OTel SDK antes do Fastify, exporter via OTEL_EXPORTER,
@@ -25,6 +25,6 @@ mnema:
   sprint_key: NOTA-SPRINT-5
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-27T00:07:19.552Z'
+  updated_at: '2026-06-27T00:19:29.761Z'
 ---
 # Observabilidade da API (telemetry, logger, metrics)
