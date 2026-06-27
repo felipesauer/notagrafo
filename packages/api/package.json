@@ -10,18 +10,23 @@
   },
   "dependencies": {
     "@fastify/jwt": "^10.1.0",
+    "@fastify/multipart": "^10.0.0",
     "@fastify/rate-limit": "^11.0.0",
     "@fastify/request-context": "^7.0.0",
     "@fastify/swagger": "^9.7.0",
     "@fastify/swagger-ui": "^6.0.0",
+    "@notagrafo/core": "workspace:*",
     "@notagrafo/graph": "workspace:*",
+    "@notagrafo/worker": "workspace:*",
     "@opentelemetry/api": "^1.9.1",
     "@opentelemetry/exporter-trace-otlp-grpc": "^0.219.0",
     "@opentelemetry/resources": "^2.8.0",
     "@opentelemetry/sdk-node": "^0.219.0",
     "@opentelemetry/sdk-trace-base": "^2.8.0",
     "@opentelemetry/semantic-conventions": "^1.41.1",
+    "adm-zip": "^0.5.17",
     "bcryptjs": "^3.0.3",
+    "bullmq": "^5.79.1",
     "fastify": "^5.8.5",
     "fastify-plugin": "^6.0.0",
     "ioredis": "5.10.1",
@@ -30,6 +35,7 @@
     "prom-client": "^15.1.3"
   },
   "devDependencies": {
+    "@types/adm-zip": "^0.5.8",
     "@types/bcryptjs": "^3.0.0",
     "pino-pretty": "^13.1.3"
   }

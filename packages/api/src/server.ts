@@ -1,4 +1,5 @@
 import { getDriver, runMigrations } from '@notagrafo/graph';
+import { createNFQueue, createRedisConnection, createXmlStorage } from '@notagrafo/worker';
 import { startTelemetry } from './observability/telemetry.js';
 import { buildApp } from './app.js';
 
@@ -7,7 +8,9 @@ async function main(): Promise<void> {
     startTelemetry(); // OTel deve iniciar antes de montar o Fastify
     const driver = getDriver();
     await runMigrations(driver);
-    const app = await buildApp({ logger: true, driver });
+    const queue = createNFQueue(createRedisConnection());
+    const storage = createXmlStorage();
+    const app = await buildApp({ logger: true, driver, queue, storage });
     const port = Number(process.env.PORT ?? '3000');
     await app.listen({ port, host: '0.0.0.0' });
 }

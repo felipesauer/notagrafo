@@ -1,5 +1,8 @@
 import Fastify, { type FastifyInstance } from 'fastify';
+import { fastifyMultipart } from '@fastify/multipart';
 import type { Driver } from 'neo4j-driver';
+import type { Queue } from 'bullmq';
+import type { ProcessNFeJobData, XmlStorage } from '@notagrafo/worker';
 import { errorHandler, ApiError } from './errors.js';
 import { requestIdPlugin, genReqId } from './plugins/request-id.plugin.js';
 import { swaggerPlugin } from './plugins/swagger.plugin.js';
@@ -8,13 +11,18 @@ import { authPlugin } from './auth/auth.plugin.js';
 import { authRoutes } from './auth/auth.routes.js';
 import { metricsPlugin } from './plugins/metrics.plugin.js';
 import { loggerConfig } from './observability/logger.js';
+import { nfRoutes } from './nf/nf.routes.js';
 
 export interface BuildAppOptions {
     /** Desabilita rate-limit (útil em testes que não querem Redis para isso). */
     rateLimit?: boolean;
     logger?: boolean;
-    /** Driver Neo4j — habilita as rotas de auth quando presente. */
+    /** Driver Neo4j — habilita as rotas de auth/nf quando presente. */
     driver?: Driver;
+    /** Fila BullMQ — habilita as rotas de NF (upload/jobs) quando presente. */
+    queue?: Queue<ProcessNFeJobData>;
+    /** Storage de XML — para GET /nf/:chave/xml. */
+    storage?: XmlStorage;
 }
 
 /** Prefixo de versão de todas as rotas de negócio. */
@@ -53,6 +61,7 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<FastifyInsta
     // Auth (JWT manual — ADR NOTA-ADR-1) quando há driver Neo4j.
     if (opts.driver) {
         await app.register(authPlugin);
+        await app.register(fastifyMultipart, { limits: { fileSize: 50 * 1024 * 1024 } });
     }
 
     // Rotas sob o prefixo /api/v1.
@@ -61,6 +70,9 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<FastifyInsta
             api.get('/ping', { schema: { tags: ['health'], summary: 'Ping', response: { 200: { type: 'object', properties: { pong: { type: 'boolean' } } } } } }, async () => ({ pong: true }));
             if (opts.driver) {
                 await authRoutes(api, opts.driver);
+                if (opts.queue && opts.storage) {
+                    await nfRoutes(api, { driver: opts.driver, queue: opts.queue, storage: opts.storage });
+                }
             }
         },
         { prefix: API_PREFIX },
