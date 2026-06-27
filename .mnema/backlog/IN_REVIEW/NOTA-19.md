@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-19
-  state: READY
+  state: IN_REVIEW
   title: Rotas de NF e hook de auditoria
   description: >-
     Criar nf.routes.ts: POST /nf/upload (XML ou ZIP, valida XSD antes de
@@ -17,12 +17,12 @@ mnema:
     - Schemas Fastify com tags/summary/params/querystring/response
   estimate: 8
   priority: 1
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
   epic_key: NOTA-EPIC-5
   sprint_key: NOTA-SPRINT-5
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T23:20:36.581Z'
+  updated_at: '2026-06-27T04:20:34.028Z'
 ---
 # Rotas de NF e hook de auditoria
