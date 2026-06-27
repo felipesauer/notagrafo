@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-30
-  state: READY
+  state: IN_REVIEW
   title: GitHub Actions CI e issue templates
   description: >-
     Criar .github/workflows/ci.yml conforme 04 infra-testes.md: jobs lint (lint
@@ -20,12 +20,12 @@ mnema:
     - Issue templates bug_report.yml e feature_request.yml criados
   estimate: 3
   priority: 2
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
   epic_key: NOTA-EPIC-7
   sprint_key: NOTA-SPRINT-7
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T23:21:19.160Z'
+  updated_at: '2026-06-27T12:52:38.489Z'
 ---
 # GitHub Actions CI e issue templates
