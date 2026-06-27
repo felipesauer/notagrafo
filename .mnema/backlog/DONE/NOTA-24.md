@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-24
-  state: IN_REVIEW
+  state: DONE
   title: Páginas de dados (Overview, NFs, Empresas, Produtos)
   description: >-
     Criar Overview (KPI cards, ComposedChart volume/valor, BarChart top
@@ -26,6 +26,6 @@ mnema:
   sprint_key: NOTA-SPRINT-6
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-27T05:30:31.616Z'
+  updated_at: '2026-06-27T05:34:03.034Z'
 ---
 # Páginas de dados (Overview, NFs, Empresas, Produtos)

@@ -8,6 +8,7 @@ import { NFListPage } from './pages/NFList.js';
 import { NFDetailPage } from './pages/NFDetail.js';
 import { EmpresasPage } from './pages/Empresas.js';
 import { ProdutosPage } from './pages/Produtos.js';
+import { GrafoPage } from './pages/Grafo.js';
 import { Placeholder } from './pages/Placeholder.js';
 
 const rootRoute = createRootRoute({ component: Outlet });
@@ -41,7 +42,14 @@ const nfRoute = childRoute('/nf', NFListPage);
 const nfDetailRoute = childRoute('/nf/$chave', NFDetailPage);
 const empresasRoute = childRoute('/empresas', EmpresasPage);
 const produtosRoute = childRoute('/produtos', ProdutosPage);
-const grafoRoute = childRoute('/grafo', () => <Placeholder titulo="Grafo" />);
+const grafoRoute = createRoute({
+    getParentRoute: () => protectedLayout,
+    path: '/grafo',
+    validateSearch: (search: Record<string, unknown>): { cnpj?: string } => ({
+        cnpj: typeof search.cnpj === 'string' ? search.cnpj : undefined,
+    }),
+    component: GrafoPage,
+});
 const exportacoesRoute = childRoute('/exportacoes', () => <Placeholder titulo="Exportações" />);
 const configuracoesRoute = childRoute('/configuracoes', () => <Placeholder titulo="Configurações" />);
 

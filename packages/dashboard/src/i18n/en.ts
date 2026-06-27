@@ -54,6 +54,12 @@ export const en = {
         titulo: 'Products', descricao: 'Description', ncm: 'NCM', totalNFs: 'Invoices',
         quantidade: 'Quantity', valorTotal: 'Total value', precoMedio: 'Average price',
     },
+    grafo: {
+        buscarEmpresa: 'Search company (Tax ID)', profundidade: 'Depth',
+        ambos: 'Both', emitente: 'Issuer', destinatario: 'Recipient',
+        resetar: 'Reset', exportarPng: 'Export PNG',
+        vazio: 'Search a company to start.',
+    },
     header: {
         alternarTema: 'Toggle theme',
         alternarIdioma: 'Toggle language',
