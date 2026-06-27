@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-17
-  state: IN_REVIEW
+  state: DONE
   title: Auth JWT manual e rotas /auth/* (ADR NOTA-ADR-1)
   description: >-
     Implementar auth com JWT manual (@fastify/jwt) conforme ADR NOTA-ADR-1:
@@ -23,6 +23,6 @@ mnema:
   sprint_key: NOTA-SPRINT-5
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T23:31:12.508Z'
+  updated_at: '2026-06-27T00:02:59.872Z'
 ---
 # Auth JWT manual e rotas /auth/* (ADR NOTA-ADR-1)

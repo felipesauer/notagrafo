@@ -1,8 +1,10 @@
 import { getDriver, runMigrations } from '@notagrafo/graph';
+import { startTelemetry } from './observability/telemetry.js';
 import { buildApp } from './app.js';
 
-/** Boot da API: roda migrations, monta o app (com auth) e escuta na PORT. */
+/** Boot da API: telemetria ANTES do Fastify, migrations, app e listen na PORT. */
 async function main(): Promise<void> {
+    startTelemetry(); // OTel deve iniciar antes de montar o Fastify
     const driver = getDriver();
     await runMigrations(driver);
     const app = await buildApp({ logger: true, driver });
