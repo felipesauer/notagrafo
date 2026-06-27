@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-31
-  state: READY
+  state: IN_REVIEW
   title: Documentação open-source (README, CONTRIBUTING, LICENSE)
   description: >-
     Criar README.md (descrição + quickstart de 5 min: git clone → cp
@@ -16,12 +16,12 @@ mnema:
     - LICENSE MIT na raiz
   estimate: 2
   priority: 2
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
   epic_key: NOTA-EPIC-7
   sprint_key: NOTA-SPRINT-7
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T23:21:22.570Z'
+  updated_at: '2026-06-27T17:52:20.972Z'
 ---
 # Documentação open-source (README, CONTRIBUTING, LICENSE)
