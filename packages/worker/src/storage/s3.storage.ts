@@ -3,6 +3,8 @@ import {
     GetObjectCommand,
     PutObjectCommand,
     HeadObjectCommand,
+    HeadBucketCommand,
+    CreateBucketCommand,
     type S3ClientConfig,
 } from '@aws-sdk/client-s3';
 import { objectKey, type XmlStorage } from './xml.storage.js';
@@ -41,7 +43,28 @@ export class S3XmlStorage implements XmlStorage {
         this.client = new S3Client(clientConfig);
     }
 
+    private bucketGarantido?: Promise<void>;
+
+    /** Garante que o bucket existe (cria se ausente). Idempotente, roda uma vez. */
+    private garantirBucket(): Promise<void> {
+        this.bucketGarantido ??= (async () => {
+            try {
+                await this.client.send(new HeadBucketCommand({ Bucket: this.bucket }));
+            } catch {
+                try {
+                    await this.client.send(new CreateBucketCommand({ Bucket: this.bucket }));
+                } catch (err) {
+                    // corrida: outro processo pode ter criado entre o head e o create
+                    const name = (err as { name?: string }).name;
+                    if (name !== 'BucketAlreadyOwnedByYou' && name !== 'BucketAlreadyExists') throw err;
+                }
+            }
+        })();
+        return this.bucketGarantido;
+    }
+
     async save(chaveAcesso: string, xml: Buffer | string): Promise<string> {
+        await this.garantirBucket();
         const key = objectKey(chaveAcesso);
         await this.client.send(
             new PutObjectCommand({
