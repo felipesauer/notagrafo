@@ -6,6 +6,8 @@ import { swaggerPlugin } from './plugins/swagger.plugin.js';
 import { rateLimitPlugin } from './plugins/rate-limit.plugin.js';
 import { authPlugin } from './auth/auth.plugin.js';
 import { authRoutes } from './auth/auth.routes.js';
+import { metricsPlugin } from './plugins/metrics.plugin.js';
+import { loggerConfig } from './observability/logger.js';
 
 export interface BuildAppOptions {
     /** Desabilita rate-limit (útil em testes que não querem Redis para isso). */
@@ -25,7 +27,7 @@ export const API_PREFIX = '/api/v1';
 export async function buildApp(opts: BuildAppOptions = {}): Promise<FastifyInstance> {
     const app = Fastify({
         genReqId,
-        logger: opts.logger ?? false,
+        logger: opts.logger ? loggerConfig() : false,
         ajv: { customOptions: { allErrors: true } },
     });
 
@@ -34,6 +36,7 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<FastifyInsta
     // Plugins base
     await app.register(requestIdPlugin);
     await app.register(swaggerPlugin);
+    await app.register(metricsPlugin);
     if (opts.rateLimit !== false) {
         await app.register(rateLimitPlugin);
     }
