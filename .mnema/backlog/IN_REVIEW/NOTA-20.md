@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-20
-  state: READY
+  state: IN_REVIEW
   title: Rotas de empresa, export, stats e health
   description: >-
     Criar empresa.routes.ts (GET /empresa/:cnpj, /empresa/:cnpj/grafo com depth
@@ -18,12 +18,12 @@ mnema:
     - /health sem auth com status de neo4j/redis/storage e xsdVersions
   estimate: 8
   priority: 1
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
   epic_key: NOTA-EPIC-5
   sprint_key: NOTA-SPRINT-5
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T23:20:40.584Z'
+  updated_at: '2026-06-27T04:30:58.551Z'
 ---
 # Rotas de empresa, export, stats e health
