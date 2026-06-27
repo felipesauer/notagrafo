@@ -106,6 +106,50 @@ function buildWhere(f: NFFilters): { clauses: string[]; params: Record<string, u
 }
 
 /**
+ * Monta a parte de MATCH + WHERE comum à listagem e à contagem, a partir
+ * dos filtros (sem cursor nem paginação). Tudo parametrizado (sem injeção).
+ */
+function buildFilterQuery(filters: NFFilters): { matchRel: string[]; clauses: string[]; params: Record<string, unknown> } {
+    const { clauses, params } = buildWhere(filters);
+
+    // Relações com emitente/destinatário para filtros por CNPJ/UF.
+    const matchRel: string[] = ['MATCH (emit:Empresa)-[:EMITIU]->(nf:NotaFiscal)', 'OPTIONAL MATCH (nf)-[:DESTINADA_A]->(dest:Empresa)'];
+    if (filters.cnpjEmitente) (clauses.push('emit.cnpj = $cnpjEmitente'), (params.cnpjEmitente = filters.cnpjEmitente));
+    if (filters.ufEmitente) (clauses.push('emit.uf = $ufEmitente'), (params.ufEmitente = filters.ufEmitente));
+    if (filters.cnpjDestinatario) (clauses.push('dest.cnpj = $cnpjDestinatario'), (params.cnpjDestinatario = filters.cnpjDestinatario));
+    if (filters.ufDestinatario) (clauses.push('dest.uf = $ufDestinatario'), (params.ufDestinatario = filters.ufDestinatario));
+    if (filters.cfop) (matchRel.push('MATCH (nf)-[:USA_CFOP]->(:CFOP {codigo: $cfop})'), (params.cfop = filters.cfop));
+    if (filters.ncm) (matchRel.push('MATCH (nf)-[:CONTÉM]->(:Produto)-[:CLASSIFICADO_EM]->(ncm:NCM)'), clauses.push('ncm.codigo STARTS WITH $ncm'), (params.ncm = filters.ncm));
+
+    return { matchRel, clauses, params };
+}
+
+/** Lista das chaves de filtro efetivamente aplicadas (meta.filtrosAtivos do contrato §4). */
+export function filtrosAtivos(filters: NFFilters): string[] {
+    return (Object.keys(filters) as (keyof NFFilters)[]).filter((k) => {
+        const v = filters[k];
+        return v !== undefined && v !== '';
+    });
+}
+
+/**
+ * Conta o total de NFes respeitando os mesmos filtros da listagem (meta.total do §4).
+ * Usa DISTINCT pois MATCHes de produto/ncm podem multiplicar linhas por nota.
+ */
+export async function countNotasFiscais(driver: Driver, filters: NFFilters = {}): Promise<number> {
+    const { matchRel, clauses, params } = buildFilterQuery(filters);
+    const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
+    const cypher = `${matchRel.join('\n')}\nWITH nf, emit, dest\n${where}\nRETURN count(DISTINCT nf) AS total`;
+    const session = driver.session();
+    try {
+        const res = await session.run(cypher, params);
+        return toNum(res.records[0]?.get('total'));
+    } finally {
+        await session.close();
+    }
+}
+
+/**
  * Lista NFes com todos os filtros do GET /nf e paginação cursor-based (keyset).
  * O cursor é opaco (base64 de {valor do orderBy, chaveAcesso}) — keyset pagination,
  * estável e sem offset. limit padrão 50, máx 200.
@@ -120,16 +164,7 @@ export async function listNotasFiscais(
     const order = opts.order === 'asc' ? 'asc' : 'desc';
     const cmp = order === 'asc' ? '>' : '<';
 
-    const { clauses, params } = buildWhere(filters);
-
-    // Relações com emitente/destinatário para filtros por CNPJ/UF.
-    const matchRel: string[] = ['MATCH (emit:Empresa)-[:EMITIU]->(nf:NotaFiscal)', 'OPTIONAL MATCH (nf)-[:DESTINADA_A]->(dest:Empresa)'];
-    if (filters.cnpjEmitente) (clauses.push('emit.cnpj = $cnpjEmitente'), (params.cnpjEmitente = filters.cnpjEmitente));
-    if (filters.ufEmitente) (clauses.push('emit.uf = $ufEmitente'), (params.ufEmitente = filters.ufEmitente));
-    if (filters.cnpjDestinatario) (clauses.push('dest.cnpj = $cnpjDestinatario'), (params.cnpjDestinatario = filters.cnpjDestinatario));
-    if (filters.ufDestinatario) (clauses.push('dest.uf = $ufDestinatario'), (params.ufDestinatario = filters.ufDestinatario));
-    if (filters.cfop) (matchRel.push('MATCH (nf)-[:USA_CFOP]->(:CFOP {codigo: $cfop})'), (params.cfop = filters.cfop));
-    if (filters.ncm) (matchRel.push('MATCH (nf)-[:CONTÉM]->(:Produto)-[:CLASSIFICADO_EM]->(ncm:NCM)'), clauses.push('ncm.codigo STARTS WITH $ncm'), (params.ncm = filters.ncm));
+    const { matchRel, clauses, params } = buildFilterQuery(filters);
 
     if (opts.cursor) {
         const cur = decodeCursor(opts.cursor);

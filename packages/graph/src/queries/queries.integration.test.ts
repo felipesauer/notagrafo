@@ -10,7 +10,7 @@ import { parseNFe, type RawDataNode } from '@notagrafo/core';
 import { runMigrations } from '../migrations.js';
 import { mergeNotaFiscal, type NotaFiscalParaGravar } from '../nf.repository.js';
 import { getEmpresaGrafo, getEmpresaStats, DepthForaDoLimiteError } from './empresa.queries.js';
-import { listNotasFiscais } from './nf.queries.js';
+import { listNotasFiscais, countNotasFiscais, filtrosAtivos } from './nf.queries.js';
 import { topProdutos } from './produto.queries.js';
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'core', 'src', '__fixtures__');
@@ -94,6 +94,22 @@ describe('nf.queries', () => {
     it('filtra por NCM (prefixo)', async () => {
         const page = await listNotasFiscais(driver, { ncm: '6109' });
         expect(page.data.length).toBe(2);
+    });
+
+    it('countNotasFiscais respeita os filtros (DISTINCT por nota)', async () => {
+        // sem filtro: total de NFs do setup
+        expect(await countNotasFiscais(driver, {})).toBe(2);
+        // filtro por emitente ativo: 2
+        expect(await countNotasFiscais(driver, { status: 'ativa', cnpjEmitente: EMIT })).toBe(2);
+        // filtro por NCM com produto repetido em 2 notas → ainda 2 (DISTINCT)
+        expect(await countNotasFiscais(driver, { ncm: '6109' })).toBe(2);
+        // filtro impossível: 0
+        expect(await countNotasFiscais(driver, { status: 'cancelada' })).toBe(0);
+    });
+
+    it('filtrosAtivos lista apenas chaves preenchidas', () => {
+        expect(filtrosAtivos({ status: 'ativa', ufEmitente: 'SP', numero: '' })).toEqual(['status', 'ufEmitente']);
+        expect(filtrosAtivos({})).toEqual([]);
     });
 });
 

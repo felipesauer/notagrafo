@@ -4,6 +4,8 @@ import type { Queue } from 'bullmq';
 import { validarNFe, VersaoSchemaNaoSuportadaError } from '@notagrafo/core';
 import {
     listNotasFiscais,
+    countNotasFiscais,
+    filtrosAtivos,
     getNotaFiscal,
     type NFFilters,
     type NFPageOptions,
@@ -131,15 +133,19 @@ export async function nfRoutes(app: FastifyInstance, deps: NFRouteDeps): Promise
         { preHandler: app.authenticate, schema: { tags: ['nf'], summary: 'Lista NFes', querystring: nfListQuerySchema, security: [{ bearerAuth: [] }] } },
         async (request) => {
             const { cursor, limit, orderBy, order, ...filters } = request.query;
-            const page = await listNotasFiscais(driver, filters as NFFilters, {
-                ...(cursor ? { cursor } : {}),
-                ...(limit ? { limit: Number(limit) } : {}),
-                ...(orderBy ? { orderBy } : {}),
-                ...(order ? { order } : {}),
-            });
+            const [page, total] = await Promise.all([
+                listNotasFiscais(driver, filters as NFFilters, {
+                    ...(cursor ? { cursor } : {}),
+                    ...(limit ? { limit: Number(limit) } : {}),
+                    ...(orderBy ? { orderBy } : {}),
+                    ...(order ? { order } : {}),
+                }),
+                countNotasFiscais(driver, filters as NFFilters),
+            ]);
             return {
                 data: page.data,
                 pagination: { nextCursor: page.nextCursor, limit: page.limit, hasMore: page.hasMore },
+                meta: { total, filtrosAtivos: filtrosAtivos(filters as NFFilters) },
             };
         },
     );

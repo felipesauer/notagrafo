@@ -115,13 +115,17 @@ describe('rotas de NF', () => {
         expect(res.json().error).toBe('DUPLICATE_NF');
     });
 
-    it('GET /nf lista com paginação (data + pagination)', async () => {
+    it('GET /nf lista com paginação (data + pagination + meta)', async () => {
         await processNFe({ xml: xml() }, { driver, storage });
-        const res = await app.inject({ method: 'GET', url: `${API_PREFIX}/nf?limit=10`, headers: bearer() });
+        const res = await app.inject({ method: 'GET', url: `${API_PREFIX}/nf?limit=10&status=ativa`, headers: bearer() });
         expect(res.statusCode).toBe(200);
-        expect(Array.isArray(res.json().data)).toBe(true);
-        expect(res.json().data.length).toBe(1);
-        expect(res.json().pagination).toHaveProperty('hasMore');
+        const json = res.json();
+        expect(Array.isArray(json.data)).toBe(true);
+        expect(json.data.length).toBe(1);
+        expect(json.pagination).toHaveProperty('hasMore');
+        // meta: total respeita os filtros, filtrosAtivos lista as chaves usadas
+        expect(json.meta.total).toBe(1);
+        expect(json.meta.filtrosAtivos).toEqual(['status']);
     });
 
     it('GET /nf/:chave detalha e cria evento consultada (assíncrono)', async () => {

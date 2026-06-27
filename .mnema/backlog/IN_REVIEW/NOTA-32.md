@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-32
-  state: IN_PROGRESS
+  state: IN_REVIEW
   title: 'API: completar resposta de GET /nf/jobs/:jobId conforme contrato'
   description: >-
     GET /api/v1/nf/jobs/:jobId hoje retorna só {jobId,status,progresso,erro?}. O
@@ -24,6 +24,6 @@ mnema:
   sprint_key: NOTA-SPRINT-8
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-27T22:57:09.084Z'
+  updated_at: '2026-06-27T23:02:17.040Z'
 ---
 # API: completar resposta de GET /nf/jobs/:jobId conforme contrato
