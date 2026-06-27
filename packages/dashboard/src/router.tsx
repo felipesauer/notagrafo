@@ -4,6 +4,10 @@ import { useAuthStore } from './stores/auth.store.js';
 import { AppLayout } from './components/AppLayout.js';
 import { LoginPage } from './pages/Login.js';
 import { OverviewPage } from './pages/Overview.js';
+import { NFListPage } from './pages/NFList.js';
+import { NFDetailPage } from './pages/NFDetail.js';
+import { EmpresasPage } from './pages/Empresas.js';
+import { ProdutosPage } from './pages/Produtos.js';
 import { Placeholder } from './pages/Placeholder.js';
 
 const rootRoute = createRootRoute({ component: Outlet });
@@ -33,9 +37,10 @@ const childRoute = (path: string, component: () => JSX.Element) =>
     createRoute({ getParentRoute: () => protectedLayout, path, component });
 
 const overviewRoute = childRoute('/', OverviewPage);
-const nfRoute = childRoute('/nf', () => <Placeholder titulo="Notas Fiscais" />);
-const empresasRoute = childRoute('/empresas', () => <Placeholder titulo="Empresas" />);
-const produtosRoute = childRoute('/produtos', () => <Placeholder titulo="Produtos" />);
+const nfRoute = childRoute('/nf', NFListPage);
+const nfDetailRoute = childRoute('/nf/$chave', NFDetailPage);
+const empresasRoute = childRoute('/empresas', EmpresasPage);
+const produtosRoute = childRoute('/produtos', ProdutosPage);
 const grafoRoute = childRoute('/grafo', () => <Placeholder titulo="Grafo" />);
 const exportacoesRoute = childRoute('/exportacoes', () => <Placeholder titulo="Exportações" />);
 const configuracoesRoute = childRoute('/configuracoes', () => <Placeholder titulo="Configurações" />);
@@ -45,6 +50,7 @@ const routeTree = rootRoute.addChildren([
     protectedLayout.addChildren([
         overviewRoute,
         nfRoute,
+        nfDetailRoute,
         empresasRoute,
         produtosRoute,
         grafoRoute,

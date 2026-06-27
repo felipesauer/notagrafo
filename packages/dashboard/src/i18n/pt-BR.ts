@@ -6,6 +6,8 @@ export const ptBR = {
         tentarNovamente: 'Tentar novamente',
         salvar: 'Salvar',
         cancelar: 'Cancelar',
+        vazio: 'Nenhum resultado.',
+        buscar: 'Buscar',
     },
     login: {
         titulo: 'Entrar',
@@ -20,6 +22,27 @@ export const ptBR = {
         totalEmpresas: 'Empresas',
         totalProdutos: 'Produtos',
         valorTotal: 'Valor processado',
+        volumeTitulo: 'Volume e valor por dia',
+        topFornecedores: 'Top fornecedores',
+        ultimasNFs: 'Últimas NFs processadas',
+        numero: 'Número',
+        valor: 'Valor',
+        processadaEm: 'Processada em',
+    },
+    nf: {
+        numero: 'Número', emitente: 'Emitente', destinatario: 'Destinatário', valor: 'Valor',
+        status: 'Status', emissao: 'Emissão', todosStatus: 'Todos os status',
+        uploadTitulo: 'Enviar NFe', enviar: 'Enviar', uploadOk: 'NFe enfileirada.',
+        anterior: 'Anterior', proxima: 'Próxima', detalheTitulo: 'NF', itens: 'Itens',
+        produto: 'Produto', qtd: 'Qtd', miniGrafo: 'Grafo', verNoGrafo: 'Ver no grafo',
+    },
+    empresas: {
+        titulo: 'Empresas', cnpj: 'CNPJ', razaoSocial: 'Razão social', uf: 'UF',
+        nfsEmitidas: 'NFs emitidas', nfsRecebidas: 'NFs recebidas', verGrafo: 'Ver no grafo',
+    },
+    produtos: {
+        titulo: 'Produtos', descricao: 'Descrição', ncm: 'NCM', totalNFs: 'NFs',
+        quantidade: 'Quantidade', valorTotal: 'Valor total', precoMedio: 'Preço médio',
     },
     header: {
         alternarTema: 'Alternar tema',
