@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-26
-  state: READY
+  state: IN_REVIEW
   title: Páginas de Exportações e Configurações
   description: >-
     Criar /exportacoes (formulário de nova exportação → POST /export; lista com
@@ -15,12 +15,12 @@ mnema:
     - Seção Sistema lê versões de XSD e status de serviços de /health
   estimate: 5
   priority: 2
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
   epic_key: NOTA-EPIC-6
   sprint_key: NOTA-SPRINT-6
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-26T23:21:05.670Z'
+  updated_at: '2026-06-27T11:45:09.119Z'
 ---
 # Páginas de Exportações e Configurações
