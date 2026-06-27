@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-28
-  state: IN_REVIEW
+  state: DONE
   title: Dockerfiles multi-stage (api, worker, dashboard)
   description: >-
     Criar os Dockerfiles do 04 infra-testes.md: api (deps → build → production,
@@ -22,6 +22,6 @@ mnema:
   sprint_key: NOTA-SPRINT-7
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-27T12:21:20.188Z'
+  updated_at: '2026-06-27T12:24:28.438Z'
 ---
 # Dockerfiles multi-stage (api, worker, dashboard)
