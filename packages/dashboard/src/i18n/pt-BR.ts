@@ -50,6 +50,15 @@ export const ptBR = {
         resetar: 'Resetar', exportarPng: 'Exportar PNG',
         vazio: 'Busque uma empresa para começar.',
     },
+    exportacoes: {
+        nova: 'Nova exportação', formato: 'Formato', campos: 'Campos', gerar: 'Gerar exportação',
+        historico: 'Histórico', acoes: 'Ações', baixar: 'Baixar', vazio: 'Nenhuma exportação ainda.',
+    },
+    config: {
+        perfil: 'Perfil', alterarSenha: 'Alterar senha', usuarios: 'Usuários', convidar: 'Convidar usuário',
+        armazenamento: 'Armazenamento', driver: 'Driver', sistema: 'Sistema',
+        xsdVersions: 'Versões de XSD', servicos: 'Serviços', uptime: 'Uptime', verificarSaude: 'Verificar saúde',
+    },
     header: {
         alternarTema: 'Alternar tema',
         alternarIdioma: 'Alternar idioma',

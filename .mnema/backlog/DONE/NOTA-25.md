@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-25
-  state: IN_REVIEW
+  state: DONE
   title: Página de Grafo (React Flow + dagre)
   description: >-
     Criar /grafo com React Flow + dagre: toolbar (busca empresa, slider depth
@@ -23,6 +23,6 @@ mnema:
   sprint_key: NOTA-SPRINT-6
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-27T11:39:46.371Z'
+  updated_at: '2026-06-27T11:41:10.832Z'
 ---
 # Página de Grafo (React Flow + dagre)
