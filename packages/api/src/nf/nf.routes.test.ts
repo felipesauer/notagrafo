@@ -123,11 +123,12 @@ describe('GET /nf/jobs/:jobId (unit)', () => {
         expect(res.json()).toMatchObject({ status: 'failed', erro: 'boom', tentativas: 3 });
     });
 
-    it('estado não-terminal (waiting) traz total mas sem resultado/concluidoEm', async () => {
-        const job = { id: CHAVE, progress: 0, getState: async () => 'waiting' };
+    it.each(['waiting', 'active', 'delayed', 'paused'])('estado não-terminal (%s) → status "processing" com total, sem resultado', async (estado) => {
+        const job = { id: CHAVE, progress: 0, getState: async () => estado };
         app = await build(makeQueue(() => job));
         const res = await app.inject({ method: 'GET', url: `/nf/jobs/${CHAVE}` });
         const j = res.json();
+        expect(j.status).toBe('processing'); // mapeado do estado cru do BullMQ (contrato §3)
         expect(j.total).toBe(1);
         expect(j.resultado).toBeUndefined();
         expect(j.concluidoEm).toBeUndefined();

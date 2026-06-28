@@ -114,7 +114,7 @@ export async function nfRoutes(app: FastifyInstance, deps: NFRouteDeps): Promise
             if (state === 'failed') {
                 return {
                     jobId: job.id,
-                    status: state,
+                    status: 'failed',
                     erro: job.failedReason ?? 'Falha desconhecida no processamento.',
                     tentativas: job.attemptsMade,
                 };
@@ -123,24 +123,29 @@ export async function nfRoutes(app: FastifyInstance, deps: NFRouteDeps): Promise
             // Cada job processa exatamente 1 NFe (enqueueNFe enfileira 1 XML por job;
             // duplicatas são bloqueadas antes de enfileirar). Logo total = 1.
             const total = 1;
-            const base = {
-                jobId: job.id,
-                status: state,
-                progresso,
-                total,
-                ...(job.processedOn ? { iniciadoEm: new Date(job.processedOn).toISOString() } : {}),
-            };
 
             // Concluído: inclui concluidoEm + resultado{processadas,duplicatas,erros}.
             if (state === 'completed') {
                 return {
-                    ...base,
+                    jobId: job.id,
+                    status: 'completed',
+                    progresso,
+                    total,
+                    ...(job.processedOn ? { iniciadoEm: new Date(job.processedOn).toISOString() } : {}),
                     ...(job.finishedOn ? { concluidoEm: new Date(job.finishedOn).toISOString() } : {}),
                     resultado: { processadas: 1, duplicatas: 0, erros: 0 },
                 };
             }
 
-            return base;
+            // Demais estados do BullMQ (waiting/active/delayed/paused/...) → 'processing'
+            // no contrato §3, que só define processing | completed | failed.
+            return {
+                jobId: job.id,
+                status: 'processing',
+                progresso,
+                total,
+                ...(job.processedOn ? { iniciadoEm: new Date(job.processedOn).toISOString() } : {}),
+            };
         },
     );
 

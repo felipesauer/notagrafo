@@ -175,9 +175,10 @@ describe('rotas de NF', () => {
         const jobId = up.json().jobId as string;
         expect(jobId).toBeTruthy();
 
-        // Antes de processar: estado waiting/active, mas já com total = 1.
+        // Antes de processar: estado waiting/active do BullMQ → 'processing' (contrato §3).
         const pending = await app.inject({ method: 'GET', url: `${API_PREFIX}/nf/jobs/${jobId}`, headers: bearer() });
         expect(pending.statusCode).toBe(200);
+        expect(pending.json().status).toBe('processing');
         expect(pending.json().total).toBe(1);
         expect(pending.json().jobId).toBe(jobId);
 
