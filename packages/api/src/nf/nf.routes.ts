@@ -206,21 +206,30 @@ export async function nfRoutes(app: FastifyInstance, deps: NFRouteDeps): Promise
         async (request) => {
             const session = driver.session();
             try {
+                // MATCH na NF + OPTIONAL nos eventos: distingue "NF inexistente" (0 linhas)
+                // de "NF sem eventos" (1 linha com ev = null).
                 const res = await session.run(
-                    `MATCH (nf:NotaFiscal {chaveAcesso: $chave})-[:TEM_EVENTO]->(ev:Evento)
+                    `MATCH (nf:NotaFiscal {chaveAcesso: $chave})
+                     OPTIONAL MATCH (nf)-[:TEM_EVENTO]->(ev:Evento)
                      RETURN ev.tipo AS tipo, toString(ev.timestamp) AS timestamp, ev.autor AS autor, ev.ipOrigem AS ipOrigem
                      ORDER BY ev.timestamp DESC`,
                     { chave: request.params.chave },
                 );
+                if (res.records.length === 0) {
+                    throw ApiError.notFound('NF_NOT_FOUND', 'NFe não encontrada.');
+                }
                 return {
                     chaveAcesso: request.params.chave,
-                    eventos: res.records.map((r) => ({
-                        tipo: r.get('tipo'),
-                        // Neo4j datetime → ISO8601 com milissegundos (contrato §4).
-                        timestamp: new Date(r.get('timestamp')).toISOString(),
-                        autor: r.get('autor'),
-                        ...(r.get('ipOrigem') ? { ipOrigem: r.get('ipOrigem') } : {}),
-                    })),
+                    // Filtra a linha sentinela quando a NF existe mas não tem eventos (ev = null).
+                    eventos: res.records
+                        .filter((r) => r.get('tipo') !== null)
+                        .map((r) => ({
+                            tipo: r.get('tipo'),
+                            // Neo4j datetime → ISO8601 com milissegundos (contrato §4).
+                            timestamp: new Date(r.get('timestamp')).toISOString(),
+                            autor: r.get('autor'),
+                            ...(r.get('ipOrigem') ? { ipOrigem: r.get('ipOrigem') } : {}),
+                        })),
                 };
             } finally {
                 await session.close();

@@ -155,6 +155,12 @@ describe('rotas de NF', () => {
         expect(res.json().error).toBe('NF_NOT_FOUND');
     });
 
+    it('GET /nf/:chave/eventos de NF inexistente → 404 NF_NOT_FOUND', async () => {
+        const res = await app.inject({ method: 'GET', url: `${API_PREFIX}/nf/00000000000000000000000000000000000000000000/eventos`, headers: bearer() });
+        expect(res.statusCode).toBe(404);
+        expect(res.json().error).toBe('NF_NOT_FOUND');
+    });
+
     it('GET /nf/:chave/xml retorna o XML do storage', async () => {
         await processNFe({ xml: xml() }, { driver, storage });
         const res = await app.inject({ method: 'GET', url: `${API_PREFIX}/nf/${CHAVE}/xml`, headers: bearer() });

@@ -148,6 +148,22 @@ describe('GET /nf/:chave/eventos (unit)', () => {
         expect(j.eventos[0]).toMatchObject({ tipo: 'consultada', autor: 'a@b.com', ipOrigem: '1.2.3.4' });
         expect(new Date(j.eventos[0].timestamp).toISOString()).toBe(j.eventos[0].timestamp);
     });
+
+    it('404 NF_NOT_FOUND quando a NF não existe (0 linhas)', async () => {
+        const { driver } = makeFakeDriver(() => []);
+        app = await build(makeQueue(() => null), fakeStorage(), driver);
+        const res = await app.inject({ method: 'GET', url: `/nf/${CHAVE}/eventos` });
+        expect(res.statusCode).toBe(404);
+        expect(res.json().error).toBe('NF_NOT_FOUND');
+    });
+
+    it('200 com eventos:[] quando a NF existe mas não tem eventos (linha sentinela ev=null)', async () => {
+        const { driver } = makeFakeDriver(() => [{ get: () => null }]);
+        app = await build(makeQueue(() => null), fakeStorage(), driver);
+        const res = await app.inject({ method: 'GET', url: `/nf/${CHAVE}/eventos` });
+        expect(res.statusCode).toBe(200);
+        expect(res.json()).toEqual({ chaveAcesso: CHAVE, eventos: [] });
+    });
 });
 
 describe('POST /nf/upload validação (unit)', () => {
