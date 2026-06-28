@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-43
-  state: READY
+  state: IN_REVIEW
   title: GET /nf/:chave/eventos retorna 404 para NF inexistente
   description: >-
     Achado E (BAIXA): /eventos retorna 200 {eventos:[]} para chave inexistente,
@@ -13,12 +13,12 @@ mnema:
     - Teste de integracao cobre o 404
   estimate: 2
   priority: 3
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f03ba-735c-725c-b52a-22a88c9abe61
   epic_key: NOTA-EPIC-9
   sprint_key: NOTA-SPRINT-9
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-28T22:07:22.179Z'
+  updated_at: '2026-06-28T22:36:57.645Z'
 ---
 # GET /nf/:chave/eventos retorna 404 para NF inexistente

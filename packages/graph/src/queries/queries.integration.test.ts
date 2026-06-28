@@ -96,6 +96,40 @@ describe('nf.queries', () => {
         expect(page.data.length).toBe(2);
     });
 
+    it('cobre os demais filtros do contrato (valor/data/cfop/dest/tipo/finalidade/natureza)', async () => {
+        // as 2 NFs do setup: valorTotal=10, dataEmissao 2026-06-26, CFOP 5102,
+        // destinatário CNPJ 99999999000191 / UF SP, tipoNF saida, finalidade normal, natOp VENDA.
+        const casa = [
+            { valorTotalMin: 5, valorTotalMax: 50 },
+            { dataEmissaoInicio: '2026-06-01', dataEmissaoFim: '2026-06-30' },
+            { cfop: '5102' },
+            { cnpjDestinatario: '99999999000191' },
+            { ufDestinatario: 'SP' },
+            { tipoNF: 'saida' },
+            { finalidade: 'normal' },
+            { naturezaOp: 'venda' }, // contains case-insensitive
+        ];
+        for (const f of casa) {
+            const page = await listNotasFiscais(driver, f);
+            expect(page.data.length, `filtro ${JSON.stringify(f)} deveria casar as 2 NFs`).toBe(2);
+        }
+
+        // filtros que NÃO casam → 0 resultados
+        const naoCasa = [
+            { valorTotalMin: 1000 },
+            { valorTotalMax: 1 },
+            { dataEmissaoInicio: '2027-01-01' },
+            { cfop: '6102' },
+            { ufDestinatario: 'MG' },
+            { tipoNF: 'entrada' },
+            { finalidade: 'devolucao' },
+        ];
+        for (const f of naoCasa) {
+            const page = await listNotasFiscais(driver, f);
+            expect(page.data.length, `filtro ${JSON.stringify(f)} não deveria casar`).toBe(0);
+        }
+    });
+
     it('countNotasFiscais respeita os filtros (DISTINCT por nota)', async () => {
         // sem filtro: total de NFs do setup
         expect(await countNotasFiscais(driver, {})).toBe(2);

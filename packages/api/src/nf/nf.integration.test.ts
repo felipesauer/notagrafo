@@ -128,6 +128,19 @@ describe('rotas de NF', () => {
         expect(json.meta.filtrosAtivos).toEqual(['status']);
     });
 
+    it('GET /nf coage valorTotalMin/Max da query (string→number) e filtra', async () => {
+        await processNFe({ xml: xml() }, { driver, storage }); // valorTotal = 10
+        // valores passam como STRING na query; o ajv do Fastify deve coagir para number.
+        const dentro = await app.inject({ method: 'GET', url: `${API_PREFIX}/nf?valorTotalMin=5&valorTotalMax=50`, headers: bearer() });
+        expect(dentro.statusCode).toBe(200);
+        expect(dentro.json().data.length).toBe(1);
+        expect(dentro.json().meta.filtrosAtivos.sort()).toEqual(['valorTotalMax', 'valorTotalMin']);
+
+        const fora = await app.inject({ method: 'GET', url: `${API_PREFIX}/nf?valorTotalMin=1000`, headers: bearer() });
+        expect(fora.json().data.length).toBe(0);
+        expect(fora.json().meta.total).toBe(0);
+    });
+
     it('GET /nf/:chave detalha e cria evento consultada (assíncrono)', async () => {
         await processNFe({ xml: xml() }, { driver, storage });
         const res = await app.inject({ method: 'GET', url: `${API_PREFIX}/nf/${CHAVE}`, headers: bearer() });
