@@ -35,6 +35,11 @@ export const ptBR = {
         numero: 'Número', emitente: 'Emitente', destinatario: 'Destinatário', valor: 'Valor',
         status: 'Status', emissao: 'Emissão', todosStatus: 'Todos os status',
         uploadTitulo: 'Enviar NFe', enviar: 'Enviar', uploadOk: 'NFe enfileirada.',
+        dropAqui: 'Arraste um XML ou ZIP aqui, ou clique para selecionar',
+        processando: 'Processando…',
+        resumo: 'Processadas: {{processadas}} · Duplicatas: {{duplicatas}} · Erros: {{erros}}',
+        concluido: 'Concluído',
+        falhou: 'Falha no processamento.',
         anterior: 'Anterior', proxima: 'Próxima', detalheTitulo: 'NF', itens: 'Itens',
         produto: 'Produto', qtd: 'Qtd', miniGrafo: 'Grafo', verNoGrafo: 'Ver no grafo',
         filtros: {

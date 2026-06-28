@@ -45,6 +45,11 @@ export const en = {
         numero: 'Number', emitente: 'Issuer', destinatario: 'Recipient', valor: 'Value',
         status: 'Status', emissao: 'Issued', todosStatus: 'All statuses',
         uploadTitulo: 'Upload invoice', enviar: 'Upload', uploadOk: 'Invoice queued.',
+        dropAqui: 'Drag an XML or ZIP here, or click to select',
+        processando: 'Processing…',
+        resumo: 'Processed: {{processadas}} · Duplicates: {{duplicatas}} · Errors: {{erros}}',
+        concluido: 'Done',
+        falhou: 'Processing failed.',
         anterior: 'Previous', proxima: 'Next', detalheTitulo: 'Invoice', itens: 'Items',
         produto: 'Product', qtd: 'Qty', miniGrafo: 'Graph', verNoGrafo: 'View in graph',
         filtros: {

@@ -179,6 +179,9 @@ body {
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: grid; place-items: center; }
 .modal { background: var(--bg); padding: 1.5rem; border-radius: 12px; width: 360px; }
 .modal__actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
+.dropzone { border: 2px dashed var(--card); border-radius: 8px; padding: 1.5rem; text-align: center; cursor: pointer; color: var(--muted, #888); margin: 0.5rem 0; }
+.dropzone--over { border-color: #2563eb; background: rgba(37,99,235,0.06); }
+.upload-resumo { font-weight: 600; }
 .skeleton__row { height: 1.5rem; background: var(--card); border-radius: 4px; margin-bottom: 0.5rem; animation: pulse 1.5s infinite; }
 @keyframes pulse { 50% { opacity: 0.5; } }
 .inline-error { color: #dc2626; display: flex; gap: 1rem; align-items: center; }
