@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-38
-  state: READY
+  state: IN_REVIEW
   title: 'Dashboard: UploadModal com drag-and-drop e polling do job'
   description: >-
     O UploadModal (.plan/03 seção 4) deve ter drag-and-drop de XML/ZIP e, após o
@@ -15,12 +15,12 @@ mnema:
     - vite build/typecheck/lint verdes
   estimate: 3
   priority: 3
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f03ba-735c-725c-b52a-22a88c9abe61
   epic_key: NOTA-EPIC-8
   sprint_key: NOTA-SPRINT-8
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-27T22:56:02.290Z'
+  updated_at: '2026-06-28T21:01:56.672Z'
 ---
 # Dashboard: UploadModal com drag-and-drop e polling do job

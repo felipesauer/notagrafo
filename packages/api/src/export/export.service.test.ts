@@ -72,3 +72,56 @@ describe('ExportService — TTL/expiração', () => {
         expect(job.progresso).toBe(3);
     });
 });
+
+/** Driver simples: count fixo + 1 página de registros + sem nextCursor. */
+function driverComRegistros(registros: Record<string, unknown>[]): Driver {
+    const run = vi.fn(async (cypher: string) => {
+        if (cypher.includes('count(DISTINCT nf)')) return { records: [{ get: () => registros.length }] };
+        return { records: registros.map((nf) => ({ get: (k: string) => (k === 'nf' ? { properties: nf } : null) })) };
+    });
+    return { session: () => ({ run, close: vi.fn(async () => {}) }) } as unknown as Driver;
+}
+
+describe('ExportService — serialização', () => {
+    // naturezaOp sobrevive ao mapeamento NFListItem como string (testa o escape do CSV).
+    const registros = [
+        { chaveAcesso: 'a', numero: '1', naturezaOp: 'Venda comum' },
+        { chaveAcesso: 'b', numero: '2', naturezaOp: 'tem,vírgula' },
+    ];
+
+    it('json (sem campos) inclui as linhas mapeadas e é parseável', async () => {
+        const service = new ExportService(driverComRegistros(registros));
+        const job = service.criar('json');
+        await vi.waitFor(() => expect(job.status).toBe('ready'));
+        const buf = await service.ler(job);
+        const parsed = JSON.parse(buf.toString()) as Array<Record<string, unknown>>;
+        expect(parsed).toHaveLength(2);
+        expect(parsed[0]!.chaveAcesso).toBe('a');
+    });
+
+    it('json com campos restringe as colunas (pick)', async () => {
+        const service = new ExportService(driverComRegistros(registros));
+        const job = service.criar('json', undefined, ['chaveAcesso']);
+        await vi.waitFor(() => expect(job.status).toBe('ready'));
+        const parsed = JSON.parse((await service.ler(job)).toString()) as Array<Record<string, unknown>>;
+        expect(Object.keys(parsed[0]!)).toEqual(['chaveAcesso']);
+    });
+
+    it('csv escapa células com vírgula e tem header', async () => {
+        const service = new ExportService(driverComRegistros(registros));
+        const job = service.criar('csv');
+        await vi.waitFor(() => expect(job.status).toBe('ready'));
+        const csv = (await service.ler(job)).toString();
+        const linhas = csv.split('\n');
+        expect(linhas[0]).toContain('chaveAcesso'); // header com as colunas do NFListItem
+        expect(csv).toContain('"tem,vírgula"'); // célula com vírgula entre aspas
+    });
+
+    it('falha na geração marca status failed com erro', async () => {
+        const driver = { session: () => ({ run: vi.fn(async () => { throw new Error('Neo4j down'); }), close: vi.fn(async () => {}) }) } as unknown as Driver;
+        const service = new ExportService(driver);
+        const job = service.criar('json');
+        await vi.waitFor(() => expect(job.status).toBe('failed'));
+        expect(job.erro).toContain('Neo4j down');
+    });
+});
