@@ -182,10 +182,19 @@ describe('rotas de NF', () => {
         expect(pending.json().total).toBe(1);
         expect(pending.json().jobId).toBe(jobId);
 
-        // Processa o job com um worker real ligado à mesma fila.
+        // Processa o job com um worker real ligado à mesma fila (com progresso).
+        const progressos: number[] = [];
         const worker = new Worker(
             queue.name,
-            async (job) => processNFe(job.data as { xml: string }, { driver, storage }),
+            async (job) =>
+                processNFe(job.data as { xml: string }, {
+                    driver,
+                    storage,
+                    onProgress: async (pct) => {
+                        progressos.push(pct);
+                        await job.updateProgress(pct);
+                    },
+                }),
             { connection: connection.duplicate() },
         );
         try {
@@ -205,5 +214,8 @@ describe('rotas de NF', () => {
         expect(json.iniciadoEm).toBeTruthy();
         expect(json.concluidoEm).toBeTruthy();
         expect(json.resultado).toEqual({ processadas: 1, duplicatas: 0, erros: 0 });
+        // progresso foi reportado nos marcos e chegou a 100 (NOTA-42)
+        expect(progressos).toEqual([25, 50, 75, 100]);
+        expect(json.progresso).toBe(100);
     });
 });

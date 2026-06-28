@@ -18,7 +18,7 @@ export async function startWorker(): Promise<Worker<ProcessNFeJobData>> {
 
     const worker = new Worker<ProcessNFeJobData>(
         NF_QUEUE,
-        async (job) => processNFe(job.data, { driver, storage }),
+        async (job) => processNFe(job.data, { driver, storage, onProgress: (pct) => job.updateProgress(pct) }),
         { connection, concurrency: config.concurrency },
     );
 

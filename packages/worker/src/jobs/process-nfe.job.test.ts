@@ -35,6 +35,13 @@ describe('processNFe (unit)', () => {
         expect(storage.save).toHaveBeenCalledWith(CHAVE, xml());
     });
 
+    it('reporta progresso nos marcos do pipeline (25/50/75/100)', async () => {
+        const onProgress = vi.fn(async () => {});
+        await processNFe({ xml: xml() }, { driver: fakeDriver, storage: fakeStorage(), onProgress });
+        const marcos = onProgress.mock.calls.map((c) => c[0]);
+        expect(marcos).toEqual([25, 50, 75, 100]);
+    });
+
     it('XML inválido contra o XSD → lança e não grava no grafo', async () => {
         const storage = fakeStorage();
         await expect(processNFe({ xml: xml('nfe-invalida-schema.xml') }, { driver: fakeDriver, storage })).rejects.toThrow(/XSD|inválido/i);
