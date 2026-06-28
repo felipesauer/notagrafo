@@ -7,7 +7,8 @@ vi.mock('@notagrafo/graph', () => ({ getDriver: vi.fn(), runMigrations: vi.fn(as
 import { runSeed } from './index.js';
 import type { XmlStorage } from '../storage/xml.storage.js';
 
-const fakeDriver = {} as Driver;
+// driver fake: criarUsuarioDemo faz session().run() — devolvemos uma sessão no-op.
+const fakeDriver = { session: () => ({ run: async () => ({ records: [] }), close: async () => {} }) } as unknown as Driver;
 const fakeStorage = {} as XmlStorage;
 
 describe('runSeed (unit)', () => {

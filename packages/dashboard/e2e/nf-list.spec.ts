@@ -7,8 +7,9 @@ test.describe('listagem de NFs', () => {
         await page.getByRole('link', { name: /notas fiscais|invoices/i }).click();
         await expect(page.locator('.data-table')).toBeVisible();
 
-        // filtra por status ativa
-        await page.locator('select').first().selectOption('ativa');
+        // filtra por status ativa — o select de status fica na toolbar
+        // (o FilterSidebar tem outros selects, então restringimos à .toolbar)
+        await page.locator('.toolbar select').selectOption('ativa');
         await expect(page.locator('.data-table tbody tr').first()).toBeVisible();
 
         // abre o detalhe pela primeira linha (link no número)

@@ -1,9 +1,28 @@
+import { randomUUID } from 'node:crypto';
+import bcrypt from 'bcryptjs';
 import type { Driver } from 'neo4j-driver';
 import { getDriver, runMigrations } from '@notagrafo/graph';
 import { processNFe } from '../jobs/process-nfe.job.js';
 import { createXmlStorage } from '../storage/factory.js';
 import type { XmlStorage } from '../storage/xml.storage.js';
 import { gerarNFe, makeRng } from './generator.js';
+
+/** Cria (idempotente) o usuário de demonstração usado no login do profile demo. */
+async function criarUsuarioDemo(driver: Driver): Promise<void> {
+    const email = process.env.DEMO_USER_EMAIL ?? 'demo@notagrafo.local';
+    const senha = process.env.DEMO_USER_SENHA ?? 'demo1234';
+    const senhaHash = await bcrypt.hash(senha, 10);
+    const session = driver.session();
+    try {
+        await session.run(
+            `MERGE (u:Usuario {email: $email})
+             ON CREATE SET u.id = $id, u.nome = $nome, u.senhaHash = $senhaHash, u.criadoEm = $criadoEm`,
+            { email, id: randomUUID(), nome: 'Demo', senhaHash, criadoEm: new Date().toISOString() },
+        );
+    } finally {
+        await session.close();
+    }
+}
 
 export interface SeedOptions {
     count: number;
@@ -37,6 +56,10 @@ export async function runSeed(opts: SeedOptions, deps: SeedDeps = {}): Promise<S
     const storage = deps.storage ?? createXmlStorage();
     const processFn = deps.processFn ?? processNFe;
     await runMigrations(driver);
+
+    // Usuário de demonstração para o login (e2e / exploração do profile demo).
+    // MERGE por e-mail → idempotente. Senha via bcrypt; não importa a API (evita ciclo).
+    await criarUsuarioDemo(driver);
 
     let processadas = 0;
     let falhas = 0;

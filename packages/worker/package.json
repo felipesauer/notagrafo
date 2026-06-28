@@ -13,6 +13,7 @@
     "@aws-sdk/client-s3": "^3.1075.0",
     "@notagrafo/core": "workspace:*",
     "@notagrafo/graph": "workspace:*",
+    "bcryptjs": "^3.0.3",
     "bullmq": "^5.79.1",
     "ioredis": "^5.10.1",
     "neo4j-driver": "^6.1.0"
