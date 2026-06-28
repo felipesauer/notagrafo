@@ -108,6 +108,18 @@ describe('stats', () => {
         expect(prod.json().ranking.length).toBeGreaterThanOrEqual(1);
     });
 
+    it('GET /stats/produto/:idUnico/historico retorna a evolução de preço', async () => {
+        // descobre um idUnico do ranking e consulta o histórico
+        const top = await app.inject({ method: 'GET', url: `${API_PREFIX}/stats/top-produtos?limit=1`, headers: bearer() });
+        const idUnico = top.json().ranking[0].idUnico as string;
+        const res = await app.inject({ method: 'GET', url: `${API_PREFIX}/stats/produto/${encodeURIComponent(idUnico)}/historico`, headers: bearer() });
+        expect(res.statusCode).toBe(200);
+        expect(res.json().idUnico).toBe(idUnico);
+        const hist = res.json().historico as Array<{ periodo: string; precoMedio: number }>;
+        expect(hist.length).toBeGreaterThanOrEqual(1);
+        expect(hist[0].precoMedio).toBeGreaterThan(0);
+    });
+
     it('GET /stats/por-uf retorna distribuição por UF do emitente', async () => {
         const res = await app.inject({ method: 'GET', url: `${API_PREFIX}/stats/por-uf`, headers: bearer() });
         expect(res.statusCode).toBe(200);

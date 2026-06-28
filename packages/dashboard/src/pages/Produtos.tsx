@@ -1,7 +1,31 @@
 import { type JSX, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useTopProdutos } from '../api/hooks.js';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip } from 'recharts';
+import { useTopProdutos, useHistoricoPreco } from '../api/hooks.js';
 import { CurrencyValue, LoadingSkeleton, InlineError, EmptyState } from '../components/shared.js';
+
+/** Gráfico de evolução do preço médio de um produto por mês (NOTA-46). */
+function HistoricoPrecoChart({ idUnico }: { idUnico: string }): JSX.Element {
+    const { t } = useTranslation();
+    const { data, isLoading, isError } = useHistoricoPreco(idUnico);
+    if (isLoading) return <LoadingSkeleton linhas={2} />;
+    if (isError) return <p className="login__erro">{t('comum.erro')}</p>;
+    const serie = data?.historico ?? [];
+    if (serie.length === 0) return <p className="empty-hint">{t('produtos.semHistorico')}</p>;
+    return (
+        <div className="chart">
+            <h4>{t('produtos.historicoPreco')}</h4>
+            <ResponsiveContainer width="100%" height={200}>
+                <LineChart data={serie}>
+                    <XAxis dataKey="periodo" />
+                    <YAxis />
+                    <Tooltip formatter={(v) => Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} />
+                    <Line dataKey="precoMedio" stroke="#2563eb" name={t('produtos.precoMedio')} />
+                </LineChart>
+            </ResponsiveContainer>
+        </div>
+    );
+}
 
 interface Produto {
     idUnico: string;
@@ -46,6 +70,7 @@ export function ProdutosPage(): JSX.Element {
                                             <span>{t('produtos.quantidade')}: {p.quantidadeTotal ?? 0}</span>
                                             <span>{t('produtos.precoMedio')}: <CurrencyValue value={p.precoMedio ?? 0} /></span>
                                         </div>
+                                        <HistoricoPrecoChart idUnico={p.idUnico} />
                                     </td>
                                 </tr>
                             )}

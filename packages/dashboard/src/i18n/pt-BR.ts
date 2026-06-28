@@ -65,6 +65,7 @@ export const ptBR = {
     produtos: {
         titulo: 'Produtos', descricao: 'Descrição', ncm: 'NCM', totalNFs: 'NFs',
         quantidade: 'Quantidade', valorTotal: 'Valor total', precoMedio: 'Preço médio',
+        historicoPreco: 'Histórico de preço médio', semHistorico: 'Sem histórico de preço.',
     },
     grafo: {
         buscarEmpresa: 'Buscar empresa (CNPJ)', profundidade: 'Profundidade',

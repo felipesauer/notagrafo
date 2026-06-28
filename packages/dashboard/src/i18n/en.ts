@@ -75,6 +75,7 @@ export const en = {
     produtos: {
         titulo: 'Products', descricao: 'Description', ncm: 'NCM', totalNFs: 'Invoices',
         quantidade: 'Quantity', valorTotal: 'Total value', precoMedio: 'Average price',
+        historicoPreco: 'Average price history', semHistorico: 'No price history.',
     },
     grafo: {
         buscarEmpresa: 'Search company (Tax ID)', profundidade: 'Depth',

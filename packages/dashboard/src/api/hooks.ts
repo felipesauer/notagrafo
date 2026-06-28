@@ -103,3 +103,18 @@ export function useTopProdutos() {
         queryFn: () => apiFetch<{ ranking: Array<Record<string, unknown>> }>('/stats/top-produtos?limit=20'),
     });
 }
+
+export interface PrecoHistoricoPonto {
+    periodo: string;
+    precoMedio: number;
+    quantidadeTotal: number;
+    totalNFs: number;
+}
+
+export function useHistoricoPreco(idUnico: string) {
+    return useQuery({
+        queryKey: ['stats', 'produto-historico', idUnico],
+        queryFn: () => apiFetch<{ idUnico: string; historico: PrecoHistoricoPonto[] }>(`/stats/produto/${encodeURIComponent(idUnico)}/historico`),
+        enabled: !!idUnico,
+    });
+}

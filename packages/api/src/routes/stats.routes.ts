@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import type { Driver } from 'neo4j-driver';
-import { topProdutos, type MetricaProduto } from '@notagrafo/graph';
+import { topProdutos, historicoPrecoProduto, type MetricaProduto } from '@notagrafo/graph';
 
 const toNum = (v: unknown): number =>
     typeof v === 'number'
@@ -192,6 +192,24 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
                 ...(request.query.dataFim ? { dataFim: request.query.dataFim } : {}),
             });
             return { metrica, ranking };
+        },
+    );
+
+    // GET /stats/produto/:idUnico/historico — evolução do preço médio por mês
+    app.get<{ Params: { idUnico: string } }>(
+        '/stats/produto/:idUnico/historico',
+        {
+            preHandler: app.authenticate,
+            schema: {
+                tags: ['stats'],
+                summary: 'Histórico de preço médio de um produto',
+                params: { type: 'object', properties: { idUnico: { type: 'string' } }, required: ['idUnico'] },
+                security: [{ bearerAuth: [] }],
+            },
+        },
+        async (request) => {
+            const historico = await historicoPrecoProduto(driver, request.params.idUnico);
+            return { idUnico: request.params.idUnico, historico };
         },
     );
 

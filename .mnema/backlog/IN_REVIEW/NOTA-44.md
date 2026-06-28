@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-44
-  state: READY
+  state: IN_REVIEW
   title: Cobrir todos os filtros do GET /nf em testes
   description: >-
     Achado F (BAIXA): ~10 dos 16 filtros (valorTotalMin/Max, dataEmissao*,
@@ -16,12 +16,12 @@ mnema:
     - Assercoes confirmam o subconjunto filtrado
   estimate: 3
   priority: 3
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f03ba-735c-725c-b52a-22a88c9abe61
   epic_key: NOTA-EPIC-9
   sprint_key: NOTA-SPRINT-9
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-28T22:07:27.918Z'
+  updated_at: '2026-06-28T22:39:10.923Z'
 ---
 # Cobrir todos os filtros do GET /nf em testes

@@ -53,6 +53,18 @@ describe('GET /stats/top-empresas (unit)', () => {
     });
 });
 
+describe('GET /stats/produto/:idUnico/historico (unit)', () => {
+    it('retorna idUnico + histórico de preço por período', async () => {
+        const { driver, runs } = makeFakeDriver(() => [rec({ periodo: '2026-06', valorTotal: 100, quantidadeTotal: 10, totalNFs: 2 })]);
+        app = await buildTestApi((a) => statsRoutes(a, driver));
+        const res = await app.inject({ method: 'GET', url: '/stats/produto/p1/historico' });
+        expect(res.statusCode).toBe(200);
+        expect(res.json().idUnico).toBe('p1');
+        expect(res.json().historico[0]).toMatchObject({ periodo: '2026-06', precoMedio: 10, totalNFs: 2 });
+        expect(runs[0]!.params.idUnico).toBe('p1');
+    });
+});
+
 describe('GET /stats/por-uf (unit)', () => {
     it('distribuição por UF do emitente', async () => {
         const { driver } = makeFakeDriver(() => [rec({ uf: 'SP', totalNFs: 4, valorTotal: 400 })]);
