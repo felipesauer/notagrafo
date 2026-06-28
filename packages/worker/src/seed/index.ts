@@ -1,6 +1,8 @@
+import type { Driver } from 'neo4j-driver';
 import { getDriver, runMigrations } from '@notagrafo/graph';
 import { processNFe } from '../jobs/process-nfe.job.js';
 import { createXmlStorage } from '../storage/factory.js';
+import type { XmlStorage } from '../storage/xml.storage.js';
 import { gerarNFe, makeRng } from './generator.js';
 
 export interface SeedOptions {
@@ -8,35 +10,58 @@ export interface SeedOptions {
     seed?: number;
 }
 
+/** Dependências injetáveis (testes). Em produção, derivadas do ambiente. */
+export interface SeedDeps {
+    driver?: Driver;
+    storage?: XmlStorage;
+    processFn?: (data: { xml: string; origem?: string }, deps: { driver: Driver; storage: XmlStorage }) => Promise<unknown>;
+}
+
 export interface SeedResult {
     geradas: number;
     processadas: number;
     falhas: number;
+    /** Mensagem do primeiro erro observado (null se não houve falha). */
+    primeiroErro: string | null;
+    /** Contagem de falhas agrupada por nome do erro (ex.: { Error: 3 }). */
+    errosPorTipo: Record<string, number>;
 }
 
 /**
  * Gera `count` NFes fictícias e as processa pelo pipeline normal (validação XSD
  * → parse → grafo → storage), populando o grafo. Reproduzível pelo `seed`.
  */
-export async function runSeed(opts: SeedOptions): Promise<SeedResult> {
+export async function runSeed(opts: SeedOptions, deps: SeedDeps = {}): Promise<SeedResult> {
     const rng = makeRng(opts.seed ?? 42);
-    const driver = getDriver();
-    const storage = createXmlStorage();
+    const driver = deps.driver ?? getDriver();
+    const storage = deps.storage ?? createXmlStorage();
+    const processFn = deps.processFn ?? processNFe;
     await runMigrations(driver);
 
     let processadas = 0;
     let falhas = 0;
+    let primeiroErro: string | null = null;
+    const errosPorTipo: Record<string, number> = {};
     for (let i = 1; i <= opts.count; i++) {
         const { xml } = gerarNFe(i, rng);
         try {
-            await processNFe({ xml, origem: 'demo-seed' }, { driver, storage });
+            await processFn({ xml, origem: 'demo-seed' }, { driver, storage });
             processadas++;
-        } catch {
+        } catch (err) {
             falhas++;
+            const e = err as Error;
+            const tipo = e?.name ?? 'Error';
+            errosPorTipo[tipo] = (errosPorTipo[tipo] ?? 0) + 1;
+            if (primeiroErro === null) {
+                primeiroErro = e?.message ?? String(err);
+                // Loga o primeiro erro com stack para diagnóstico (não engole).
+                // eslint-disable-next-line no-console
+                console.error(`[seed] falha na NFe #${i}:`, err);
+            }
         }
     }
 
-    return { geradas: opts.count, processadas, falhas };
+    return { geradas: opts.count, processadas, falhas, primeiroErro, errosPorTipo };
 }
 
 // Entry point do serviço `seed` (profile demo). Roda uma vez e encerra.
@@ -51,6 +76,13 @@ if (process.argv[1] && process.argv[1].endsWith('seed/index.js')) {
         .then((r) => {
             // eslint-disable-next-line no-console
             console.warn(`[seed] ${r.processadas}/${r.geradas} NFes processadas (${r.falhas} falhas).`);
+            if (r.falhas > 0) {
+                const resumo = Object.entries(r.errosPorTipo)
+                    .map(([tipo, n]) => `${tipo}: ${n}`)
+                    .join(', ');
+                // eslint-disable-next-line no-console
+                console.error(`[seed] falhas por tipo → ${resumo}. Primeiro erro: ${r.primeiroErro}`);
+            }
             process.exit(r.falhas > 0 ? 1 : 0);
         })
         .catch((err) => {

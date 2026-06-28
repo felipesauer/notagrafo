@@ -10,8 +10,8 @@ import { parseNFe, type RawDataNode } from '@notagrafo/core';
 import { runMigrations } from '../migrations.js';
 import { mergeNotaFiscal, type NotaFiscalParaGravar } from '../nf.repository.js';
 import { getEmpresaGrafo, getEmpresaStats, DepthForaDoLimiteError } from './empresa.queries.js';
-import { listNotasFiscais, countNotasFiscais, filtrosAtivos } from './nf.queries.js';
-import { topProdutos } from './produto.queries.js';
+import { listNotasFiscais, countNotasFiscais, filtrosAtivos, getNotaFiscal } from './nf.queries.js';
+import { topProdutos, historicoPrecoProduto } from './produto.queries.js';
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'core', 'src', '__fixtures__');
 
@@ -111,6 +111,23 @@ describe('nf.queries', () => {
         expect(filtrosAtivos({ status: 'ativa', ufEmitente: 'SP', numero: '' })).toEqual(['status', 'ufEmitente']);
         expect(filtrosAtivos({})).toEqual([]);
     });
+
+    it('getNotaFiscal retorna detalhe com emitente, destinatário e itens', async () => {
+        const chave = '35200114200166000187550010000000071234567890';
+        const nf = await getNotaFiscal(driver, chave);
+        expect(nf).not.toBeNull();
+        expect(nf!.chaveAcesso).toBe(chave);
+        expect((nf!.emitente as { cnpj: string }).cnpj).toBe(EMIT);
+        expect(nf!.destinatario).toBeTruthy();
+        const itens = nf!.itens as Array<{ produto?: { ncm?: string }; ncm?: { codigo?: string } }>;
+        expect(Array.isArray(itens)).toBe(true);
+        expect(itens.length).toBeGreaterThanOrEqual(1);
+        expect(itens[0]!.produto).toBeTruthy();
+    });
+
+    it('getNotaFiscal retorna null para chave inexistente', async () => {
+        expect(await getNotaFiscal(driver, '00000000000000000000000000000000000000000000')).toBeNull();
+    });
 });
 
 describe('produto.queries', () => {
@@ -120,5 +137,22 @@ describe('produto.queries', () => {
         expect(ranking[0]!.posicao).toBe(1);
         expect(ranking[0]!.precoMedio).toBeGreaterThan(0);
         expect(ranking[0]!.ncm).toBe('61091000');
+    });
+
+    it('historicoPrecoProduto agrega por período com preço médio', async () => {
+        const ranking = await topProdutos(driver, { metrica: 'valor', limit: 1 });
+        const idUnico = ranking[0]!.idUnico;
+        const historico = await historicoPrecoProduto(driver, idUnico);
+        expect(historico.length).toBeGreaterThanOrEqual(1);
+        // o produto aparece nas 2 NFs do setup, emitidas em 2026-06 → 1 período agregado
+        const ponto = historico[0]!;
+        expect(ponto.periodo).toMatch(/^\d{4}-\d{2}$/);
+        expect(ponto.quantidadeTotal).toBeGreaterThan(0);
+        expect(ponto.precoMedio).toBeGreaterThan(0);
+        expect(ponto.totalNFs).toBe(2);
+    });
+
+    it('historicoPrecoProduto retorna vazio para produto inexistente', async () => {
+        expect(await historicoPrecoProduto(driver, 'inexistente')).toEqual([]);
     });
 });

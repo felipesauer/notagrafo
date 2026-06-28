@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import type { Driver } from 'neo4j-driver';
 import type { Queue } from 'bullmq';
-import { validarNFe, VersaoSchemaNaoSuportadaError } from '@notagrafo/core';
+import { validarNFe, parseNFe, VersaoSchemaNaoSuportadaError } from '@notagrafo/core';
 import {
     listNotasFiscais,
     countNotasFiscais,
@@ -58,7 +58,23 @@ export async function nfRoutes(app: FastifyInstance, deps: NFRouteDeps): Promise
                 }
             }
 
-            // Enfileira (enqueueNFe bloqueia duplicata consultando o grafo).
+            // Atomicidade: extrai a chave de todos, detecta duplicata intra-lote e
+            // checa o grafo de TODOS antes de enfileirar qualquer um — sem
+            // enfileiramento parcial em caso de duplicata (achado #8 da auditoria).
+            const vistas = new Set<string>();
+            for (const x of xmls) {
+                const chave = parseNFe(x.conteudo, new Date()).nota.chaveAcesso;
+                if (vistas.has(chave)) {
+                    throw new ApiError(409, 'DUPLICATE_NF', `NFe com chave de acesso ${chave} aparece mais de uma vez no upload.`, [`chaveAcesso=${chave}`]);
+                }
+                vistas.add(chave);
+                const existente = await getNotaFiscal(driver, chave);
+                if (existente) {
+                    throw new ApiError(409, 'DUPLICATE_NF', `NFe com chave de acesso ${chave} já foi processada.`, [`chaveAcesso=${chave}`]);
+                }
+            }
+
+            // Todos validados e sem duplicata: enfileira o lote inteiro.
             let primeiroJobId = '';
             let enfileiradas = 0;
             for (const x of xmls) {
@@ -68,6 +84,7 @@ export async function nfRoutes(app: FastifyInstance, deps: NFRouteDeps): Promise
                     enfileiradas++;
                 } catch (err) {
                     if (err instanceof NotaFiscalDuplicadaError) {
+                        // Corrida rara (duplicata entre a checagem e o enqueue): reporta 409.
                         throw new ApiError(409, 'DUPLICATE_NF', `NFe com chave de acesso ${err.chaveAcesso} já foi processada.`, [`chaveAcesso=${err.chaveAcesso}`]);
                     }
                     throw err;

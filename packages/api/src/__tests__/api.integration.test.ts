@@ -9,7 +9,10 @@ import { setupApiIntegration, type ApiTestContext } from './setup.integration.js
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'core', 'src', '__fixtures__');
 const CHAVE = '35200114200166000187550010000000071234567890';
+const CHAVE2 = '35200114200166000187550010000000081234567891';
 const xml = (name = 'nfe-valida-v4.00.xml'): string => readFileSync(join(FIXTURES, name), 'utf8');
+/** Variante da NFe válida com outra chave/número, para lotes com NFs distintas. */
+const xmlOutraChave = (): string => xml().replace(`NFe${CHAVE}`, `NFe${CHAVE2}`).replace('<nNF>7</nNF>', '<nNF>8</nNF>');
 
 let ctx: ApiTestContext;
 
@@ -42,20 +45,51 @@ describe('API end-to-end (setup.integration compartilhado)', () => {
         expect(res.json().arquivos).toBe(1);
     });
 
-    it('upload de ZIP com múltiplos XMLs → 202 com a contagem', async () => {
+    it('upload de ZIP com múltiplos XMLs distintos → 202 com a contagem', async () => {
         const zip = new AdmZip();
         zip.addFile('a.xml', Buffer.from(xml()));
-        zip.addFile('b.xml', Buffer.from(xml('nfe-devolucao-v4.00.xml')));
+        zip.addFile('b.xml', Buffer.from(xmlOutraChave()));
         const { body, headers } = multipart(zip.toBuffer(), 'lote.zip', 'application/zip');
         const res = await ctx.app.inject({ method: 'POST', url: `${API_PREFIX}/nf/upload`, payload: body, headers });
         expect(res.statusCode).toBe(202);
         expect(res.json().arquivos).toBe(2);
+        // duas chaves distintas → dois jobs realmente enfileirados.
+        const counts = await ctx.queue.getJobCounts('waiting', 'active', 'delayed');
+        expect(counts.waiting + counts.active + counts.delayed).toBe(2);
     });
 
     it('upload de XML inválido → 422', async () => {
         const { body, headers } = multipart(xml('nfe-invalida-schema.xml'), 'inv.xml');
         const res = await ctx.app.inject({ method: 'POST', url: `${API_PREFIX}/nf/upload`, payload: body, headers });
         expect(res.statusCode).toBe(422);
+    });
+
+    it('ZIP com duplicata intra-lote → 409 sem enfileiramento parcial (atômico)', async () => {
+        // mesmo XML duas vezes: a 1ª passa, a 2ª é duplicata da própria carga.
+        const zip = new AdmZip();
+        zip.addFile('a.xml', Buffer.from(xml()));
+        zip.addFile('b.xml', Buffer.from(xml()));
+        const { body, headers } = multipart(zip.toBuffer(), 'dup-lote.zip', 'application/zip');
+        const res = await ctx.app.inject({ method: 'POST', url: `${API_PREFIX}/nf/upload`, payload: body, headers });
+        expect(res.statusCode).toBe(409);
+        expect(res.json().error).toBe('DUPLICATE_NF');
+        // nenhum job foi enfileirado (atomicidade): fila vazia.
+        const counts = await ctx.queue.getJobCounts('waiting', 'active', 'delayed', 'completed', 'failed');
+        const total = Object.values(counts).reduce((a, b) => a + b, 0);
+        expect(total).toBe(0);
+    });
+
+    it('ZIP onde a 2ª NF já existe no grafo → 409 e a 1ª NF não é enfileirada', async () => {
+        // CHAVE2 já está no grafo; o lote tenta [válida-nova (CHAVE), existente (CHAVE2)].
+        await processNFe({ xml: xmlOutraChave() }, { driver: ctx.driver, storage: ctx.storage });
+        const zip = new AdmZip();
+        zip.addFile('a.xml', Buffer.from(xml()));
+        zip.addFile('b.xml', Buffer.from(xmlOutraChave()));
+        const { body, headers } = multipart(zip.toBuffer(), 'lote.zip', 'application/zip');
+        const res = await ctx.app.inject({ method: 'POST', url: `${API_PREFIX}/nf/upload`, payload: body, headers });
+        expect(res.statusCode).toBe(409);
+        const counts = await ctx.queue.getJobCounts('waiting', 'active', 'delayed');
+        expect(counts.waiting + counts.active + counts.delayed).toBe(0);
     });
 
     it('upload duplicado → 409', async () => {

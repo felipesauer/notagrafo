@@ -8,6 +8,7 @@ import { runMigrations } from '@notagrafo/graph';
 import { processNFe } from '../jobs/process-nfe.job.js';
 import { LocalXmlStorage } from '../storage/local.storage.js';
 import { gerarNFe, makeRng } from './generator.js';
+import { runSeed } from './index.js';
 
 let container: StartedNeo4jContainer;
 let driver: Driver;
@@ -68,5 +69,28 @@ describe('seed de demo (pipeline real)', () => {
         } finally {
             await session.close();
         }
+    }, 60_000);
+
+    it('runSeed reporta falhas (primeiroErro + errosPorTipo) sem engolir', async () => {
+        // processFn que falha em NFes pares → ~metade falha.
+        let i = 0;
+        const processFn = async (): Promise<unknown> => {
+            i++;
+            if (i % 2 === 0) throw new TypeError(`boom #${i}`);
+            return undefined;
+        };
+        const r = await runSeed({ count: 6, seed: 7 }, { driver, storage, processFn });
+        expect(r.geradas).toBe(6);
+        expect(r.processadas).toBe(3);
+        expect(r.falhas).toBe(3);
+        expect(r.primeiroErro).toMatch(/^boom #2$/);
+        expect(r.errosPorTipo).toEqual({ TypeError: 3 });
+    }, 60_000);
+
+    it('runSeed com pipeline real não reporta falhas (caminho feliz)', async () => {
+        const r = await runSeed({ count: 3, seed: 99 }, { driver, storage });
+        expect(r.falhas).toBe(0);
+        expect(r.primeiroErro).toBeNull();
+        expect(r.errosPorTipo).toEqual({});
     }, 60_000);
 });
