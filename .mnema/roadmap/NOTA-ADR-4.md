@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-ADR-4
   kind: decision
-  status: proposed
+  status: accepted
   title: Expor historicoPrecoProduto via endpoint + gráfico no dashboard
   context: >-
     historicoPrecoProduto existe no graph (agrega preço médio por mês) mas não

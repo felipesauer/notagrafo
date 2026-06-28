@@ -77,7 +77,9 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<FastifyInsta
         await healthRoutes(app, { driver: opts.driver, redis: opts.redis, storage: opts.storage });
     }
 
-    const exportService = opts.driver ? new ExportService(opts.driver) : undefined;
+    const exportService = opts.driver
+        ? new ExportService(opts.driver, Number(process.env.EXPORT_TTL_HOURS ?? '24'), opts.redis)
+        : undefined;
 
     // Rotas sob o prefixo /api/v1.
     await app.register(

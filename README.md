@@ -115,6 +115,15 @@ XML → [core: validate XSD + parse] → [worker: fila BullMQ] → [graph: merge
 
 ---
 
+## Exportações
+
+A exportação de NFes (`POST /api/v1/export`) é **assíncrona**: cria um job, gera o
+arquivo (CSV/JSON/XLSX) em background e o disponibiliza via `GET /export/:id/download`
+até o TTL (`EXPORT_TTL_HOURS`, padrão 24h). Os **metadados** do job são persistidos no
+Redis quando disponível, então **sobrevivem a um restart da API**. O **arquivo** gerado
+fica em disco local do nó (por-instância) — adequado ao MVP single-node; multi-réplica
+exigiria um storage de arquivos compartilhado.
+
 ## Como contribuir
 
 Contribuições são bem-vindas! Veja o [CONTRIBUTING.md](CONTRIBUTING.md) para setup,

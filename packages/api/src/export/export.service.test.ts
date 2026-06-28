@@ -125,3 +125,52 @@ describe('ExportService — serialização', () => {
         expect(job.erro).toContain('Neo4j down');
     });
 });
+
+/** Redis fake em memória que implementa o subconjunto RedisLike. */
+function fakeRedis() {
+    const store = new Map<string, string>();
+    return {
+        store,
+        set: vi.fn(async (k: string, v: string) => void store.set(k, v)),
+        get: vi.fn(async (k: string) => store.get(k) ?? null),
+        del: vi.fn(async (k: string) => void store.delete(k)),
+    };
+}
+
+describe('ExportService — persistência em Redis (NOTA-47)', () => {
+    const registros = [{ chaveAcesso: 'a', numero: '1' }];
+
+    it('persiste os metadados no Redis ao criar e ao concluir', async () => {
+        const redis = fakeRedis();
+        const service = new ExportService(driverComRegistros(registros), 24, redis);
+        const job = service.criar('json');
+        await vi.waitFor(() => expect(job.status).toBe('ready'));
+        // gravou no Redis sob a chave export:<id>
+        expect(redis.set).toHaveBeenCalled();
+        const persistido = JSON.parse(redis.store.get(`export:${job.exportId}`)!);
+        expect(persistido.status).toBe('ready');
+        expect(persistido.totalRegistros).toBe(1);
+    });
+
+    it('recupera o job do Redis após "restart" (nova instância sem o job em memória)', async () => {
+        const redis = fakeRedis();
+        const s1 = new ExportService(driverComRegistros(registros), 24, redis);
+        const job = s1.criar('json');
+        await vi.waitFor(() => expect(job.status).toBe('ready'));
+
+        // simula restart: nova instância só com o mesmo Redis (memória vazia)
+        const s2 = new ExportService(driverComRegistros(registros), 24, redis);
+        const recuperado = await s2.obter(job.exportId);
+        expect(recuperado).not.toBeNull();
+        expect(recuperado).not.toBe('expired');
+        expect((recuperado as { exportId: string }).exportId).toBe(job.exportId);
+        expect((recuperado as { status: string }).status).toBe('ready');
+    });
+
+    it('sem Redis, opera só em memória (fallback)', async () => {
+        const service = new ExportService(driverComRegistros(registros)); // sem redis
+        const job = service.criar('json');
+        await vi.waitFor(() => expect(job.status).toBe('ready'));
+        expect(await service.obter(job.exportId)).not.toBeNull();
+    });
+});
