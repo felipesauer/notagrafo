@@ -4,7 +4,7 @@ import { writeFile, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { Driver } from 'neo4j-driver';
-import { listNotasFiscais, countNotasFiscais, type NFFilters } from '@notagrafo/graph';
+import { listInvoices, countInvoices, type NFFilters } from '@notagrafo/graph';
 
 export type ExportFormato = 'csv' | 'xlsx' | 'json';
 export type ExportStatus = 'queued' | 'processing' | 'ready' | 'failed';
@@ -63,18 +63,18 @@ export class ExportService {
     }
 
     /** Grava os metadados do job no Redis com TTL (best-effort: erro não quebra o fluxo). */
-    private async persistir(job: ExportJob): Promise<void> {
+    private async persist(job: ExportJob): Promise<void> {
         if (!this.redis) return;
         try {
-            const ttlSeg = Math.max(1, Math.ceil((job.expiresAt - Date.now()) / 1000));
-            await this.redis.set(this.redisKey(job.exportId), JSON.stringify(job), 'EX', ttlSeg);
+            const ttlSec = Math.max(1, Math.ceil((job.expiresAt - Date.now()) / 1000));
+            await this.redis.set(this.redisKey(job.exportId), JSON.stringify(job), 'EX', ttlSec);
         } catch {
             // persistência é best-effort; o job segue em memória.
         }
     }
 
     /** Recupera os metadados do job do Redis (após restart, quando não está em memória). */
-    private async doRedis(exportId: string): Promise<ExportJob | null> {
+    private async readFromRedis(exportId: string): Promise<ExportJob | null> {
         if (!this.redis) return null;
         try {
             const raw = await this.redis.get(this.redisKey(exportId));
@@ -85,7 +85,7 @@ export class ExportService {
     }
 
     /** Cria o job e dispara a geração em background. Retorna o id imediatamente. */
-    criar(formato: ExportFormato, filtros?: NFFilters, campos?: string[]): ExportJob {
+    create(formato: ExportFormato, filters?: NFFilters, fields?: string[]): ExportJob {
         const exportId = `exp_${randomUUID().slice(0, 12)}`;
         const job: ExportJob = {
             exportId,
@@ -98,14 +98,14 @@ export class ExportService {
             expiresAt: Date.now() + this.ttlMs,
         };
         this.jobs.set(exportId, job);
-        void this.persistir(job);
-        void this.gerar(job, filtros, campos);
+        void this.persist(job);
+        void this.generate(job, filters, fields);
         return job;
     }
 
     /** Recupera o job (memória ou Redis após restart), expirando se passou do TTL. */
-    async obter(exportId: string): Promise<ExportJob | 'expired' | null> {
-        const job = this.jobs.get(exportId) ?? (await this.doRedis(exportId));
+    async get(exportId: string): Promise<ExportJob | 'expired' | null> {
+        const job = this.jobs.get(exportId) ?? (await this.readFromRedis(exportId));
         if (!job) return null;
         if (job.status === 'ready' && Date.now() > job.expiresAt) {
             if (job.filePath) await rm(job.filePath, { force: true });
@@ -117,52 +117,52 @@ export class ExportService {
     }
 
     /** Lê o conteúdo do arquivo gerado (para o download). */
-    async ler(job: ExportJob): Promise<Buffer> {
+    async read(job: ExportJob): Promise<Buffer> {
         if (!job.filePath) throw new Error('Export sem arquivo.');
         return readFile(job.filePath);
     }
 
-    private async gerar(job: ExportJob, filtros?: NFFilters, campos?: string[]): Promise<void> {
+    private async generate(job: ExportJob, filters?: NFFilters, fields?: string[]): Promise<void> {
         job.status = 'processing';
-        await this.persistir(job);
+        await this.persist(job);
         try {
             // Total estimado para reportar progresso durante a geração (contrato §6).
-            job.total = await countNotasFiscais(this.driver, filtros ?? {});
+            job.total = await countInvoices(this.driver, filters ?? {});
 
             // Busca todas as NFs (paginando até o fim), atualizando o progresso.
-            const linhas: Record<string, unknown>[] = [];
+            const rows: Record<string, unknown>[] = [];
             let cursor: string | undefined;
             do {
-                const page = await listNotasFiscais(this.driver, filtros ?? {}, { limit: 200, ...(cursor ? { cursor } : {}) });
-                linhas.push(...(page.data as unknown as Record<string, unknown>[]));
-                job.progresso = linhas.length;
+                const page = await listInvoices(this.driver, filters ?? {}, { limit: 200, ...(cursor ? { cursor } : {}) });
+                rows.push(...(page.data as unknown as Record<string, unknown>[]));
+                job.progresso = rows.length;
                 cursor = page.nextCursor ?? undefined;
             } while (cursor);
 
-            const conteudo = this.serializar(job.formato, linhas, campos);
+            const content = this.serialize(job.formato, rows, fields);
             const filePath = join(this.dir, `${job.exportId}.${job.formato}`);
-            await writeFile(filePath, conteudo);
+            await writeFile(filePath, content);
 
             job.filePath = filePath;
-            job.totalRegistros = linhas.length;
-            job.tamanhoBytes = Buffer.byteLength(conteudo);
+            job.totalRegistros = rows.length;
+            job.tamanhoBytes = Buffer.byteLength(content);
             job.status = 'ready';
         } catch (err) {
             job.status = 'failed';
             job.erro = (err as Error).message;
         }
-        await this.persistir(job);
+        await this.persist(job);
     }
 
-    private serializar(formato: ExportFormato, linhas: Record<string, unknown>[], campos?: string[]): string {
-        const cols = campos ?? (linhas[0] ? Object.keys(linhas[0]) : []);
+    private serialize(formato: ExportFormato, rows: Record<string, unknown>[], fields?: string[]): string {
+        const cols = fields ?? (rows[0] ? Object.keys(rows[0]) : []);
         if (formato === 'json') {
-            return JSON.stringify(campos ? linhas.map((l) => pick(l, cols)) : linhas, null, 0);
+            return JSON.stringify(fields ? rows.map((l) => pick(l, cols)) : rows, null, 0);
         }
         // csv e xlsx (xlsx servido como CSV no MVP — mesmo conteúdo tabular)
         const header = cols.join(',');
-        const rows = linhas.map((l) => cols.map((c) => csvCell(l[c])).join(','));
-        return [header, ...rows].join('\n');
+        const lines = rows.map((l) => cols.map((c) => csvCell(l[c])).join(','));
+        return [header, ...lines].join('\n');
     }
 }
 

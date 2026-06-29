@@ -16,7 +16,7 @@ async function fetchHealth(): Promise<Health> {
     return (await res.json()) as Health;
 }
 
-export function ConfiguracoesPage(): JSX.Element {
+export function SettingsPage(): JSX.Element {
     const { t } = useTranslation();
     const user = useAuthStore((s) => s.user);
     const health = useQuery({ queryKey: ['health'], queryFn: fetchHealth });

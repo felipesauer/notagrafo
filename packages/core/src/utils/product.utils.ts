@@ -15,7 +15,7 @@ export type ProdutoIdentidade = Pick<ProdutoNode, 'codigo' | 'cnpjEmitente' | 'e
  *
  * Esta é a ÚNICA fonte da lógica de identidade do produto — não duplicar.
  */
-export function resolveIdUnico(prod: ProdutoIdentidade): string {
+export function resolveUniqueId(prod: ProdutoIdentidade): string {
     const ean = prod.ean?.trim();
     if (ean && ean.toUpperCase() !== SEM_GTIN) {
         return ean;

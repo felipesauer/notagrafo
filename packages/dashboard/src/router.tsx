@@ -6,11 +6,11 @@ import { LoginPage } from './pages/Login.js';
 import { OverviewPage } from './pages/Overview.js';
 import { NFListPage } from './pages/NFList.js';
 import { NFDetailPage } from './pages/NFDetail.js';
-import { EmpresasPage } from './pages/Empresas.js';
-import { ProdutosPage } from './pages/Produtos.js';
-import { GrafoPage } from './pages/Grafo.js';
-import { ExportacoesPage } from './pages/Exportacoes.js';
-import { ConfiguracoesPage } from './pages/Configuracoes.js';
+import { CompaniesPage } from './pages/Companies.js';
+import { ProductsPage } from './pages/Products.js';
+import { GraphPage } from './pages/Graph.js';
+import { ExportsPage } from './pages/Exports.js';
+import { SettingsPage } from './pages/Settings.js';
 
 const rootRoute = createRootRoute({ component: Outlet });
 
@@ -41,18 +41,18 @@ const childRoute = (path: string, component: () => JSX.Element) =>
 const overviewRoute = childRoute('/', OverviewPage);
 const nfRoute = childRoute('/nf', NFListPage);
 const nfDetailRoute = childRoute('/nf/$chave', NFDetailPage);
-const empresasRoute = childRoute('/empresas', EmpresasPage);
-const produtosRoute = childRoute('/produtos', ProdutosPage);
+const empresasRoute = childRoute('/empresas', CompaniesPage);
+const produtosRoute = childRoute('/produtos', ProductsPage);
 const grafoRoute = createRoute({
     getParentRoute: () => protectedLayout,
     path: '/grafo',
     validateSearch: (search: Record<string, unknown>): { cnpj?: string } => ({
         cnpj: typeof search.cnpj === 'string' ? search.cnpj : undefined,
     }),
-    component: GrafoPage,
+    component: GraphPage,
 });
-const exportacoesRoute = childRoute('/exportacoes', ExportacoesPage);
-const configuracoesRoute = childRoute('/configuracoes', ConfiguracoesPage);
+const exportacoesRoute = childRoute('/exportacoes', ExportsPage);
+const configuracoesRoute = childRoute('/configuracoes', SettingsPage);
 
 const routeTree = rootRoute.addChildren([
     loginRoute,

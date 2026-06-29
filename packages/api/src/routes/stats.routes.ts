@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import type { Driver } from 'neo4j-driver';
-import { topProdutos, historicoPrecoProduto, type MetricaProduto } from '@notagrafo/graph';
+import { topProducts, productPriceHistory, type MetricaProduto } from '@notagrafo/graph';
 
 const toNum = (v: unknown): number =>
     typeof v === 'number'
@@ -184,7 +184,7 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
         },
         async (request) => {
             const metrica = (request.query.metrica === 'quantidade' ? 'quantidade' : 'valor') as MetricaProduto;
-            const ranking = await topProdutos(driver, {
+            const ranking = await topProducts(driver, {
                 metrica,
                 ...(request.query.limit ? { limit: Number(request.query.limit) } : {}),
                 ...(request.query.ncm ? { ncm: request.query.ncm } : {}),
@@ -208,7 +208,7 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
             },
         },
         async (request) => {
-            const historico = await historicoPrecoProduto(driver, request.params.idUnico);
+            const historico = await productPriceHistory(driver, request.params.idUnico);
             return { idUnico: request.params.idUnico, historico };
         },
     );

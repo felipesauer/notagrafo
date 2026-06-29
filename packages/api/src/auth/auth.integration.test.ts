@@ -3,7 +3,7 @@ import type { FastifyInstance } from 'fastify';
 import { Neo4jContainer, type StartedNeo4jContainer } from '@testcontainers/neo4j';
 import neo4j, { type Driver } from 'neo4j-driver';
 import { buildApp, API_PREFIX } from '../app.js';
-import { criarUsuario } from './user.repository.js';
+import { createUser } from './user.repository.js';
 
 let container: StartedNeo4jContainer;
 let driver: Driver;
@@ -17,7 +17,7 @@ beforeAll(async () => {
     driver = neo4j.driver(container.getBoltUri(), neo4j.auth.basic(container.getUsername(), container.getPassword()));
     process.env.AUTH_SECRET = 'test-secret-para-jwt';
     process.env.AUTH_JWT_EXPIRES_IN = '7d';
-    await criarUsuario(driver, { email: EMAIL, nome: 'João Silva', senha: SENHA });
+    await createUser(driver, { email: EMAIL, nome: 'João Silva', senha: SENHA });
     app = await buildApp({ rateLimit: false, driver });
     await app.ready();
 }, 120_000);

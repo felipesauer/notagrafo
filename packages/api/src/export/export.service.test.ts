@@ -34,15 +34,15 @@ function makeControllableDriver(total: number, registros: Record<string, unknown
 describe('ExportService — TTL/expiração', () => {
     it('um export já pronto além do TTL retorna "expired" (→ 410)', async () => {
         const service = new ExportService(fakeDriver, 0); // TTL 0h
-        const job = service.criar('csv');
+        const job = service.create('csv');
         // força o estado ready com expiresAt no passado
         Object.assign(job, { status: 'ready', expiresAt: Date.now() - 1000, filePath: undefined });
 
-        const r = await service.obter(job.exportId);
+        const r = await service.get(job.exportId);
         expect(r).toBe('expired');
 
         // após expirar, o job é removido → 404 (null)
-        expect(await service.obter(job.exportId)).toBeNull();
+        expect(await service.get(job.exportId)).toBeNull();
     });
 
     it('contentType mapeia o formato', () => {
@@ -57,7 +57,7 @@ describe('ExportService — TTL/expiração', () => {
         const { driver, liberar } = makeControllableDriver(3, registros);
         const service = new ExportService(driver);
 
-        const job = service.criar('json');
+        const job = service.create('json');
 
         // aguarda o job sair de queued e o count rodar (total definido) — ainda processing
         await vi.waitFor(() => {
@@ -91,9 +91,9 @@ describe('ExportService — serialização', () => {
 
     it('json (sem campos) inclui as linhas mapeadas e é parseável', async () => {
         const service = new ExportService(driverComRegistros(registros));
-        const job = service.criar('json');
+        const job = service.create('json');
         await vi.waitFor(() => expect(job.status).toBe('ready'));
-        const buf = await service.ler(job);
+        const buf = await service.read(job);
         const parsed = JSON.parse(buf.toString()) as Array<Record<string, unknown>>;
         expect(parsed).toHaveLength(2);
         expect(parsed[0]!.chaveAcesso).toBe('a');
@@ -101,17 +101,17 @@ describe('ExportService — serialização', () => {
 
     it('json com campos restringe as colunas (pick)', async () => {
         const service = new ExportService(driverComRegistros(registros));
-        const job = service.criar('json', undefined, ['chaveAcesso']);
+        const job = service.create('json', undefined, ['chaveAcesso']);
         await vi.waitFor(() => expect(job.status).toBe('ready'));
-        const parsed = JSON.parse((await service.ler(job)).toString()) as Array<Record<string, unknown>>;
+        const parsed = JSON.parse((await service.read(job)).toString()) as Array<Record<string, unknown>>;
         expect(Object.keys(parsed[0]!)).toEqual(['chaveAcesso']);
     });
 
     it('csv escapa células com vírgula e tem header', async () => {
         const service = new ExportService(driverComRegistros(registros));
-        const job = service.criar('csv');
+        const job = service.create('csv');
         await vi.waitFor(() => expect(job.status).toBe('ready'));
-        const csv = (await service.ler(job)).toString();
+        const csv = (await service.read(job)).toString();
         const linhas = csv.split('\n');
         expect(linhas[0]).toContain('chaveAcesso'); // header com as colunas do NFListItem
         expect(csv).toContain('"tem,vírgula"'); // célula com vírgula entre aspas
@@ -120,7 +120,7 @@ describe('ExportService — serialização', () => {
     it('falha na geração marca status failed com erro', async () => {
         const driver = { session: () => ({ run: vi.fn(async () => { throw new Error('Neo4j down'); }), close: vi.fn(async () => {}) }) } as unknown as Driver;
         const service = new ExportService(driver);
-        const job = service.criar('json');
+        const job = service.create('json');
         await vi.waitFor(() => expect(job.status).toBe('failed'));
         expect(job.erro).toContain('Neo4j down');
     });
@@ -143,7 +143,7 @@ describe('ExportService — persistência em Redis (NOTA-47)', () => {
     it('persiste os metadados no Redis ao criar e ao concluir', async () => {
         const redis = fakeRedis();
         const service = new ExportService(driverComRegistros(registros), 24, redis);
-        const job = service.criar('json');
+        const job = service.create('json');
         await vi.waitFor(() => expect(job.status).toBe('ready'));
         // gravou no Redis sob a chave export:<id>
         expect(redis.set).toHaveBeenCalled();
@@ -155,12 +155,12 @@ describe('ExportService — persistência em Redis (NOTA-47)', () => {
     it('recupera o job do Redis após "restart" (nova instância sem o job em memória)', async () => {
         const redis = fakeRedis();
         const s1 = new ExportService(driverComRegistros(registros), 24, redis);
-        const job = s1.criar('json');
+        const job = s1.create('json');
         await vi.waitFor(() => expect(job.status).toBe('ready'));
 
         // simula restart: nova instância só com o mesmo Redis (memória vazia)
         const s2 = new ExportService(driverComRegistros(registros), 24, redis);
-        const recuperado = await s2.obter(job.exportId);
+        const recuperado = await s2.get(job.exportId);
         expect(recuperado).not.toBeNull();
         expect(recuperado).not.toBe('expired');
         expect((recuperado as { exportId: string }).exportId).toBe(job.exportId);
@@ -169,8 +169,8 @@ describe('ExportService — persistência em Redis (NOTA-47)', () => {
 
     it('sem Redis, opera só em memória (fallback)', async () => {
         const service = new ExportService(driverComRegistros(registros)); // sem redis
-        const job = service.criar('json');
+        const job = service.create('json');
         await vi.waitFor(() => expect(job.status).toBe('ready'));
-        expect(await service.obter(job.exportId)).not.toBeNull();
+        expect(await service.get(job.exportId)).not.toBeNull();
     });
 });

@@ -52,7 +52,7 @@ const toNum = (v: unknown): number =>
         : Number(v ?? 0);
 
 /** Estatísticas agregadas de uma empresa (NFs emitidas/recebidas, valores, datas). */
-export async function getEmpresaStats(driver: Driver, cnpj: string): Promise<EmpresaStats> {
+export async function getCompanyStats(driver: Driver, cnpj: string): Promise<EmpresaStats> {
     const session = driver.session();
     try {
         const res = await session.run(
@@ -83,7 +83,7 @@ export async function getEmpresaStats(driver: Driver, cnpj: string): Promise<Emp
  * Vizinhos da empresa no grafo de transações até `depth` graus (máx 4).
  * `direction` filtra empresas alcançadas como emitente, destinatário ou ambos.
  */
-export async function getEmpresaGrafo(
+export async function getCompanyGraph(
     driver: Driver,
     cnpj: string,
     opts: GrafoOptions = {},
@@ -104,7 +104,7 @@ export async function getEmpresaGrafo(
 
     const session = driver.session();
     try {
-        const nosRes = await session.run(
+        const nodesRes = await session.run(
             `MATCH (origem:Empresa {cnpj: $cnpj})
              MATCH path = (origem)${pattern}(viz:Empresa)
              WHERE viz.cnpj <> $cnpj
@@ -116,7 +116,7 @@ export async function getEmpresaGrafo(
              LIMIT $limit`,
             { cnpj, limit: neo4j.int(limit) },
         );
-        const nos: NoVizinho[] = nosRes.records.map((r) => ({
+        const nos: NoVizinho[] = nodesRes.records.map((r) => ({
             cnpj: r.get('cnpj') as string,
             razaoSocial: (r.get('razaoSocial') as string) ?? '',
             uf: (r.get('uf') as string) ?? '',
@@ -125,7 +125,7 @@ export async function getEmpresaGrafo(
             totalNFs: toNum(r.get('totalNFs')),
         }));
 
-        const arestasRes = await session.run(
+        const edgesRes = await session.run(
             `MATCH (a:Empresa)-[:EMITIU]->(nf:NotaFiscal)-[:DESTINADA_A]->(b:Empresa)
              WHERE a.cnpj = $cnpj OR b.cnpj = $cnpj
              RETURN a.cnpj AS de, b.cnpj AS para, count(nf) AS totalNFs,
@@ -133,7 +133,7 @@ export async function getEmpresaGrafo(
              LIMIT $limit`,
             { cnpj, limit: neo4j.int(limit) },
         );
-        const arestas: ArestaGrafo[] = arestasRes.records.map((r) => ({
+        const arestas: ArestaGrafo[] = edgesRes.records.map((r) => ({
             de: r.get('de') as string,
             para: r.get('para') as string,
             totalNFs: toNum(r.get('totalNFs')),

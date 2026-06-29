@@ -9,10 +9,10 @@ import type { Queue } from 'bullmq';
 
 // Mocks do graph e worker (vi.hoisted: factories içados ao topo).
 const g = vi.hoisted(() => ({
-    listNotasFiscais: vi.fn(),
-    countNotasFiscais: vi.fn(),
-    filtrosAtivos: vi.fn(() => [] as string[]),
-    getNotaFiscal: vi.fn(),
+    listInvoices: vi.fn(),
+    countInvoices: vi.fn(),
+    activeFilters: vi.fn(() => [] as string[]),
+    getInvoice: vi.fn(),
 }));
 const w = vi.hoisted(() => ({
     enqueueNFe: vi.fn(),
@@ -39,7 +39,7 @@ let app: FastifyInstance;
 afterEach(async () => app?.close());
 beforeEach(() => {
     Object.values(g).forEach((f) => (f as { mockReset?: () => void }).mockReset?.());
-    g.filtrosAtivos.mockReturnValue([]);
+    g.activeFilters.mockReturnValue([]);
     w.enqueueNFe.mockReset();
 });
 
@@ -56,9 +56,9 @@ async function build(queue: Queue, storage = fakeStorage(), driver?: Driver): Pr
 
 describe('GET /nf (unit)', () => {
     it('retorna data + pagination + meta', async () => {
-        g.listNotasFiscais.mockResolvedValue({ data: [{ chaveAcesso: 'a' }], nextCursor: null, limit: 20, hasMore: false });
-        g.countNotasFiscais.mockResolvedValue(1);
-        g.filtrosAtivos.mockReturnValue(['status']);
+        g.listInvoices.mockResolvedValue({ data: [{ chaveAcesso: 'a' }], nextCursor: null, limit: 20, hasMore: false });
+        g.countInvoices.mockResolvedValue(1);
+        g.activeFilters.mockReturnValue(['status']);
         app = await build(makeQueue(() => null));
         const res = await app.inject({ method: 'GET', url: '/nf?status=ativa' });
         expect(res.statusCode).toBe(200);
@@ -69,14 +69,14 @@ describe('GET /nf (unit)', () => {
 
 describe('GET /nf/:chave (unit)', () => {
     it('200 quando existe', async () => {
-        g.getNotaFiscal.mockResolvedValue({ chaveAcesso: CHAVE, numero: '7' });
+        g.getInvoice.mockResolvedValue({ chaveAcesso: CHAVE, numero: '7' });
         app = await build(makeQueue(() => null));
         const res = await app.inject({ method: 'GET', url: `/nf/${CHAVE}` });
         expect(res.statusCode).toBe(200);
         expect(res.json().chaveAcesso).toBe(CHAVE);
     });
     it('404 NF_NOT_FOUND quando não existe', async () => {
-        g.getNotaFiscal.mockResolvedValue(null);
+        g.getInvoice.mockResolvedValue(null);
         app = await build(makeQueue(() => null));
         const res = await app.inject({ method: 'GET', url: `/nf/${CHAVE}` });
         expect(res.statusCode).toBe(404);
@@ -213,7 +213,7 @@ describe('POST /nf/upload (unit)', () => {
     }
 
     it('202 quando o XML é válido e não duplicado', async () => {
-        g.getNotaFiscal.mockResolvedValue(null); // checagem de duplicata no handler
+        g.getInvoice.mockResolvedValue(null); // checagem de duplicata no handler
         w.enqueueNFe.mockResolvedValue({ jobId: CHAVE, chaveAcesso: CHAVE });
         app = await buildWithMultipart();
         const { body, headers } = multipart(xml);
@@ -223,7 +223,7 @@ describe('POST /nf/upload (unit)', () => {
     });
 
     it('409 quando a NF já existe no grafo (checagem atômica)', async () => {
-        g.getNotaFiscal.mockResolvedValue({ chaveAcesso: CHAVE });
+        g.getInvoice.mockResolvedValue({ chaveAcesso: CHAVE });
         app = await buildWithMultipart();
         const { body, headers } = multipart(xml);
         const res = await app.inject({ method: 'POST', url: '/nf/upload', payload: body, headers });

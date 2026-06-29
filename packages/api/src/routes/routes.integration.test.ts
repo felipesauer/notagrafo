@@ -11,7 +11,7 @@ import { Redis } from 'ioredis';
 import { runMigrations } from '@notagrafo/graph';
 import { createNFQueue, processNFe, LocalXmlStorage } from '@notagrafo/worker';
 import { buildApp, API_PREFIX } from '../app.js';
-import { criarUsuario } from '../auth/user.repository.js';
+import { createUser } from '../auth/user.repository.js';
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'core', 'src', '__fixtures__');
 const EMIT = '14200166000187';
@@ -38,7 +38,7 @@ beforeAll(async () => {
     const queue = createNFQueue(redis);
     process.env.AUTH_SECRET = 'test-secret';
     await runMigrations(driver);
-    await criarUsuario(driver, { email: 'u@e.com', nome: 'U', senha: 'p' });
+    await createUser(driver, { email: 'u@e.com', nome: 'U', senha: 'p' });
     await processNFe({ xml: xml() }, { driver, storage });
     app = await buildApp({ rateLimit: false, driver, queue, storage, redis });
     await app.ready();

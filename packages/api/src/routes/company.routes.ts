@@ -1,9 +1,9 @@
 import type { FastifyInstance } from 'fastify';
 import type { Driver } from 'neo4j-driver';
-import { getEmpresaStats, getEmpresaGrafo, type Direction } from '@notagrafo/graph';
+import { getCompanyStats, getCompanyGraph, type Direction } from '@notagrafo/graph';
 import { ApiError } from '../errors.js';
 
-export async function empresaRoutes(app: FastifyInstance, driver: Driver): Promise<void> {
+export async function companyRoutes(app: FastifyInstance, driver: Driver): Promise<void> {
     // GET /empresa/:cnpj — dados + stats
     app.get<{ Params: { cnpj: string } }>(
         '/empresa/:cnpj',
@@ -32,7 +32,7 @@ export async function empresaRoutes(app: FastifyInstance, driver: Driver): Promi
             }
             if (!empresa) throw ApiError.notFound('EMPRESA_NOT_FOUND', 'Empresa não encontrada.');
 
-            const stats = await getEmpresaStats(driver, cnpj);
+            const stats = await getCompanyStats(driver, cnpj);
             return { ...empresa, stats };
         },
     );
@@ -63,7 +63,7 @@ export async function empresaRoutes(app: FastifyInstance, driver: Driver): Promi
             if (depth < 1 || depth > 4) {
                 throw ApiError.badRequest('Parâmetro depth deve estar entre 1 e 4.', [`depth=${depth}`]);
             }
-            return getEmpresaGrafo(driver, cnpj, {
+            return getCompanyGraph(driver, cnpj, {
                 depth,
                 ...(request.query.direction ? { direction: request.query.direction } : {}),
                 ...(request.query.limit ? { limit: Number(request.query.limit) } : {}),

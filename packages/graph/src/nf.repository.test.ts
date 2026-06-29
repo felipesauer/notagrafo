@@ -6,12 +6,12 @@ import { gzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
 import { parseNFe, type RawDataNode } from '@notagrafo/core';
 import { makeFakeDriver } from './__test-helpers__/fake-driver.js';
-import { mergeNotaFiscal, type NotaFiscalParaGravar } from './nf.repository.js';
+import { mergeInvoice, type InvoiceToPersist } from './nf.repository.js';
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'core', 'src', '__fixtures__');
 const xml = readFileSync(join(FIXTURES, 'nfe-valida-v4.00.xml'), 'utf8');
 
-function payload(): NotaFiscalParaGravar {
+function payload(): InvoiceToPersist {
     const parsed = parseNFe(xml, new Date('2026-06-26T12:00:00Z'));
     const raw: RawDataNode = {
         xmlGzip: gzipSync(Buffer.from(xml)),
@@ -23,12 +23,12 @@ function payload(): NotaFiscalParaGravar {
     return { ...parsed, raw };
 }
 
-describe('mergeNotaFiscal (unit, driver fake)', () => {
+describe('mergeInvoice (unit, driver fake)', () => {
     it('grava emitente, NF, raw, relações, itens e evento numa transação', async () => {
         const fake = makeFakeDriver(() => []);
         const { driver, runs } = fake;
         const dados = payload();
-        await mergeNotaFiscal(driver, dados);
+        await mergeInvoice(driver, dados);
 
         const cyphers = runs.map((r) => r.cypher).join('\n---\n');
         // sequência essencial do padrão MERGE (01 schema dados §4)
@@ -50,7 +50,7 @@ describe('mergeNotaFiscal (unit, driver fake)', () => {
         const { driver, runs } = makeFakeDriver(() => []);
         const dados = payload();
         expect(dados.destinatario).toBeTruthy(); // a fixture tem destinatário
-        await mergeNotaFiscal(driver, dados);
+        await mergeInvoice(driver, dados);
         const cyphers = runs.map((r) => r.cypher).join('\n');
         expect(cyphers).toContain('MERGE (dest:Empresa {cnpj: $cnpj})');
         expect(cyphers).toContain('MERGE (nf)-[:DESTINADA_A]->(dest)');
@@ -60,7 +60,7 @@ describe('mergeNotaFiscal (unit, driver fake)', () => {
         const { driver, runs } = makeFakeDriver(() => []);
         const dados = payload();
         delete (dados as { destinatario?: unknown }).destinatario;
-        await mergeNotaFiscal(driver, dados);
+        await mergeInvoice(driver, dados);
         const cyphers = runs.map((r) => r.cypher).join('\n');
         expect(cyphers).not.toContain('DESTINADA_A');
     });

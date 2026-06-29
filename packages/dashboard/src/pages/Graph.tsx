@@ -5,14 +5,14 @@ import { ReactFlow, Background, Controls, useReactFlow, ReactFlowProvider, type 
 import { toPng } from 'html-to-image';
 import '@xyflow/react/dist/style.css';
 import { apiFetch } from '../api/api.client.js';
-import { mesclarGrafo, type ApiGrafo, type NoGrafo, type DadosNo } from '../grafo/layout.js';
-import { NoCustom } from '../grafo/NoCustom.js';
-import { GraphPanel } from '../grafo/GraphPanel.js';
+import { mergeGraph, type ApiGraph, type GraphNode, type NodeData } from '../graph/layout.js';
+import { CustomNode } from '../graph/CustomNode.js';
+import { GraphPanel } from '../graph/GraphPanel.js';
 import { useGraphStore, type GraphDirection } from '../stores/graph.store.js';
 
-const nodeTypes = { custom: NoCustom };
+const nodeTypes = { custom: CustomNode };
 
-function GrafoInterno(): JSX.Element {
+function GraphInner(): JSX.Element {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const search = useSearch({ strict: false }) as { cnpj?: string };
@@ -23,21 +23,21 @@ function GrafoInterno(): JSX.Element {
     const setDepth = useGraphStore((s) => s.setDepth);
     const setDirection = useGraphStore((s) => s.setDirection);
 
-    const [grafo, setGrafo] = useState<{ nodes: NoGrafo[]; edges: Edge[] }>({ nodes: [], edges: [] });
-    const [selecionado, setSelecionado] = useState<DadosNo | null>(null);
-    const [buscaInput, setBuscaInput] = useState(search.cnpj ?? '');
-    const { nodes, edges } = grafo;
+    const [graph, setGraph] = useState<{ nodes: GraphNode[]; edges: Edge[] }>({ nodes: [], edges: [] });
+    const [selected, setSelected] = useState<NodeData | null>(null);
+    const [searchInput, setSearchInput] = useState(search.cnpj ?? '');
+    const { nodes, edges } = graph;
 
-    const carregar = useCallback(async (cnpj: string, grau: number, dir: GraphDirection, mesclar: boolean) => {
-        const api = await apiFetch<ApiGrafo>(`/empresa/${cnpj}/grafo?depth=${grau}&direction=${dir}`);
+    const load = useCallback(async (cnpj: string, degree: number, dir: GraphDirection, merge: boolean) => {
+        const api = await apiFetch<ApiGraph>(`/empresa/${cnpj}/grafo?depth=${degree}&direction=${dir}`);
         // setState funcional: lê o grafo atual sem virar dependência (callback estável).
-        setGrafo((prev) => mesclarGrafo(mesclar ? prev : { nodes: [], edges: [] }, api, cnpj));
+        setGraph((prev) => mergeGraph(merge ? prev : { nodes: [], edges: [] }, api, cnpj));
     }, []);
 
     // ?cnpj= é a fonte de verdade do estado inicial.
     useEffect(() => {
-        if (search.cnpj) void carregar(search.cnpj, depth, direction, false);
-    }, [search.cnpj, depth, direction, carregar]);
+        if (search.cnpj) void load(search.cnpj, depth, direction, false);
+    }, [search.cnpj, depth, direction, load]);
 
     useEffect(() => {
         if (nodes.length) queueMicrotask(() => fitView({ duration: 300 }));
@@ -45,22 +45,22 @@ function GrafoInterno(): JSX.Element {
 
     const onNodeClick = useCallback(
         (_e: unknown, node: Node) => {
-            const dados = node.data as DadosNo;
-            setSelecionado(dados);
-            if (dados.cnpj) void carregar(dados.cnpj, 1, direction, true); // expande sem reinicializar
+            const data = node.data as NodeData;
+            setSelected(data);
+            if (data.cnpj) void load(data.cnpj, 1, direction, true); // expande sem reinicializar
         },
-        [carregar, direction],
+        [load, direction],
     );
 
-    function buscar(): void {
-        if (buscaInput.trim()) void navigate({ to: '/grafo', search: { cnpj: buscaInput.trim() } });
+    function runSearch(): void {
+        if (searchInput.trim()) void navigate({ to: '/grafo', search: { cnpj: searchInput.trim() } });
     }
     function reset(): void {
-        setGrafo({ nodes: [], edges: [] });
-        setSelecionado(null);
+        setGraph({ nodes: [], edges: [] });
+        setSelected(null);
         void navigate({ to: '/grafo', search: {} });
     }
-    async function exportarPng(): Promise<void> {
+    async function exportPng(): Promise<void> {
         const el = document.querySelector('.react-flow') as HTMLElement | null;
         if (!el) return;
         const dataUrl = await toPng(el);
@@ -75,8 +75,8 @@ function GrafoInterno(): JSX.Element {
     return (
         <div className="grafo-page">
             <div className="toolbar">
-                <input placeholder={t('grafo.buscarEmpresa')} value={buscaInput} onChange={(e) => setBuscaInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && buscar()} />
-                <button type="button" onClick={buscar}>{t('comum.buscar')}</button>
+                <input placeholder={t('grafo.buscarEmpresa')} value={searchInput} onChange={(e) => setSearchInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && runSearch()} />
+                <button type="button" onClick={runSearch}>{t('comum.buscar')}</button>
                 <label>
                     {t('grafo.profundidade')}: {depth}
                     <input type="range" min={1} max={4} value={depth} onChange={(e) => setDepth(Number(e.target.value))} />
@@ -87,7 +87,7 @@ function GrafoInterno(): JSX.Element {
                     <option value="destinatario">{t('grafo.destinatario')}</option>
                 </select>
                 <button type="button" onClick={reset}>{t('grafo.resetar')}</button>
-                <button type="button" onClick={() => void exportarPng()}>{t('grafo.exportarPng')}</button>
+                <button type="button" onClick={() => void exportPng()}>{t('grafo.exportPng')}</button>
             </div>
 
             <div className="grafo-area">
@@ -99,17 +99,17 @@ function GrafoInterno(): JSX.Element {
                         <Controls />
                     </ReactFlow>
                 )}
-                {selecionado && <GraphPanel no={selecionado} onClose={() => setSelecionado(null)} />}
+                {selected && <GraphPanel node={selected} onClose={() => setSelected(null)} />}
             </div>
         </div>
     );
 }
 
 /** Página de Grafo (React Flow + dagre). Envolvida no provider do React Flow. */
-export function GrafoPage(): JSX.Element {
+export function GraphPage(): JSX.Element {
     return (
         <ReactFlowProvider>
-            <GrafoInterno />
+            <GraphInner />
         </ReactFlowProvider>
     );
 }

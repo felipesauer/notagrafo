@@ -1,12 +1,12 @@
 import type { FastifyInstance } from 'fastify';
 import type { Driver } from 'neo4j-driver';
 import type { Queue } from 'bullmq';
-import { validarNFe, parseNFe, VersaoSchemaNaoSuportadaError } from '@notagrafo/core';
+import { validateNFe, parseNFe, VersaoSchemaNaoSuportadaError } from '@notagrafo/core';
 import {
-    listNotasFiscais,
-    countNotasFiscais,
-    filtrosAtivos,
-    getNotaFiscal,
+    listInvoices,
+    countInvoices,
+    activeFilters,
+    getInvoice,
     type NFFilters,
     type NFPageOptions,
 } from '@notagrafo/graph';
@@ -17,7 +17,7 @@ import {
     type ProcessNFeJobData,
 } from '@notagrafo/worker';
 import { ApiError } from '../errors.js';
-import { registrarConsulta } from './audit.hook.js';
+import { recordQuery } from './audit.hook.js';
 import { extrairXmls } from './upload.utils.js';
 import { nfListQuerySchema, nfUploadResponse, nfDetailResponse } from './nf.schemas.js';
 
@@ -48,7 +48,7 @@ export async function nfRoutes(app: FastifyInstance, deps: NFRouteDeps): Promise
             for (const x of xmls) {
                 let res;
                 try {
-                    res = validarNFe(x.conteudo);
+                    res = validateNFe(x.conteudo);
                 } catch (err) {
                     if (err instanceof VersaoSchemaNaoSuportadaError) throw ApiError.unsupportedSchema(err.message);
                     throw ApiError.invalidXml(`Falha ao validar ${x.nome}.`, [String((err as Error).message)]);
@@ -61,16 +61,16 @@ export async function nfRoutes(app: FastifyInstance, deps: NFRouteDeps): Promise
             // Atomicidade: extrai a chave de todos, detecta duplicata intra-lote e
             // checa o grafo de TODOS antes de enfileirar qualquer um — sem
             // enfileiramento parcial em caso de duplicata (achado #8 da auditoria).
-            const vistas = new Set<string>();
+            const seen = new Set<string>();
             for (const x of xmls) {
-                const chave = parseNFe(x.conteudo, new Date()).nota.chaveAcesso;
-                if (vistas.has(chave)) {
-                    throw new ApiError(409, 'DUPLICATE_NF', `NFe com chave de acesso ${chave} aparece mais de uma vez no upload.`, [`chaveAcesso=${chave}`]);
+                const key = parseNFe(x.conteudo, new Date()).nota.chaveAcesso;
+                if (seen.has(key)) {
+                    throw new ApiError(409, 'DUPLICATE_NF', `NFe com chave de acesso ${key} aparece mais de uma vez no upload.`, [`chaveAcesso=${key}`]);
                 }
-                vistas.add(chave);
-                const existente = await getNotaFiscal(driver, chave);
-                if (existente) {
-                    throw new ApiError(409, 'DUPLICATE_NF', `NFe com chave de acesso ${chave} já foi processada.`, [`chaveAcesso=${chave}`]);
+                seen.add(key);
+                const existing = await getInvoice(driver, key);
+                if (existing) {
+                    throw new ApiError(409, 'DUPLICATE_NF', `NFe com chave de acesso ${key} já foi processada.`, [`chaveAcesso=${key}`]);
                 }
             }
 
@@ -156,18 +156,18 @@ export async function nfRoutes(app: FastifyInstance, deps: NFRouteDeps): Promise
         async (request) => {
             const { cursor, limit, orderBy, order, ...filters } = request.query;
             const [page, total] = await Promise.all([
-                listNotasFiscais(driver, filters as NFFilters, {
+                listInvoices(driver, filters as NFFilters, {
                     ...(cursor ? { cursor } : {}),
                     ...(limit ? { limit: Number(limit) } : {}),
                     ...(orderBy ? { orderBy } : {}),
                     ...(order ? { order } : {}),
                 }),
-                countNotasFiscais(driver, filters as NFFilters),
+                countInvoices(driver, filters as NFFilters),
             ]);
             return {
                 data: page.data,
                 pagination: { nextCursor: page.nextCursor, limit: page.limit, hasMore: page.hasMore },
-                meta: { total, filtrosAtivos: filtrosAtivos(filters as NFFilters) },
+                meta: { total, filtrosAtivos: activeFilters(filters as NFFilters) },
             };
         },
     );
@@ -178,9 +178,9 @@ export async function nfRoutes(app: FastifyInstance, deps: NFRouteDeps): Promise
         { preHandler: app.authenticate, schema: { tags: ['nf'], summary: 'Detalhe de uma NFe', params: { type: 'object', properties: { chave: { type: 'string' } }, required: ['chave'] }, security: [{ bearerAuth: [] }], response: { 200: nfDetailResponse } },
         },
         async (request) => {
-            const nf = await getNotaFiscal(driver, request.params.chave);
+            const nf = await getInvoice(driver, request.params.chave);
             if (!nf) throw ApiError.notFound('NF_NOT_FOUND', 'NFe não encontrada.');
-            registrarConsulta(driver, request.params.chave, { autor: request.user?.email, ipOrigem: request.ip }, (err) => request.log.warn({ err }, 'falha ao registrar evento consultada'));
+            recordQuery(driver, request.params.chave, { autor: request.user?.email, ipOrigem: request.ip }, (err) => request.log.warn({ err }, 'falha ao registrar evento consultada'));
             return nf;
         },
     );

@@ -82,9 +82,9 @@ function decodeCursor(s: string): Cursor {
 function buildWhere(f: NFFilters): { clauses: string[]; params: Record<string, unknown> } {
     const c: string[] = [];
     const p: Record<string, unknown> = {};
-    const eq = (campo: string, val: unknown, key = campo) => {
+    const eq = (field: string, val: unknown, key = field) => {
         if (val !== undefined && val !== '') {
-            c.push(`nf.${campo} = $${key}`);
+            c.push(`nf.${field} = $${key}`);
             p[key] = val;
         }
     };
@@ -125,7 +125,7 @@ function buildFilterQuery(filters: NFFilters): { matchRel: string[]; clauses: st
 }
 
 /** Lista das chaves de filtro efetivamente aplicadas (meta.filtrosAtivos do contrato §4). */
-export function filtrosAtivos(filters: NFFilters): string[] {
+export function activeFilters(filters: NFFilters): string[] {
     return (Object.keys(filters) as (keyof NFFilters)[]).filter((k) => {
         const v = filters[k];
         return v !== undefined && v !== '';
@@ -136,7 +136,7 @@ export function filtrosAtivos(filters: NFFilters): string[] {
  * Conta o total de NFes respeitando os mesmos filtros da listagem (meta.total do §4).
  * Usa DISTINCT pois MATCHes de produto/ncm podem multiplicar linhas por nota.
  */
-export async function countNotasFiscais(driver: Driver, filters: NFFilters = {}): Promise<number> {
+export async function countInvoices(driver: Driver, filters: NFFilters = {}): Promise<number> {
     const { matchRel, clauses, params } = buildFilterQuery(filters);
     const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
     const cypher = `${matchRel.join('\n')}\nWITH nf, emit, dest\n${where}\nRETURN count(DISTINCT nf) AS total`;
@@ -154,7 +154,7 @@ export async function countNotasFiscais(driver: Driver, filters: NFFilters = {})
  * O cursor é opaco (base64 de {valor do orderBy, chaveAcesso}) — keyset pagination,
  * estável e sem offset. limit padrão 50, máx 200.
  */
-export async function listNotasFiscais(
+export async function listInvoices(
     driver: Driver,
     filters: NFFilters = {},
     opts: NFPageOptions = {},
@@ -229,7 +229,7 @@ export async function listNotasFiscais(
 }
 
 /** Detalhe completo de uma NF, incluindo itens (produto + valores da aresta CONTÉM). */
-export async function getNotaFiscal(driver: Driver, chaveAcesso: string): Promise<Record<string, unknown> | null> {
+export async function getInvoice(driver: Driver, chaveAcesso: string): Promise<Record<string, unknown> | null> {
     const session = driver.session();
     try {
         const res = await session.run(

@@ -50,7 +50,7 @@ function fmt(v: number): string {
 }
 
 /** Gera uma chave de acesso de 44 dígitos (estrutura simplificada, válida para o XSD). */
-function gerarChave(seq: number, rng: () => number): string {
+function generateAccessKey(seq: number, rng: () => number): string {
     const base = `352006${pad(Math.floor(rng() * 1e8), 8)}550010000${pad(seq, 6)}`;
     const resto = pad(Math.floor(rng() * 1e9), 9);
     return (base + resto).slice(0, 44).padEnd(44, '0');
@@ -68,15 +68,15 @@ export function makeRng(seed: number): () => number {
     };
 }
 
-export interface NFeGerada {
+export interface GeneratedNFe {
     chaveAcesso: string;
     xml: string;
     valorTotal: number;
 }
 
 /** Gera uma NFe fictícia. `seq` indexa a nota; `rng` controla a aleatoriedade. */
-export function gerarNFe(seq: number, rng: () => number = makeRng(seq)): NFeGerada {
-    const chave = gerarChave(seq, rng);
+export function generateNFe(seq: number, rng: () => number = makeRng(seq)): GeneratedNFe {
+    const accessKey = generateAccessKey(seq, rng);
     const emit = pick(EMPRESAS, rng);
     let dest = pick(EMPRESAS, rng);
     while (dest.cnpj === emit.cnpj) dest = pick(EMPRESAS, rng);
@@ -89,7 +89,7 @@ export function gerarNFe(seq: number, rng: () => number = makeRng(seq)): NFeGera
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <NFe xmlns="http://www.portalfiscal.inf.br/nfe">
-  <infNFe versao="4.00" Id="NFe${chave}">
+  <infNFe versao="4.00" Id="NFe${accessKey}">
     <ide>
       <cUF>35</cUF>
       <cNF>${pad(Math.floor(rng() * 1e8), 8)}</cNF>
@@ -203,7 +203,7 @@ export function gerarNFe(seq: number, rng: () => number = makeRng(seq)): NFeGera
     <SignedInfo>
       <CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
       <SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
-      <Reference URI="#NFe${chave}">
+      <Reference URI="#NFe${accessKey}">
         <Transforms>
           <Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
           <Transform Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
@@ -221,5 +221,5 @@ export function gerarNFe(seq: number, rng: () => number = makeRng(seq)): NFeGera
   </Signature>
 </NFe>`;
 
-    return { chaveAcesso: chave, xml, valorTotal: vTotal };
+    return { chaveAcesso: accessKey, xml, valorTotal: vTotal };
 }

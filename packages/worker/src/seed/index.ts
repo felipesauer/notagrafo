@@ -5,13 +5,13 @@ import { getDriver, runMigrations } from '@notagrafo/graph';
 import { processNFe } from '../jobs/process-nfe.job.js';
 import { createXmlStorage } from '../storage/factory.js';
 import type { XmlStorage } from '../storage/xml.storage.js';
-import { gerarNFe, makeRng } from './generator.js';
+import { generateNFe, makeRng } from './generator.js';
 
 /** Cria (idempotente) o usuário de demonstração usado no login do profile demo. */
-async function criarUsuarioDemo(driver: Driver): Promise<void> {
+async function createDemoUser(driver: Driver): Promise<void> {
     const email = process.env.DEMO_USER_EMAIL ?? 'demo@notagrafo.local';
-    const senha = process.env.DEMO_USER_SENHA ?? 'demo1234';
-    const senhaHash = await bcrypt.hash(senha, 10);
+    const password = process.env.DEMO_USER_SENHA ?? 'demo1234';
+    const senhaHash = await bcrypt.hash(password, 10);
     const session = driver.session();
     try {
         await session.run(
@@ -59,14 +59,14 @@ export async function runSeed(opts: SeedOptions, deps: SeedDeps = {}): Promise<S
 
     // Usuário de demonstração para o login (e2e / exploração do profile demo).
     // MERGE por e-mail → idempotente. Senha via bcrypt; não importa a API (evita ciclo).
-    await criarUsuarioDemo(driver);
+    await createDemoUser(driver);
 
     let processadas = 0;
     let falhas = 0;
     let primeiroErro: string | null = null;
     const errosPorTipo: Record<string, number> = {};
     for (let i = 1; i <= opts.count; i++) {
-        const { xml } = gerarNFe(i, rng);
+        const { xml } = generateNFe(i, rng);
         try {
             await processFn({ xml, origem: 'demo-seed' }, { driver, storage });
             processadas++;
@@ -88,7 +88,7 @@ export async function runSeed(opts: SeedOptions, deps: SeedDeps = {}): Promise<S
 }
 
 // Entry point do serviço `seed` (profile demo). Roda uma vez e encerra.
-if (process.argv[1] && process.argv[1].endsWith('seed/index.js')) {
+if (process.argv[1] && /seed[/\\]index\.(js|ts)$/.test(process.argv[1])) {
     if (process.env.DEMO !== 'true') {
         // eslint-disable-next-line no-console
         console.error('[seed] DEMO != true — nada a fazer.');

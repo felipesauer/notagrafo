@@ -8,7 +8,7 @@ import { Neo4jContainer, type StartedNeo4jContainer } from '@testcontainers/neo4
 import neo4j, { type Driver } from 'neo4j-driver';
 import { parseNFe, type RawDataNode } from '@notagrafo/core';
 import { runMigrations } from './migrations.js';
-import { mergeNotaFiscal, type NotaFiscalParaGravar } from './nf.repository.js';
+import { mergeInvoice, type InvoiceToPersist } from './nf.repository.js';
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'core', 'src', '__fixtures__');
 
@@ -38,7 +38,7 @@ beforeEach(async () => {
     }
 });
 
-function payloadDaFixture(arquivo: string): NotaFiscalParaGravar {
+function payloadDaFixture(arquivo: string): InvoiceToPersist {
     const xml = readFileSync(join(FIXTURES, arquivo), 'utf8');
     const parsed = parseNFe(xml, new Date('2026-06-26T12:00:00Z'));
     const raw: RawDataNode = {
@@ -61,9 +61,9 @@ async function count(label: string): Promise<number> {
     }
 }
 
-describe('mergeNotaFiscal (Neo4j real)', () => {
+describe('mergeInvoice (Neo4j real)', () => {
     it('grava NF, empresas, produto, NCM, CFOP, RawData e Evento', async () => {
-        await mergeNotaFiscal(driver, payloadDaFixture('nfe-valida-v4.00.xml'));
+        await mergeInvoice(driver, payloadDaFixture('nfe-valida-v4.00.xml'));
 
         expect(await count('NotaFiscal')).toBe(1);
         expect(await count('Empresa')).toBe(2); // emitente + destinatário
@@ -89,7 +89,7 @@ describe('mergeNotaFiscal (Neo4j real)', () => {
     });
 
     it('não grava propriedades null/undefined', async () => {
-        await mergeNotaFiscal(driver, payloadDaFixture('nfe-valida-v4.00.xml'));
+        await mergeInvoice(driver, payloadDaFixture('nfe-valida-v4.00.xml'));
         const session = driver.session();
         try {
             // destinatário não tem regimeTributario nem nomeFantasia — chaves não existem
@@ -106,8 +106,8 @@ describe('mergeNotaFiscal (Neo4j real)', () => {
 
     it('reprocessar a mesma chave não duplica nós (idempotente)', async () => {
         const payload = payloadDaFixture('nfe-valida-v4.00.xml');
-        await mergeNotaFiscal(driver, payload);
-        await mergeNotaFiscal(driver, payload);
+        await mergeInvoice(driver, payload);
+        await mergeInvoice(driver, payload);
 
         expect(await count('NotaFiscal')).toBe(1);
         expect(await count('Empresa')).toBe(2);

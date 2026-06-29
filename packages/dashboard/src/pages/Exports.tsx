@@ -18,7 +18,7 @@ interface ExportRegistro {
 
 const CAMPOS = ['chaveAcesso', 'numero', 'dataEmissao', 'valorTotal', 'cnpjEmitente', 'cnpjDestinatario'];
 
-export function ExportacoesPage(): JSX.Element {
+export function ExportsPage(): JSX.Element {
     const { t } = useTranslation();
     const setJob = useExportStore((s) => s.setJob);
     const [formato, setFormato] = useState<Formato>('csv');

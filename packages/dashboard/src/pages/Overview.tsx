@@ -11,7 +11,7 @@ import {
     BarChart,
     Treemap,
 } from 'recharts';
-import { useOverview, useVolume, useTopEmpresas, usePorUf } from '../api/hooks.js';
+import { useOverview, useVolume, useTopCompanies, useByUf } from '../api/hooks.js';
 import { CurrencyValue, DateDisplay, LoadingSkeleton, InlineError } from '../components/shared.js';
 
 function KpiCard({ label, valor }: { label: string; valor: string | number }): JSX.Element {
@@ -55,17 +55,17 @@ export function OverviewPage(): JSX.Element {
     const { t } = useTranslation();
     const overview = useOverview();
     const volume = useVolume('dia');
-    const topEmpresas = useTopEmpresas();
-    const porUf = usePorUf('emitente');
+    const topCompanies = useTopCompanies();
+    const byUf = useByUf('emitente');
 
     if (overview.isLoading) return <LoadingSkeleton linhas={4} />;
     if (overview.isError || !overview.data) return <InlineError onRetry={() => void overview.refetch()} />;
 
     const o = overview.data;
-    const serieVolume = volume.data?.serie ?? [];
-    const ranking = topEmpresas.data?.ranking ?? [];
+    const volumeSeries = volume.data?.serie ?? [];
+    const ranking = topCompanies.data?.ranking ?? [];
     // Treemap espera { name, size, ... } — área proporcional ao nº de NFs por UF.
-    const treemapUf = (porUf.data?.porUf ?? []).map((u) => ({ name: u.uf, uf: u.uf, size: u.totalNFs, valorTotal: u.valorTotal }));
+    const treemapUf = (byUf.data?.porUf ?? []).map((u) => ({ name: u.uf, uf: u.uf, size: u.totalNFs, valorTotal: u.valorTotal }));
 
     return (
         <div className="overview">
@@ -79,7 +79,7 @@ export function OverviewPage(): JSX.Element {
             <section className="chart">
                 <h3>{t('overview.volumeTitulo')}</h3>
                 <ResponsiveContainer width="100%" height={260}>
-                    <ComposedChart data={serieVolume}>
+                    <ComposedChart data={volumeSeries}>
                         <XAxis dataKey="periodo" />
                         <YAxis yAxisId="left" />
                         <YAxis yAxisId="right" orientation="right" />
@@ -104,10 +104,10 @@ export function OverviewPage(): JSX.Element {
 
             <section className="chart">
                 <h3>{t('overview.distribuicaoUf')}</h3>
-                {porUf.isLoading ? (
+                {byUf.isLoading ? (
                     <LoadingSkeleton linhas={3} />
-                ) : porUf.isError ? (
-                    <InlineError onRetry={() => void porUf.refetch()} />
+                ) : byUf.isError ? (
+                    <InlineError onRetry={() => void byUf.refetch()} />
                 ) : treemapUf.length === 0 ? (
                     <p className="empty-hint">{t('overview.distribuicaoUfVazio')}</p>
                 ) : (

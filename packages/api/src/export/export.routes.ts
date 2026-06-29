@@ -32,7 +32,7 @@ export async function exportRoutes(app: FastifyInstance, service: ExportService)
         },
         async (request, reply) => {
             const { formato, filtros, campos } = request.body;
-            const job = service.criar(formato, filtros, campos);
+            const job = service.create(formato, filtros, campos);
             reply.status(202).send({
                 exportId: job.exportId,
                 status: job.status,
@@ -50,7 +50,7 @@ export async function exportRoutes(app: FastifyInstance, service: ExportService)
             schema: { tags: ['export'], summary: 'Status de uma exportação', params: { type: 'object', properties: { exportId: { type: 'string' } }, required: ['exportId'] }, security: [{ bearerAuth: [] }] },
         },
         async (request) => {
-            const job = await service.obter(request.params.exportId);
+            const job = await service.get(request.params.exportId);
             if (job === null) throw ApiError.notFound('EXPORT_NOT_FOUND', 'Exportação não encontrada.');
             if (job === 'expired') throw new ApiError(410, 'EXPORT_EXPIRED', 'O arquivo de exportação expirou e foi removido.');
 
@@ -84,12 +84,12 @@ export async function exportRoutes(app: FastifyInstance, service: ExportService)
             schema: { tags: ['export'], summary: 'Download do arquivo de exportação', params: { type: 'object', properties: { exportId: { type: 'string' } }, required: ['exportId'] }, security: [{ bearerAuth: [] }] },
         },
         async (request, reply) => {
-            const job = await service.obter(request.params.exportId);
+            const job = await service.get(request.params.exportId);
             if (job === null) throw ApiError.notFound('EXPORT_NOT_FOUND', 'Exportação não encontrada.');
             if (job === 'expired') throw new ApiError(410, 'EXPORT_EXPIRED', 'O arquivo de exportação expirou e foi removido.');
             if (job.status !== 'ready') throw ApiError.badRequest('Exportação ainda não está pronta.');
 
-            const data = await service.ler(job);
+            const data = await service.read(job);
             const date = new Date().toISOString().slice(0, 10);
             reply
                 .header('Content-Type', service.contentType(job.formato))

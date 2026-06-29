@@ -10,7 +10,7 @@ import type {
     NFFinalidade,
     RegimeTributario,
 } from '../types/nf.types.js';
-import { resolveIdUnico } from '../utils/produto.utils.js';
+import { resolveUniqueId } from '../utils/product.utils.js';
 
 /** Item da NF: o produto, sua classificação e os valores da aresta CONTÉM. */
 export interface ParsedItem {
@@ -98,7 +98,7 @@ function mapRegime(crt: string | undefined): RegimeTributario | undefined {
 }
 
 /** Extrai os 44 dígitos da chave de acesso do atributo Id (formato "NFe<44 dígitos>"). */
-function extrairChave(id: string | undefined): string {
+function extractAccessKey(id: string | undefined): string {
     if (!id) throw new NFeParseError('infNFe/@Id ausente — sem chave de acesso.');
     return id.replace(/^NFe/, '');
 }
@@ -113,13 +113,13 @@ function isObj(v: unknown): v is XmlObj {
  * Procura recursivamente a primeira ocorrência de uma tag numérica dentro de um
  * grupo de tributo (ex.: IPI → IPITrib → vIPI). Retorna o número ou undefined.
  */
-function buscarValor(node: unknown, tag: string): number | undefined {
+function findTaxValue(node: unknown, tag: string): number | undefined {
     if (!isObj(node)) return undefined;
-    const direto = asString(node[tag]);
-    if (direto !== undefined) return Number(direto);
+    const direct = asString(node[tag]);
+    if (direct !== undefined) return Number(direct);
     for (const v of Object.values(node)) {
         if (isObj(v)) {
-            const found = buscarValor(v, tag);
+            const found = findTaxValue(v, tag);
             if (found !== undefined) return found;
         }
     }
@@ -127,14 +127,14 @@ function buscarValor(node: unknown, tag: string): number | undefined {
 }
 
 /** Soma os tributos de um item a partir dos grupos presentes (regra 8: só XSD vigente). */
-function extrairTributos(imposto: unknown): Partial<ContemEdge> {
+function extractTaxes(imposto: unknown): Partial<ContemEdge> {
     if (!isObj(imposto)) return {};
     const out: Partial<ContemEdge> = {};
 
     // ICMS: o grupo tem uma subchave variável (ICMS00, ICMSSN102, ...).
-    const icmsGrupo = imposto.ICMS;
-    if (isObj(icmsGrupo)) {
-        const icms = Object.values(icmsGrupo).find(isObj);
+    const icmsGroup = imposto.ICMS;
+    if (isObj(icmsGroup)) {
+        const icms = Object.values(icmsGroup).find(isObj);
         if (icms) {
             const vICMS = asString(icms.vICMS);
             const vBC = asString(icms.vBC);
@@ -145,16 +145,16 @@ function extrairTributos(imposto: unknown): Partial<ContemEdge> {
         }
     }
 
-    const grupos: Array<[keyof ContemEdge, string, string]> = [
+    const groups: Array<[keyof ContemEdge, string, string]> = [
         ['vIPI', 'IPI', 'vIPI'],
         ['vPIS', 'PIS', 'vPIS'],
         ['vCOFINS', 'COFINS', 'vCOFINS'],
         ['vII', 'II', 'vII'],
         ['vISSQN', 'ISSQN', 'vISSQN'],
     ];
-    for (const [campo, grupo, tag] of grupos) {
-        const val = buscarValor(imposto[grupo], tag);
-        if (val !== undefined) (out[campo] as number) = val;
+    for (const [field, group, tag] of groups) {
+        const val = findTaxValue(imposto[group], tag);
+        if (val !== undefined) (out[field] as number) = val;
     }
     return out;
 }
@@ -183,7 +183,7 @@ export function parseNFe(xml: string, importadoEm: Date): ParsedNF {
     const total = isObj(totalNode?.ICMSTot) ? totalNode.ICMSTot : {};
     const infAdic = isObj(infNFe.infAdic) ? infNFe.infAdic : undefined;
 
-    const chaveAcesso = extrairChave(asString(infNFe['@_Id']));
+    const chaveAcesso = extractAccessKey(asString(infNFe['@_Id']));
     const cnpjEmit = asString(emit.CNPJ) ?? '';
 
     const nota: NotaFiscalNode = {
@@ -204,8 +204,8 @@ export function parseNFe(xml: string, importadoEm: Date): ParsedNF {
         ...opt('infAdFisco', asString(infAdic?.infAdFisco)),
     };
 
-    const emitente = parseEmpresa(emit, true);
-    const destinatario = dest ? parseEmpresa(dest, false) : undefined;
+    const emitente = parseCompany(emit, true);
+    const destinatario = dest ? parseCompany(dest, false) : undefined;
 
     const detList = Array.isArray(infNFe.det) ? (infNFe.det as XmlObj[]) : [];
     const itens: ParsedItem[] = detList.map((det) => parseItem(det, cnpjEmit));
@@ -218,7 +218,7 @@ export function parseNFe(xml: string, importadoEm: Date): ParsedNF {
     };
 }
 
-function parseEmpresa(node: XmlObj, isEmit: boolean): EmpresaNode {
+function parseCompany(node: XmlObj, isEmit: boolean): EmpresaNode {
     const enderRaw = node.enderEmit ?? node.enderDest;
     const ender = isObj(enderRaw) ? enderRaw : {};
     const regime = isEmit ? mapRegime(asString(node.CRT)) : undefined;
@@ -245,7 +245,7 @@ function parseItem(det: XmlObj, cnpjEmit: string): ParsedItem {
 
     const codigo = asString(prod.cProd) ?? '';
     const ean = asEan(prod.cEAN);
-    const idUnico = resolveIdUnico({ codigo, cnpjEmitente: cnpjEmit, ...(ean ? { ean } : {}) });
+    const idUnico = resolveUniqueId({ codigo, cnpjEmitente: cnpjEmit, ...(ean ? { ean } : {}) });
 
     const produto: ProdutoNode = {
         idUnico,
@@ -272,7 +272,7 @@ function parseItem(det: XmlObj, cnpjEmit: string): ParsedItem {
         valorUnitario: Number(asString(prod.vUnCom) ?? '0'),
         valorTotal: Number(asString(prod.vProd) ?? '0'),
         ...opt('desconto', asString(prod.vDesc), Number),
-        ...extrairTributos(imposto),
+        ...extractTaxes(imposto),
     };
 
     return { produto, ncm, cfop, contem };

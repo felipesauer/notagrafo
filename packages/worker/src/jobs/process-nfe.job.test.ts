@@ -5,8 +5,8 @@ import { fileURLToPath } from 'node:url';
 import type { Driver } from 'neo4j-driver';
 
 // Mocka a gravação no grafo (vi.hoisted: o factory é içado ao topo).
-const { mergeNotaFiscal } = vi.hoisted(() => ({ mergeNotaFiscal: vi.fn(async () => {}) }));
-vi.mock('@notagrafo/graph', () => ({ mergeNotaFiscal }));
+const { mergeInvoice } = vi.hoisted(() => ({ mergeInvoice: vi.fn(async () => {}) }));
+vi.mock('@notagrafo/graph', () => ({ mergeInvoice }));
 
 import { processNFe } from './process-nfe.job.js';
 import type { XmlStorage } from '../storage/xml.storage.js';
@@ -18,7 +18,7 @@ const CHAVE = '35200114200166000187550010000000071234567890';
 const fakeStorage = (): XmlStorage => ({ save: vi.fn(async (chave: string) => `local://${chave}`) }) as unknown as XmlStorage;
 const fakeDriver = {} as Driver;
 
-beforeEach(() => mergeNotaFiscal.mockClear());
+beforeEach(() => mergeInvoice.mockClear());
 
 describe('processNFe (unit)', () => {
     it('valida, parseia, grava no grafo e salva o XML — retorna chave/versão/ref', async () => {
@@ -28,8 +28,8 @@ describe('processNFe (unit)', () => {
         expect(res.versao).toBe('4.00');
         expect(res.storageRef).toBe(`local://${CHAVE}`);
         // gravou no grafo com o payload (nota + raw)
-        expect(mergeNotaFiscal).toHaveBeenCalledTimes(1);
-        const payload = mergeNotaFiscal.mock.calls[0]![1] as { raw: { versaoSchema: string } };
+        expect(mergeInvoice).toHaveBeenCalledTimes(1);
+        const payload = mergeInvoice.mock.calls[0]![1] as { raw: { versaoSchema: string } };
         expect(payload.raw.versaoSchema).toBe('4.00');
         // salvou o XML no storage pela chave
         expect(storage.save).toHaveBeenCalledWith(CHAVE, xml());
@@ -45,7 +45,7 @@ describe('processNFe (unit)', () => {
     it('XML inválido contra o XSD → lança e não grava no grafo', async () => {
         const storage = fakeStorage();
         await expect(processNFe({ xml: xml('nfe-invalida-schema.xml') }, { driver: fakeDriver, storage })).rejects.toThrow(/XSD|inválido/i);
-        expect(mergeNotaFiscal).not.toHaveBeenCalled();
+        expect(mergeInvoice).not.toHaveBeenCalled();
         expect(storage.save).not.toHaveBeenCalled();
     });
 });

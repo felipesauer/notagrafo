@@ -40,13 +40,13 @@ const toNum = (v: unknown): number =>
           : Number(v ?? 0);
 
 /** Ranking de produtos por valor ou quantidade, opcionalmente filtrado por NCM e período. */
-export async function topProdutos(
+export async function topProducts(
     driver: Driver,
     opts: TopProdutosOptions = {},
 ): Promise<ProdutoRanking[]> {
-    const metrica = opts.metrica === 'quantidade' ? 'quantidade' : 'valor';
+    const metric = opts.metrica === 'quantidade' ? 'quantidade' : 'valor';
     const limit = Math.min(opts.limit ?? DEFAULT_LIMIT, MAX_LIMIT);
-    const ordenarPor = metrica === 'quantidade' ? 'quantidadeTotal' : 'valorTotal';
+    const orderBy = metric === 'quantidade' ? 'quantidadeTotal' : 'valorTotal';
 
     const where: string[] = [];
     const params: Record<string, unknown> = { limit: neo4j.int(limit) };
@@ -66,7 +66,7 @@ export async function topProdutos(
                   sum(c.valorTotal) AS valorTotal
              RETURN prod.idUnico AS idUnico, prod.descricao AS descricao, prod.ean AS ean,
                     ncm.codigo AS ncm, totalNFs, quantidadeTotal, valorTotal
-             ORDER BY ${ordenarPor} DESC
+             ORDER BY ${orderBy} DESC
              LIMIT $limit`,
             params,
         );
@@ -92,7 +92,7 @@ export async function topProdutos(
 }
 
 /** Histórico de preço médio de um produto, agrupado por mês (YYYY-MM). */
-export async function historicoPrecoProduto(
+export async function productPriceHistory(
     driver: Driver,
     idUnico: string,
 ): Promise<PrecoHistoricoPonto[]> {
