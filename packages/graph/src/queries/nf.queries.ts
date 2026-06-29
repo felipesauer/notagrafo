@@ -235,9 +235,10 @@ export async function getInvoice(driver: Driver, chaveAcesso: string): Promise<R
         const res = await session.run(
             `MATCH (emit:Empresa)-[:EMITIU]->(nf:NotaFiscal {chaveAcesso: $chave})
              OPTIONAL MATCH (nf)-[:DESTINADA_A]->(dest:Empresa)
+             OPTIONAL MATCH (nf)-[:USA_CFOP]->(cfop:CFOP)
              OPTIONAL MATCH (nf)-[c:CONTÉM]->(prod:Produto)
              OPTIONAL MATCH (prod)-[:CLASSIFICADO_EM]->(ncm:NCM)
-             RETURN nf, emit, dest,
+             RETURN nf, emit, dest, cfop,
                     collect({item: c, produto: prod, ncm: ncm}) AS itens`,
             { chave: chaveAcesso },
         );
@@ -246,6 +247,7 @@ export async function getInvoice(driver: Driver, chaveAcesso: string): Promise<R
         const nf = (r.get('nf') as { properties: Record<string, unknown> }).properties;
         const emit = r.get('emit') as { properties: Record<string, unknown> } | null;
         const dest = r.get('dest') as { properties: Record<string, unknown> } | null;
+        const cfop = r.get('cfop') as { properties: Record<string, unknown> } | null;
         const itensRaw = r.get('itens') as Array<{
             item: { properties: Record<string, unknown> } | null;
             produto: { properties: Record<string, unknown> } | null;
@@ -262,6 +264,7 @@ export async function getInvoice(driver: Driver, chaveAcesso: string): Promise<R
             ...nf,
             emitente: emit?.properties,
             destinatario: dest?.properties,
+            ...(cfop ? { cfop: cfop.properties } : {}),
             itens,
         };
     } finally {
