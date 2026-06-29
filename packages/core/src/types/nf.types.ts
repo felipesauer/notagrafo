@@ -97,10 +97,21 @@ export interface ContemEdge {
     valorUnitario: number;
     valorTotal: number;
     desconto?: number;
+    // CST/CSOSN do ICMS do item (string — preserva zeros à esquerda; ex.: '00', '102').
+    cst?: string;
+    // CEST — Código Especificador da Substituição Tributária (det/prod/CEST).
+    cest?: string;
     // ICMS — grupo det/imposto/ICMS (múltiplas CSTs possíveis no XSD)
     vICMS?: number;
     vBCICMS?: number;
     pICMS?: number;
+    // ICMS-ST — substituição tributária (vBCST, vICMSST)
+    vBCST?: number;
+    vICMSST?: number;
+    // FCP — Fundo de Combate à Pobreza (vFCP)
+    vFCP?: number;
+    // ICMS desonerado (vICMSDeson)
+    vICMSDeson?: number;
     // IPI — grupo det/imposto/IPI
     vIPI?: number;
     // PIS — grupo det/imposto/PIS
@@ -111,6 +122,27 @@ export interface ContemEdge {
     vII?: number;
     // ISSQN — serviços (det/imposto/ISSQN)
     vISSQN?: number;
+}
+
+// Totais da NF — grupo total/ICMSTot. Espelham os campos somados do XSD vigente.
+// Todos opcionais: campos ausentes no grupo não viram propriedade (regra 6).
+export interface TotaisNF {
+    vNF?: number;
+    vProd?: number;
+    vBC?: number;
+    vICMS?: number;
+    vICMSDeson?: number;
+    vFCP?: number;
+    vBCST?: number;
+    vST?: number;
+    vIPI?: number;
+    vPIS?: number;
+    vCOFINS?: number;
+    vII?: number;
+    vFrete?: number;
+    vSeg?: number;
+    vDesc?: number;
+    vOutro?: number;
 }
 
 // Propriedades da aresta CANCELA

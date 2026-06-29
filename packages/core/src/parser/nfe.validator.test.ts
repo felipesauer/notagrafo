@@ -15,6 +15,15 @@ describe('validateNFe', () => {
         expect(result.errors).toHaveLength(0);
     });
 
+    it.each(['nfe-tributada-v4.00.xml', 'nfe-devolucao-ref-v4.00.xml'])(
+        'valida o fixture fiscal %s contra o XSD v4.00',
+        (nome) => {
+            const result = validateNFe(fixture(nome));
+            expect(result.valid).toBe(true);
+            expect(result.errors).toHaveLength(0);
+        },
+    );
+
     it('rejeita uma NFe v4.00 que viola o schema (sem natOp obrigatório)', () => {
         const result = validateNFe(fixture('nfe-invalida-schema.xml'));
         expect(result.valid).toBe(false);

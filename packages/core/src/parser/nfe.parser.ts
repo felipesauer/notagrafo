@@ -6,6 +6,7 @@ import type {
     NCMNode,
     CFOPNode,
     ContemEdge,
+    TotaisNF,
     NFTipo,
     NFFinalidade,
     RegimeTributario,
@@ -26,6 +27,10 @@ export interface ParsedNF {
     emitente: EmpresaNode;
     destinatario?: EmpresaNode;
     itens: ParsedItem[];
+    /** Totais da NF (grupo total/ICMSTot). Base do bloco `totais` do detalhe e dos stats. */
+    totais: TotaisNF;
+    /** Chaves de NFes referenciadas (ide/NFref/refNFe). Base das arestas DEVOLVE/CANCELA. */
+    referencias: string[];
 }
 
 /** Erro lançado quando o XML não tem a estrutura mínima de uma NFe. */
@@ -136,12 +141,23 @@ function extractTaxes(imposto: unknown): Partial<ContemEdge> {
     if (isObj(icmsGroup)) {
         const icms = Object.values(icmsGroup).find(isObj);
         if (icms) {
+            // CST (regime normal) ou CSOSN (Simples Nacional) — string p/ preservar zeros.
+            const cst = asString(icms.CST) ?? asString(icms.CSOSN);
             const vICMS = asString(icms.vICMS);
             const vBC = asString(icms.vBC);
             const pICMS = asString(icms.pICMS);
+            const vBCST = asString(icms.vBCST);
+            const vICMSST = asString(icms.vICMSST);
+            const vFCP = asString(icms.vFCP);
+            const vICMSDeson = asString(icms.vICMSDeson);
+            if (cst !== undefined) out.cst = cst;
             if (vICMS !== undefined) out.vICMS = Number(vICMS);
             if (vBC !== undefined) out.vBCICMS = Number(vBC);
             if (pICMS !== undefined) out.pICMS = Number(pICMS);
+            if (vBCST !== undefined) out.vBCST = Number(vBCST);
+            if (vICMSST !== undefined) out.vICMSST = Number(vICMSST);
+            if (vFCP !== undefined) out.vFCP = Number(vFCP);
+            if (vICMSDeson !== undefined) out.vICMSDeson = Number(vICMSDeson);
         }
     }
 
@@ -157,6 +173,43 @@ function extractTaxes(imposto: unknown): Partial<ContemEdge> {
         if (val !== undefined) (out[field] as number) = val;
     }
     return out;
+}
+
+/**
+ * Extrai os totais da NF do grupo total/ICMSTot. Só inclui campos presentes
+ * (sem propriedade null/undefined, regra 6). Mapeia vBC→vBC e vST→vST etc.
+ */
+function extractTotals(icmsTot: unknown): TotaisNF {
+    if (!isObj(icmsTot)) return {};
+    const out: TotaisNF = {};
+    const fields: Array<keyof TotaisNF> = [
+        'vNF', 'vProd', 'vBC', 'vICMS', 'vICMSDeson', 'vFCP', 'vBCST', 'vST',
+        'vIPI', 'vPIS', 'vCOFINS', 'vII', 'vFrete', 'vSeg', 'vDesc', 'vOutro',
+    ];
+    for (const f of fields) {
+        const v = asString(icmsTot[f]);
+        if (v !== undefined) out[f] = Number(v);
+    }
+    return out;
+}
+
+/**
+ * Extrai as chaves de NFes referenciadas do grupo ide/NFref/refNFe.
+ * NFref pode ser objeto único ou array (maxOccurs=999 no XSD); cada um pode ter
+ * refNFe (chave de 44 dígitos) ou outras formas (refNF, refCTe, ...) — só refNFe
+ * é uma chave de acesso direta, base de DEVOLVE/CANCELA. Retorna [] quando ausente.
+ */
+function extractReferences(ide: XmlObj): string[] {
+    const nfRefRaw = ide.NFref;
+    if (nfRefRaw === undefined || nfRefRaw === null) return [];
+    const list = Array.isArray(nfRefRaw) ? nfRefRaw : [nfRefRaw];
+    const refs: string[] = [];
+    for (const ref of list) {
+        if (!isObj(ref)) continue;
+        const chave = asString(ref.refNFe) ?? asString(ref.refNFeSig);
+        if (chave !== undefined) refs.push(chave);
+    }
+    return refs;
 }
 
 /**
@@ -215,6 +268,8 @@ export function parseNFe(xml: string, importadoEm: Date): ParsedNF {
         emitente,
         ...(destinatario ? { destinatario } : {}),
         itens,
+        totais: extractTotals(total),
+        referencias: extractReferences(ide),
     };
 }
 
@@ -272,6 +327,7 @@ function parseItem(det: XmlObj, cnpjEmit: string): ParsedItem {
         valorUnitario: Number(asString(prod.vUnCom) ?? '0'),
         valorTotal: Number(asString(prod.vProd) ?? '0'),
         ...opt('desconto', asString(prod.vDesc), Number),
+        ...opt('cest', asString(prod.CEST)),
         ...extractTaxes(imposto),
     };
 
