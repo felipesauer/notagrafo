@@ -15,3 +15,7 @@ coverage/
 
 # mnema
 .mnema/state/
+
+# playwright artifacts
+packages/dashboard/test-results/
+packages/dashboard/playwright-report/
