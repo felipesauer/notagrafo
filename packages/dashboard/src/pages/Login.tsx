@@ -25,7 +25,7 @@ export function LoginPage(): JSX.Element {
         setErro(null);
         setCarregando(true);
         try {
-            const res = await apiFetch<LoginResponse>('/auth/login', { method: 'POST', body: { email, password: senha } });
+            const res = await apiFetch<LoginResponse>('/auth/login', { method: 'POST', body: { email, password: senha }, skipAuthRefresh: true });
             setSession(res.token, res.user);
             void navigate({ to: search.redirect ?? '/' });
         } catch (err) {

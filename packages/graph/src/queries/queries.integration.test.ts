@@ -10,8 +10,8 @@ import { parseNFe, type RawDataNode } from '@notagrafo/core';
 import { runMigrations } from '../migrations.js';
 import { mergeNotaFiscal, type NotaFiscalParaGravar } from '../nf.repository.js';
 import { getEmpresaGrafo, getEmpresaStats, DepthForaDoLimiteError } from './empresa.queries.js';
-import { listNotasFiscais } from './nf.queries.js';
-import { topProdutos } from './produto.queries.js';
+import { listNotasFiscais, countNotasFiscais, filtrosAtivos, getNotaFiscal } from './nf.queries.js';
+import { topProdutos, historicoPrecoProduto } from './produto.queries.js';
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'core', 'src', '__fixtures__');
 
@@ -95,6 +95,73 @@ describe('nf.queries', () => {
         const page = await listNotasFiscais(driver, { ncm: '6109' });
         expect(page.data.length).toBe(2);
     });
+
+    it('cobre os demais filtros do contrato (valor/data/cfop/dest/tipo/finalidade/natureza)', async () => {
+        // as 2 NFs do setup: valorTotal=10, dataEmissao 2026-06-26, CFOP 5102,
+        // destinatário CNPJ 99999999000191 / UF SP, tipoNF saida, finalidade normal, natOp VENDA.
+        const casa = [
+            { valorTotalMin: 5, valorTotalMax: 50 },
+            { dataEmissaoInicio: '2026-06-01', dataEmissaoFim: '2026-06-30' },
+            { cfop: '5102' },
+            { cnpjDestinatario: '99999999000191' },
+            { ufDestinatario: 'SP' },
+            { tipoNF: 'saida' },
+            { finalidade: 'normal' },
+            { naturezaOp: 'venda' }, // contains case-insensitive
+        ];
+        for (const f of casa) {
+            const page = await listNotasFiscais(driver, f);
+            expect(page.data.length, `filtro ${JSON.stringify(f)} deveria casar as 2 NFs`).toBe(2);
+        }
+
+        // filtros que NÃO casam → 0 resultados
+        const naoCasa = [
+            { valorTotalMin: 1000 },
+            { valorTotalMax: 1 },
+            { dataEmissaoInicio: '2027-01-01' },
+            { cfop: '6102' },
+            { ufDestinatario: 'MG' },
+            { tipoNF: 'entrada' },
+            { finalidade: 'devolucao' },
+        ];
+        for (const f of naoCasa) {
+            const page = await listNotasFiscais(driver, f);
+            expect(page.data.length, `filtro ${JSON.stringify(f)} não deveria casar`).toBe(0);
+        }
+    });
+
+    it('countNotasFiscais respeita os filtros (DISTINCT por nota)', async () => {
+        // sem filtro: total de NFs do setup
+        expect(await countNotasFiscais(driver, {})).toBe(2);
+        // filtro por emitente ativo: 2
+        expect(await countNotasFiscais(driver, { status: 'ativa', cnpjEmitente: EMIT })).toBe(2);
+        // filtro por NCM com produto repetido em 2 notas → ainda 2 (DISTINCT)
+        expect(await countNotasFiscais(driver, { ncm: '6109' })).toBe(2);
+        // filtro impossível: 0
+        expect(await countNotasFiscais(driver, { status: 'cancelada' })).toBe(0);
+    });
+
+    it('filtrosAtivos lista apenas chaves preenchidas', () => {
+        expect(filtrosAtivos({ status: 'ativa', ufEmitente: 'SP', numero: '' })).toEqual(['status', 'ufEmitente']);
+        expect(filtrosAtivos({})).toEqual([]);
+    });
+
+    it('getNotaFiscal retorna detalhe com emitente, destinatário e itens', async () => {
+        const chave = '35200114200166000187550010000000071234567890';
+        const nf = await getNotaFiscal(driver, chave);
+        expect(nf).not.toBeNull();
+        expect(nf!.chaveAcesso).toBe(chave);
+        expect((nf!.emitente as { cnpj: string }).cnpj).toBe(EMIT);
+        expect(nf!.destinatario).toBeTruthy();
+        const itens = nf!.itens as Array<{ produto?: { ncm?: string }; ncm?: { codigo?: string } }>;
+        expect(Array.isArray(itens)).toBe(true);
+        expect(itens.length).toBeGreaterThanOrEqual(1);
+        expect(itens[0]!.produto).toBeTruthy();
+    });
+
+    it('getNotaFiscal retorna null para chave inexistente', async () => {
+        expect(await getNotaFiscal(driver, '00000000000000000000000000000000000000000000')).toBeNull();
+    });
 });
 
 describe('produto.queries', () => {
@@ -104,5 +171,22 @@ describe('produto.queries', () => {
         expect(ranking[0]!.posicao).toBe(1);
         expect(ranking[0]!.precoMedio).toBeGreaterThan(0);
         expect(ranking[0]!.ncm).toBe('61091000');
+    });
+
+    it('historicoPrecoProduto agrega por período com preço médio', async () => {
+        const ranking = await topProdutos(driver, { metrica: 'valor', limit: 1 });
+        const idUnico = ranking[0]!.idUnico;
+        const historico = await historicoPrecoProduto(driver, idUnico);
+        expect(historico.length).toBeGreaterThanOrEqual(1);
+        // o produto aparece nas 2 NFs do setup, emitidas em 2026-06 → 1 período agregado
+        const ponto = historico[0]!;
+        expect(ponto.periodo).toMatch(/^\d{4}-\d{2}$/);
+        expect(ponto.quantidadeTotal).toBeGreaterThan(0);
+        expect(ponto.precoMedio).toBeGreaterThan(0);
+        expect(ponto.totalNFs).toBe(2);
+    });
+
+    it('historicoPrecoProduto retorna vazio para produto inexistente', async () => {
+        expect(await historicoPrecoProduto(driver, 'inexistente')).toEqual([]);
     });
 });

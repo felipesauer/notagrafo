@@ -54,6 +54,19 @@ export function useTopEmpresas() {
     });
 }
 
+export interface UfStat {
+    uf: string;
+    totalNFs: number;
+    valorTotal: number;
+}
+
+export function usePorUf(tipo: 'emitente' | 'destinatario' = 'emitente') {
+    return useQuery({
+        queryKey: ['stats', 'por-uf', tipo],
+        queryFn: () => apiFetch<{ tipo: string; porUf: UfStat[] }>(`/stats/por-uf${qs({ tipo })}`),
+    });
+}
+
 export function useVolume(granularidade = 'dia') {
     return useQuery({
         queryKey: ['stats', 'volume', granularidade],
@@ -88,5 +101,20 @@ export function useTopProdutos() {
     return useQuery({
         queryKey: ['stats', 'top-produtos'],
         queryFn: () => apiFetch<{ ranking: Array<Record<string, unknown>> }>('/stats/top-produtos?limit=20'),
+    });
+}
+
+export interface PrecoHistoricoPonto {
+    periodo: string;
+    precoMedio: number;
+    quantidadeTotal: number;
+    totalNFs: number;
+}
+
+export function useHistoricoPreco(idUnico: string) {
+    return useQuery({
+        queryKey: ['stats', 'produto-historico', idUnico],
+        queryFn: () => apiFetch<{ idUnico: string; historico: PrecoHistoricoPonto[] }>(`/stats/produto/${encodeURIComponent(idUnico)}/historico`),
+        enabled: !!idUnico,
     });
 }

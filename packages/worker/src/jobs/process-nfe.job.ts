@@ -22,6 +22,8 @@ export interface ProcessNFeResult {
 export interface ProcessNFeDeps {
     driver: Driver;
     storage: XmlStorage;
+    /** Reporta o progresso (0–100) nos marcos do pipeline. Opcional. */
+    onProgress?: (pct: number) => void | Promise<void>;
 }
 
 /**
@@ -34,12 +36,16 @@ export async function processNFe(
     deps: ProcessNFeDeps,
 ): Promise<ProcessNFeResult> {
     const { xml } = data;
+    const report = async (pct: number): Promise<void> => {
+        await deps.onProgress?.(pct);
+    };
 
     // 1. Validação XSD (lança se inválido ou versão não suportada)
     const validacao = validarNFe(xml);
     if (!validacao.valid) {
         throw new Error(`XML inválido contra o XSD ${validacao.versao}: ${validacao.errors.join('; ')}`);
     }
+    await report(25);
 
     // 2. Parse
     const parsed = parseNFe(xml, new Date());
@@ -52,13 +58,16 @@ export async function processNFe(
         tamanhoBytes: Buffer.byteLength(xml),
         versaoSchema: validacao.versao,
     };
+    await report(50);
 
     // 4. Grava no grafo (idempotente por chaveAcesso)
     const payload: NotaFiscalParaGravar = { ...parsed, raw };
     await mergeNotaFiscal(deps.driver, payload);
+    await report(75);
 
     // 5. Salva o XML original no storage
     const storageRef = await deps.storage.save(parsed.nota.chaveAcesso, xml);
+    await report(100);
 
     return { chaveAcesso: parsed.nota.chaveAcesso, versao: validacao.versao, storageRef };
 }

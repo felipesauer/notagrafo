@@ -10,7 +10,7 @@ import neo4j, { type Driver } from 'neo4j-driver';
 import { Redis } from 'ioredis';
 import { runMigrations } from '@notagrafo/graph';
 import { createNFQueue, processNFe, LocalXmlStorage } from '@notagrafo/worker';
-import type { Queue } from 'bullmq';
+import { Worker, type Queue } from 'bullmq';
 import type { ProcessNFeJobData } from '@notagrafo/worker';
 import { buildApp, API_PREFIX } from '../app.js';
 import { criarUsuario } from '../auth/user.repository.js';
@@ -115,13 +115,30 @@ describe('rotas de NF', () => {
         expect(res.json().error).toBe('DUPLICATE_NF');
     });
 
-    it('GET /nf lista com paginação (data + pagination)', async () => {
+    it('GET /nf lista com paginação (data + pagination + meta)', async () => {
         await processNFe({ xml: xml() }, { driver, storage });
-        const res = await app.inject({ method: 'GET', url: `${API_PREFIX}/nf?limit=10`, headers: bearer() });
+        const res = await app.inject({ method: 'GET', url: `${API_PREFIX}/nf?limit=10&status=ativa`, headers: bearer() });
         expect(res.statusCode).toBe(200);
-        expect(Array.isArray(res.json().data)).toBe(true);
-        expect(res.json().data.length).toBe(1);
-        expect(res.json().pagination).toHaveProperty('hasMore');
+        const json = res.json();
+        expect(Array.isArray(json.data)).toBe(true);
+        expect(json.data.length).toBe(1);
+        expect(json.pagination).toHaveProperty('hasMore');
+        // meta: total respeita os filtros, filtrosAtivos lista as chaves usadas
+        expect(json.meta.total).toBe(1);
+        expect(json.meta.filtrosAtivos).toEqual(['status']);
+    });
+
+    it('GET /nf coage valorTotalMin/Max da query (string→number) e filtra', async () => {
+        await processNFe({ xml: xml() }, { driver, storage }); // valorTotal = 10
+        // valores passam como STRING na query; o ajv do Fastify deve coagir para number.
+        const dentro = await app.inject({ method: 'GET', url: `${API_PREFIX}/nf?valorTotalMin=5&valorTotalMax=50`, headers: bearer() });
+        expect(dentro.statusCode).toBe(200);
+        expect(dentro.json().data.length).toBe(1);
+        expect(dentro.json().meta.filtrosAtivos.sort()).toEqual(['valorTotalMax', 'valorTotalMin']);
+
+        const fora = await app.inject({ method: 'GET', url: `${API_PREFIX}/nf?valorTotalMin=1000`, headers: bearer() });
+        expect(fora.json().data.length).toBe(0);
+        expect(fora.json().meta.total).toBe(0);
     });
 
     it('GET /nf/:chave detalha e cria evento consultada (assíncrono)', async () => {
@@ -133,12 +150,26 @@ describe('rotas de NF', () => {
         // o evento consultada é assíncrono — aguarda um tick e verifica
         await new Promise((r) => setTimeout(r, 300));
         const eventos = await app.inject({ method: 'GET', url: `${API_PREFIX}/nf/${CHAVE}/eventos`, headers: bearer() });
-        const tipos = eventos.json().eventos.map((e: { tipo: string }) => e.tipo);
+        const body = eventos.json();
+        // chaveAcesso no topo (contrato §4)
+        expect(body.chaveAcesso).toBe(CHAVE);
+        const tipos = body.eventos.map((e: { tipo: string }) => e.tipo);
         expect(tipos).toContain('consultada');
+        const consultada = body.eventos.find((e: { tipo: string }) => e.tipo === 'consultada');
+        // timestamp ISO8601 (round-trip por Date) e sem campo 'detalhes'
+        expect(new Date(consultada.timestamp).toISOString()).toBe(consultada.timestamp);
+        expect(consultada).not.toHaveProperty('detalhes');
+        expect(consultada.autor).toBeTruthy();
     });
 
     it('GET /nf/:chave inexistente → 404 NF_NOT_FOUND', async () => {
         const res = await app.inject({ method: 'GET', url: `${API_PREFIX}/nf/00000000000000000000000000000000000000000000`, headers: bearer() });
+        expect(res.statusCode).toBe(404);
+        expect(res.json().error).toBe('NF_NOT_FOUND');
+    });
+
+    it('GET /nf/:chave/eventos de NF inexistente → 404 NF_NOT_FOUND', async () => {
+        const res = await app.inject({ method: 'GET', url: `${API_PREFIX}/nf/00000000000000000000000000000000000000000000/eventos`, headers: bearer() });
         expect(res.statusCode).toBe(404);
         expect(res.json().error).toBe('NF_NOT_FOUND');
     });
@@ -149,5 +180,61 @@ describe('rotas de NF', () => {
         expect(res.statusCode).toBe(200);
         expect(res.headers['content-type']).toContain('application/xml');
         expect(res.body).toContain('<NFe');
+    });
+
+    it('GET /nf/jobs/:jobId inexistente → 404 JOB_NOT_FOUND', async () => {
+        const res = await app.inject({ method: 'GET', url: `${API_PREFIX}/nf/jobs/inexistente`, headers: bearer() });
+        expect(res.statusCode).toBe(404);
+        expect(res.json().error).toBe('JOB_NOT_FOUND');
+    });
+
+    it('GET /nf/jobs/:jobId em andamento traz total e iniciadoEm; concluído traz concluidoEm e resultado', async () => {
+        const { body, headers } = uploadPayload(xml());
+        const up = await app.inject({ method: 'POST', url: `${API_PREFIX}/nf/upload`, payload: body, headers });
+        const jobId = up.json().jobId as string;
+        expect(jobId).toBeTruthy();
+
+        // Antes de processar: estado waiting/active do BullMQ → 'processing' (contrato §3).
+        const pending = await app.inject({ method: 'GET', url: `${API_PREFIX}/nf/jobs/${jobId}`, headers: bearer() });
+        expect(pending.statusCode).toBe(200);
+        expect(pending.json().status).toBe('processing');
+        expect(pending.json().total).toBe(1);
+        expect(pending.json().jobId).toBe(jobId);
+
+        // Processa o job com um worker real ligado à mesma fila (com progresso).
+        const progressos: number[] = [];
+        const worker = new Worker(
+            queue.name,
+            async (job) =>
+                processNFe(job.data as { xml: string }, {
+                    driver,
+                    storage,
+                    onProgress: async (pct) => {
+                        progressos.push(pct);
+                        await job.updateProgress(pct);
+                    },
+                }),
+            { connection: connection.duplicate() },
+        );
+        try {
+            await new Promise<void>((resolve, reject) => {
+                worker.on('completed', () => resolve());
+                worker.on('failed', (_job, err) => reject(err));
+            });
+        } finally {
+            await worker.close();
+        }
+
+        const done = await app.inject({ method: 'GET', url: `${API_PREFIX}/nf/jobs/${jobId}`, headers: bearer() });
+        expect(done.statusCode).toBe(200);
+        const json = done.json();
+        expect(json.status).toBe('completed');
+        expect(json.total).toBe(1);
+        expect(json.iniciadoEm).toBeTruthy();
+        expect(json.concluidoEm).toBeTruthy();
+        expect(json.resultado).toEqual({ processadas: 1, duplicatas: 0, erros: 0 });
+        // progresso foi reportado nos marcos e chegou a 100 (NOTA-42)
+        expect(progressos).toEqual([25, 50, 75, 100]);
+        expect(json.progresso).toBe(100);
     });
 });

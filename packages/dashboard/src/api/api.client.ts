@@ -50,6 +50,12 @@ interface RequestOptions {
     body?: unknown;
     /** Interno: marca que já tentamos refresh nesta requisição. */
     _retried?: boolean;
+    /**
+     * Não tratar 401 como sessão expirada (sem refresh/redirect). Usar em rotas
+     * de autenticação (login/refresh), onde 401 = credencial inválida e deve
+     * propagar o erro real para a UI.
+     */
+    skipAuthRefresh?: boolean;
 }
 
 /**
@@ -67,7 +73,9 @@ export async function apiFetch<T = unknown>(path: string, opts: RequestOptions =
         ...(opts.body !== undefined ? { body: JSON.stringify(opts.body) } : {}),
     });
 
-    if (res.status === 401 && !opts._retried) {
+    // 401 em rotas de auth (login/refresh) = credencial inválida → propaga o erro real
+    // (NÃO faz refresh/redirect, que é o tratamento de sessão expirada).
+    if (res.status === 401 && !opts._retried && !opts.skipAuthRefresh) {
         const novo = await tentarRefresh();
         if (novo) {
             return apiFetch<T>(path, { ...opts, _retried: true });

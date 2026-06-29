@@ -68,7 +68,42 @@ const routeTree = rootRoute.addChildren([
     ]),
 ]);
 
-export const router = createRouter({ routeTree });
+/**
+ * Serializadores de search baseados em URLSearchParams: todo valor escalar é
+ * tratado como STRING (sem aspas na URL e sem coerção numérica). Objetos/arrays
+ * usam JSON. Isso preserva identificadores como CNPJ (14200166000187) como
+ * string — o default do TanStack Router faz JSON.stringify (gera aspas) e o
+ * parseSearchWith coage números, descartando o cnpj no validateSearch (NOTA-48).
+ */
+export function stringifySearch(search: Record<string, unknown>): string {
+    const sp = new URLSearchParams();
+    for (const [k, v] of Object.entries(search)) {
+        if (v === undefined || v === null) continue;
+        sp.set(k, typeof v === 'object' ? JSON.stringify(v) : String(v));
+    }
+    const s = sp.toString();
+    return s ? `?${s}` : '';
+}
+
+export function parseSearch(searchStr: string): Record<string, unknown> {
+    const sp = new URLSearchParams(searchStr.startsWith('?') ? searchStr.slice(1) : searchStr);
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of sp.entries()) {
+        // só objeto/array (começa com { ou [) volta via JSON; o resto fica string
+        if (/^[{[]/.test(v)) {
+            try {
+                out[k] = JSON.parse(v);
+                continue;
+            } catch {
+                /* mantém string */
+            }
+        }
+        out[k] = v;
+    }
+    return out;
+}
+
+export const router = createRouter({ routeTree, stringifySearch, parseSearch });
 
 declare module '@tanstack/react-router' {
     interface Register {

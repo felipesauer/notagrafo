@@ -1,9 +1,11 @@
 import type { FastifyInstance } from 'fastify';
 import type { Driver } from 'neo4j-driver';
 import type { Queue } from 'bullmq';
-import { validarNFe, VersaoSchemaNaoSuportadaError } from '@notagrafo/core';
+import { validarNFe, parseNFe, VersaoSchemaNaoSuportadaError } from '@notagrafo/core';
 import {
     listNotasFiscais,
+    countNotasFiscais,
+    filtrosAtivos,
     getNotaFiscal,
     type NFFilters,
     type NFPageOptions,
@@ -56,7 +58,23 @@ export async function nfRoutes(app: FastifyInstance, deps: NFRouteDeps): Promise
                 }
             }
 
-            // Enfileira (enqueueNFe bloqueia duplicata consultando o grafo).
+            // Atomicidade: extrai a chave de todos, detecta duplicata intra-lote e
+            // checa o grafo de TODOS antes de enfileirar qualquer um — sem
+            // enfileiramento parcial em caso de duplicata (achado #8 da auditoria).
+            const vistas = new Set<string>();
+            for (const x of xmls) {
+                const chave = parseNFe(x.conteudo, new Date()).nota.chaveAcesso;
+                if (vistas.has(chave)) {
+                    throw new ApiError(409, 'DUPLICATE_NF', `NFe com chave de acesso ${chave} aparece mais de uma vez no upload.`, [`chaveAcesso=${chave}`]);
+                }
+                vistas.add(chave);
+                const existente = await getNotaFiscal(driver, chave);
+                if (existente) {
+                    throw new ApiError(409, 'DUPLICATE_NF', `NFe com chave de acesso ${chave} já foi processada.`, [`chaveAcesso=${chave}`]);
+                }
+            }
+
+            // Todos validados e sem duplicata: enfileira o lote inteiro.
             let primeiroJobId = '';
             let enfileiradas = 0;
             for (const x of xmls) {
@@ -66,6 +84,7 @@ export async function nfRoutes(app: FastifyInstance, deps: NFRouteDeps): Promise
                     enfileiradas++;
                 } catch (err) {
                     if (err instanceof NotaFiscalDuplicadaError) {
+                        // Corrida rara (duplicata entre a checagem e o enqueue): reporta 409.
                         throw new ApiError(409, 'DUPLICATE_NF', `NFe com chave de acesso ${err.chaveAcesso} já foi processada.`, [`chaveAcesso=${err.chaveAcesso}`]);
                     }
                     throw err;
@@ -89,11 +108,43 @@ export async function nfRoutes(app: FastifyInstance, deps: NFRouteDeps): Promise
             const job = await queue.getJob(request.params.jobId);
             if (!job) throw ApiError.notFound('JOB_NOT_FOUND', 'Job não encontrado.');
             const state = await job.getState();
+            const progresso = typeof job.progress === 'number' ? job.progress : 0;
+
+            // Job com falha (DLQ): só erro + tentativas (contrato seção 3).
+            if (state === 'failed') {
+                return {
+                    jobId: job.id,
+                    status: 'failed',
+                    erro: job.failedReason ?? 'Falha desconhecida no processamento.',
+                    tentativas: job.attemptsMade,
+                };
+            }
+
+            // Cada job processa exatamente 1 NFe (enqueueNFe enfileira 1 XML por job;
+            // duplicatas são bloqueadas antes de enfileirar). Logo total = 1.
+            const total = 1;
+
+            // Concluído: inclui concluidoEm + resultado{processadas,duplicatas,erros}.
+            if (state === 'completed') {
+                return {
+                    jobId: job.id,
+                    status: 'completed',
+                    progresso,
+                    total,
+                    ...(job.processedOn ? { iniciadoEm: new Date(job.processedOn).toISOString() } : {}),
+                    ...(job.finishedOn ? { concluidoEm: new Date(job.finishedOn).toISOString() } : {}),
+                    resultado: { processadas: 1, duplicatas: 0, erros: 0 },
+                };
+            }
+
+            // Demais estados do BullMQ (waiting/active/delayed/paused/...) → 'processing'
+            // no contrato §3, que só define processing | completed | failed.
             return {
                 jobId: job.id,
-                status: state,
-                progresso: typeof job.progress === 'number' ? job.progress : 0,
-                ...(job.failedReason ? { erro: job.failedReason, tentativas: job.attemptsMade } : {}),
+                status: 'processing',
+                progresso,
+                total,
+                ...(job.processedOn ? { iniciadoEm: new Date(job.processedOn).toISOString() } : {}),
             };
         },
     );
@@ -104,15 +155,19 @@ export async function nfRoutes(app: FastifyInstance, deps: NFRouteDeps): Promise
         { preHandler: app.authenticate, schema: { tags: ['nf'], summary: 'Lista NFes', querystring: nfListQuerySchema, security: [{ bearerAuth: [] }] } },
         async (request) => {
             const { cursor, limit, orderBy, order, ...filters } = request.query;
-            const page = await listNotasFiscais(driver, filters as NFFilters, {
-                ...(cursor ? { cursor } : {}),
-                ...(limit ? { limit: Number(limit) } : {}),
-                ...(orderBy ? { orderBy } : {}),
-                ...(order ? { order } : {}),
-            });
+            const [page, total] = await Promise.all([
+                listNotasFiscais(driver, filters as NFFilters, {
+                    ...(cursor ? { cursor } : {}),
+                    ...(limit ? { limit: Number(limit) } : {}),
+                    ...(orderBy ? { orderBy } : {}),
+                    ...(order ? { order } : {}),
+                }),
+                countNotasFiscais(driver, filters as NFFilters),
+            ]);
             return {
                 data: page.data,
                 pagination: { nextCursor: page.nextCursor, limit: page.limit, hasMore: page.hasMore },
+                meta: { total, filtrosAtivos: filtrosAtivos(filters as NFFilters) },
             };
         },
     );
@@ -151,19 +206,30 @@ export async function nfRoutes(app: FastifyInstance, deps: NFRouteDeps): Promise
         async (request) => {
             const session = driver.session();
             try {
+                // MATCH na NF + OPTIONAL nos eventos: distingue "NF inexistente" (0 linhas)
+                // de "NF sem eventos" (1 linha com ev = null).
                 const res = await session.run(
-                    `MATCH (nf:NotaFiscal {chaveAcesso: $chave})-[:TEM_EVENTO]->(ev:Evento)
-                     RETURN ev.tipo AS tipo, toString(ev.timestamp) AS timestamp, ev.autor AS autor, ev.detalhes AS detalhes
+                    `MATCH (nf:NotaFiscal {chaveAcesso: $chave})
+                     OPTIONAL MATCH (nf)-[:TEM_EVENTO]->(ev:Evento)
+                     RETURN ev.tipo AS tipo, toString(ev.timestamp) AS timestamp, ev.autor AS autor, ev.ipOrigem AS ipOrigem
                      ORDER BY ev.timestamp DESC`,
                     { chave: request.params.chave },
                 );
+                if (res.records.length === 0) {
+                    throw ApiError.notFound('NF_NOT_FOUND', 'NFe não encontrada.');
+                }
                 return {
-                    eventos: res.records.map((r) => ({
-                        tipo: r.get('tipo'),
-                        timestamp: r.get('timestamp'),
-                        autor: r.get('autor'),
-                        ...(r.get('detalhes') ? { detalhes: r.get('detalhes') } : {}),
-                    })),
+                    chaveAcesso: request.params.chave,
+                    // Filtra a linha sentinela quando a NF existe mas não tem eventos (ev = null).
+                    eventos: res.records
+                        .filter((r) => r.get('tipo') !== null)
+                        .map((r) => ({
+                            tipo: r.get('tipo'),
+                            // Neo4j datetime → ISO8601 com milissegundos (contrato §4).
+                            timestamp: new Date(r.get('timestamp')).toISOString(),
+                            autor: r.get('autor'),
+                            ...(r.get('ipOrigem') ? { ipOrigem: r.get('ipOrigem') } : {}),
+                        })),
                 };
             } finally {
                 await session.close();

@@ -4,17 +4,25 @@ import { Link } from '@tanstack/react-router';
 import { useNFList } from '../api/hooks.js';
 import { NFStatusBadge, CNPJText, CurrencyValue, DateDisplay, LoadingSkeleton, InlineError, EmptyState } from '../components/shared.js';
 import { UploadModal } from '../components/UploadModal.js';
+import { FilterSidebar, type NFFiltros } from '../components/FilterSidebar.js';
 
-/** Página de listagem de NFs: toolbar + filtros + tabela com paginação cursor. */
+/** Página de listagem de NFs: toolbar + FilterSidebar + tabela com paginação cursor. */
 export function NFListPage(): JSX.Element {
     const { t } = useTranslation();
     const [status, setStatus] = useState('');
     const [q, setQ] = useState('');
+    const [filtros, setFiltros] = useState<NFFiltros>({}); // filtros avançados da sidebar
     const [cursores, setCursores] = useState<string[]>([]); // pilha de cursores (páginas)
     const [modalAberto, setModalAberto] = useState(false);
 
     const cursorAtual = cursores[cursores.length - 1];
-    const query = useNFList({ limit: 20, ...(status ? { status } : {}), ...(q ? { q } : {}), ...(cursorAtual ? { cursor: cursorAtual } : {}) });
+    const query = useNFList({
+        limit: 20,
+        ...(status ? { status } : {}),
+        ...(q ? { q } : {}),
+        ...filtros,
+        ...(cursorAtual ? { cursor: cursorAtual } : {}),
+    });
 
     function aplicarFiltro(novoStatus: string, novoQ: string): void {
         setCursores([]); // reset paginação ao filtrar
@@ -22,8 +30,15 @@ export function NFListPage(): JSX.Element {
         setQ(novoQ);
     }
 
+    function aplicarSidebar(novosFiltros: NFFiltros): void {
+        setCursores([]); // reset paginação ao filtrar
+        setFiltros(novosFiltros);
+    }
+
     return (
-        <div className="nf-list">
+        <div className="nf-list nf-list--with-sidebar">
+            <FilterSidebar valor={filtros} onAplicar={aplicarSidebar} />
+            <div className="nf-list__main">
             <div className="toolbar">
                 <input placeholder={t('comum.buscar')} value={q} onChange={(e) => aplicarFiltro(status, e.target.value)} />
                 <select value={status} onChange={(e) => aplicarFiltro(e.target.value, q)}>
@@ -77,6 +92,7 @@ export function NFListPage(): JSX.Element {
             )}
 
             {modalAberto && <UploadModal onClose={() => setModalAberto(false)} onUploaded={() => void query.refetch()} />}
+            </div>
         </div>
     );
 }

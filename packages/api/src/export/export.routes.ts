@@ -65,9 +65,12 @@ export async function exportRoutes(app: FastifyInstance, service: ExportService)
                     downloadUrl: `/api/v1/export/${job.exportId}/download`,
                 };
             }
+            // queued/processing/failed: inclui progresso e total (contrato §6).
             return {
                 exportId: job.exportId,
                 status: job.status,
+                progresso: job.progresso,
+                total: job.total,
                 ...(job.erro ? { erro: job.erro } : {}),
             };
         },

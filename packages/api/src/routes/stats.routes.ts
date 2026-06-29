@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import type { Driver } from 'neo4j-driver';
-import { topProdutos, type MetricaProduto } from '@notagrafo/graph';
+import { topProdutos, historicoPrecoProduto, type MetricaProduto } from '@notagrafo/graph';
 
 const toNum = (v: unknown): number =>
     typeof v === 'number'
@@ -192,6 +192,64 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
                 ...(request.query.dataFim ? { dataFim: request.query.dataFim } : {}),
             });
             return { metrica, ranking };
+        },
+    );
+
+    // GET /stats/produto/:idUnico/historico — evolução do preço médio por mês
+    app.get<{ Params: { idUnico: string } }>(
+        '/stats/produto/:idUnico/historico',
+        {
+            preHandler: app.authenticate,
+            schema: {
+                tags: ['stats'],
+                summary: 'Histórico de preço médio de um produto',
+                params: { type: 'object', properties: { idUnico: { type: 'string' } }, required: ['idUnico'] },
+                security: [{ bearerAuth: [] }],
+            },
+        },
+        async (request) => {
+            const historico = await historicoPrecoProduto(driver, request.params.idUnico);
+            return { idUnico: request.params.idUnico, historico };
+        },
+    );
+
+    // GET /stats/por-uf — distribuição de NFs e valor por UF do emitente (Treemap do Overview)
+    app.get<{ Querystring: { tipo?: string } }>(
+        '/stats/por-uf',
+        {
+            preHandler: app.authenticate,
+            schema: {
+                tags: ['stats'],
+                summary: 'Distribuição de NFs por UF',
+                querystring: {
+                    type: 'object',
+                    properties: { tipo: { type: 'string', enum: ['emitente', 'destinatario'] } },
+                },
+                security: [{ bearerAuth: [] }],
+            },
+        },
+        async (request) => {
+            const tipo = request.query.tipo === 'destinatario' ? 'destinatario' : 'emitente';
+            const rel = tipo === 'emitente' ? '(e:Empresa)-[:EMITIU]->(nf:NotaFiscal)' : '(nf:NotaFiscal)-[:DESTINADA_A]->(e:Empresa)';
+            const session = driver.session();
+            try {
+                const res = await session.run(
+                    `MATCH ${rel}
+                     WITH coalesce(e.uf, 'N/D') AS uf, count(nf) AS totalNFs, sum(nf.valorTotal) AS valorTotal
+                     RETURN uf, totalNFs, valorTotal
+                     ORDER BY totalNFs DESC`,
+                );
+                return {
+                    tipo,
+                    porUf: res.records.map((r) => ({
+                        uf: r.get('uf'),
+                        totalNFs: toNum(r.get('totalNFs')),
+                        valorTotal: toNum(r.get('valorTotal')),
+                    })),
+                };
+            } finally {
+                await session.close();
+            }
         },
     );
 }

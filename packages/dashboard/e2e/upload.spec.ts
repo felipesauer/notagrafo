@@ -6,16 +6,20 @@ import { login } from './helpers.js';
 const FIXTURE = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'core', 'src', '__fixtures__', 'nfe-valida-v4.00.xml');
 
 test.describe('upload de NFe', () => {
-    test('abre o modal de upload, envia um XML e vê o feedback', async ({ page }) => {
+    test('envia um XML pelo modal e acompanha o status até o resumo', async ({ page }) => {
         await login(page);
         await page.getByRole('link', { name: /notas fiscais|invoices/i }).click();
         await page.getByRole('button', { name: /enviar nfe|upload invoice/i }).click();
 
         await expect(page.getByRole('dialog')).toBeVisible();
+        // a dropzone tem um input file (oculto) — setInputFiles funciona mesmo oculto
         await page.setInputFiles('input[type="file"]', FIXTURE);
         await page.getByRole('button', { name: /^enviar$|^upload$/i }).click();
 
-        // mensagem de enfileirado ou duplicata (já processada por outro teste) — ambas confirmam o fluxo
-        await expect(page.getByText(/enfileirada|queued|já foi processada|already/i)).toBeVisible({ timeout: 15_000 });
+        // Após o 202: ou processa e mostra o resumo (Processadas/Duplicatas/Erros) via polling,
+        // ou a NF já existe (duplicata) — ambos confirmam o fluxo de feedback.
+        await expect(
+            page.getByText(/processadas|processed|duplicat|enfileirada|queued|já foi processada|already/i),
+        ).toBeVisible({ timeout: 20_000 });
     });
 });

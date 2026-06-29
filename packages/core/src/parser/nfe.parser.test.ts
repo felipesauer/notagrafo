@@ -71,4 +71,35 @@ describe('parseNFe', () => {
     it('lança NFeParseError quando não há infNFe', () => {
         expect(() => parseNFe('<NFe></NFe>', IMPORTADO_EM)).toThrow(NFeParseError);
     });
+
+    // Variações do XML base para cobrir os mapeamentos de finalidade/regime/chave.
+    const base = () => fixture('nfe-valida-v4.00.xml');
+
+    it.each([
+        ['2', 'complementar'],
+        ['3', 'ajuste'],
+        ['1', 'normal'],
+    ])('mapeia finNFe=%s para finalidade "%s"', (finNFe, esperado) => {
+        const xml = base().replace(/<finNFe>\d<\/finNFe>/, `<finNFe>${finNFe}</finNFe>`);
+        expect(parseNFe(xml, IMPORTADO_EM).nota.finalidade).toBe(esperado);
+    });
+
+    it.each([
+        ['1', 'simples'],
+        ['2', 'simplesExcesso'],
+    ])('mapeia CRT=%s para regime "%s"', (crt, esperado) => {
+        const xml = base().replace(/<CRT>\d<\/CRT>/, `<CRT>${crt}</CRT>`);
+        expect(parseNFe(xml, IMPORTADO_EM).emitente.regimeTributario).toBe(esperado);
+    });
+
+    it('CRT desconhecido → regimeTributario ausente', () => {
+        const xml = base().replace(/<CRT>\d<\/CRT>/, '<CRT>9</CRT>');
+        const nf = parseNFe(xml, IMPORTADO_EM);
+        expect('regimeTributario' in nf.emitente).toBe(false);
+    });
+
+    it('lança NFeParseError quando o Id (chave de acesso) está ausente', () => {
+        const xml = base().replace(/Id="NFe\d+"/, 'versao="4.00"');
+        expect(() => parseNFe(xml, IMPORTADO_EM)).toThrow(NFeParseError);
+    });
 });
