@@ -22,6 +22,10 @@ export interface NFFilters {
     cfop?: string;
     ncm?: string; // exato ou prefixo
     q?: string; // fulltext (chave, número, natureza)
+    // Filtros fiscais (sobre os totais total_* do nó — Fase 1b/EPIC-11)
+    vICMSMin?: number; // nf.total_vICMS >=
+    vICMSMax?: number; // nf.total_vICMS <=
+    comImposto?: boolean; // true: total_vICMS > 0; false: sem ICMS (0 ou ausente)
 }
 
 export interface NFPageOptions {
@@ -102,6 +106,10 @@ function buildWhere(f: NFFilters): { clauses: string[]; params: Record<string, u
     if (f.valorTotalMax !== undefined) (c.push('nf.valorTotal <= $valorTotalMax'), (p.valorTotalMax = f.valorTotalMax));
     if (f.naturezaOp) (c.push('toLower(nf.naturezaOp) CONTAINS toLower($naturezaOp)'), (p.naturezaOp = f.naturezaOp));
     if (f.q) (c.push('(nf.chaveAcesso CONTAINS $q OR nf.numero CONTAINS $q OR toLower(coalesce(nf.naturezaOp,"")) CONTAINS toLower($q))'), (p.q = f.q));
+    // Filtros fiscais sobre o ICMS total da NF (coalesce trata NF sem o total gravado).
+    if (f.vICMSMin !== undefined) (c.push('coalesce(nf.total_vICMS, 0) >= $vICMSMin'), (p.vICMSMin = f.vICMSMin));
+    if (f.vICMSMax !== undefined) (c.push('coalesce(nf.total_vICMS, 0) <= $vICMSMax'), (p.vICMSMax = f.vICMSMax));
+    if (f.comImposto !== undefined) c.push(f.comImposto ? 'coalesce(nf.total_vICMS, 0) > 0' : 'coalesce(nf.total_vICMS, 0) = 0');
     return { clauses: c, params: p };
 }
 

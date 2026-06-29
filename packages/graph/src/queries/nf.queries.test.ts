@@ -25,6 +25,11 @@ describe('activeFilters (unit)', () => {
         expect(activeFilters({ status: 'ativa', numero: '', ufEmitente: 'SP' })).toEqual(['status', 'ufEmitente']);
         expect(activeFilters({})).toEqual([]);
     });
+
+    it('inclui os filtros fiscais, inclusive vICMSMin=0 e comImposto=false', () => {
+        expect(activeFilters({ vICMSMin: 0, comImposto: false })).toEqual(['vICMSMin', 'comImposto']);
+        expect(activeFilters({ vICMSMax: 500 })).toEqual(['vICMSMax']);
+    });
 });
 
 describe('listInvoices (unit, driver fake)', () => {
@@ -93,6 +98,19 @@ describe('listInvoices (unit, driver fake)', () => {
         expect(cypher).toContain('USA_CFOP');
         expect(cypher).toContain('CLASSIFICADO_EM');
         expect(cypher).toContain('CONTAINS');
+    });
+
+    it('aplica os filtros fiscais (vICMSMin/Max sobre total_vICMS, comImposto)', async () => {
+        const comTrue = makeFakeDriver(() => []);
+        await listInvoices(comTrue.driver, { vICMSMin: 100, vICMSMax: 500, comImposto: true });
+        expect(comTrue.runs[0]!.cypher).toContain('coalesce(nf.total_vICMS, 0) >= $vICMSMin');
+        expect(comTrue.runs[0]!.cypher).toContain('coalesce(nf.total_vICMS, 0) <= $vICMSMax');
+        expect(comTrue.runs[0]!.cypher).toContain('coalesce(nf.total_vICMS, 0) > 0');
+        expect(comTrue.runs[0]!.params).toMatchObject({ vICMSMin: 100, vICMSMax: 500 });
+
+        const comFalse = makeFakeDriver(() => []);
+        await listInvoices(comFalse.driver, { comImposto: false });
+        expect(comFalse.runs[0]!.cypher).toContain('coalesce(nf.total_vICMS, 0) = 0');
     });
 
     it('cursor é round-trip: a 2ª página injeta cursorV/cursorChave nos params', async () => {
