@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import type { Driver } from 'neo4j-driver';
 import type { Queue } from 'bullmq';
-import { validarNFe, parseNFe, VersaoSchemaNaoSuportadaError } from '@notagrafo/core';
+import { validateNFe, parseNFe, VersaoSchemaNaoSuportadaError } from '@notagrafo/core';
 import {
     listNotasFiscais,
     countNotasFiscais,
@@ -48,7 +48,7 @@ export async function nfRoutes(app: FastifyInstance, deps: NFRouteDeps): Promise
             for (const x of xmls) {
                 let res;
                 try {
-                    res = validarNFe(x.conteudo);
+                    res = validateNFe(x.conteudo);
                 } catch (err) {
                     if (err instanceof VersaoSchemaNaoSuportadaError) throw ApiError.unsupportedSchema(err.message);
                     throw ApiError.invalidXml(`Falha ao validar ${x.nome}.`, [String((err as Error).message)]);
