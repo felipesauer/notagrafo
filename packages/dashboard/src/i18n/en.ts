@@ -21,6 +21,7 @@ export const en = {
         nfs: 'Invoices',
         empresas: 'Companies',
         produtos: 'Products',
+        impostos: 'Taxes',
         grafo: 'Graph',
         exportacoes: 'Exports',
         configuracoes: 'Settings',
@@ -78,6 +79,13 @@ export const en = {
         titulo: 'Products', descricao: 'Description', ncm: 'NCM', totalNFs: 'Invoices',
         quantidade: 'Quantity', valorTotal: 'Total value', precoMedio: 'Average price',
         historicoPreco: 'Average price history', semHistorico: 'No price history.',
+    },
+    impostos: {
+        titulo: 'Taxes', vazio: 'No taxes recorded in the dataset.',
+        icmsSt: 'ICMS-ST', fcp: 'FCP',
+        serieTitulo: 'Tax burden per month',
+        topNcm: 'Top NCM by tax', topCfop: 'Top CFOP by tax',
+        totalImposto: 'Total tax',
     },
     grafo: {
         buscarEmpresa: 'Search company (Tax ID)', profundidade: 'Depth',

@@ -69,6 +69,13 @@ export const ptBR = {
         quantidade: 'Quantidade', valorTotal: 'Valor total', precoMedio: 'Preço médio',
         historicoPreco: 'Histórico de preço médio', semHistorico: 'Sem histórico de preço.',
     },
+    impostos: {
+        titulo: 'Impostos', vazio: 'Nenhum imposto registrado na base.',
+        icmsSt: 'ICMS-ST', fcp: 'FCP',
+        serieTitulo: 'Carga tributária por mês',
+        topNcm: 'Top NCM por imposto', topCfop: 'Top CFOP por imposto',
+        totalImposto: 'Imposto total',
+    },
     grafo: {
         buscarEmpresa: 'Buscar empresa (CNPJ)', profundidade: 'Profundidade',
         ambos: 'Ambos', emitente: 'Emitente', destinatario: 'Destinatário',
@@ -94,6 +101,7 @@ export const ptBR = {
         nfs: 'Notas Fiscais',
         empresas: 'Empresas',
         produtos: 'Produtos',
+        impostos: 'Impostos',
         grafo: 'Grafo',
         exportacoes: 'Exportações',
         configuracoes: 'Configurações',

@@ -9,6 +9,7 @@ import { NFListPage } from './pages/NFList.js';
 import { NFDetailPage } from './pages/NFDetail.js';
 import { CompaniesPage } from './pages/Companies.js';
 import { ProductsPage } from './pages/Products.js';
+import { TaxesPage } from './pages/Taxes.js';
 import { GraphPage } from './pages/Graph.js';
 import { ExportsPage } from './pages/Exports.js';
 import { SettingsPage } from './pages/Settings.js';
@@ -48,6 +49,7 @@ const nfRoute = childRoute('/nf', NFListPage);
 const nfDetailRoute = childRoute('/nf/$chave', NFDetailPage);
 const empresasRoute = childRoute('/empresas', CompaniesPage);
 const produtosRoute = childRoute('/produtos', ProductsPage);
+const impostosRoute = childRoute('/impostos', TaxesPage);
 const grafoRoute = createRoute({
     getParentRoute: () => protectedLayout,
     path: '/grafo',
@@ -67,6 +69,7 @@ const routeTree = rootRoute.addChildren([
         nfDetailRoute,
         empresasRoute,
         produtosRoute,
+        impostosRoute,
         grafoRoute,
         exportacoesRoute,
         configuracoesRoute,

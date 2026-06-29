@@ -9,6 +9,7 @@ const ITENS = [
     { to: '/nf', icon: '📄', key: 'sidebar.nfs' },
     { to: '/empresas', icon: '🏢', key: 'sidebar.empresas' },
     { to: '/produtos', icon: '📦', key: 'sidebar.produtos' },
+    { to: '/impostos', icon: '🧾', key: 'sidebar.impostos' },
     { to: '/grafo', icon: '🕸️', key: 'sidebar.grafo' },
     { to: '/exportacoes', icon: '⬇️', key: 'sidebar.exportacoes' },
     { to: '/configuracoes', icon: '⚙️', key: 'sidebar.configuracoes' },

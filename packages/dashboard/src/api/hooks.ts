@@ -118,3 +118,17 @@ export function usePriceHistory(idUnico: string) {
         enabled: !!idUnico,
     });
 }
+
+export interface TaxStats {
+    totais: { vICMS: number; vICMSST: number; vIPI: number; vPIS: number; vCOFINS: number; vII: number; vFCP: number };
+    serie: Array<{ periodo: string; vICMS: number; vIPI: number; vPIS: number; vCOFINS: number }>;
+    topNcm: Array<{ ncm: string; descricao?: string; totalImposto: number; vICMS: number; vIPI: number; vPIS: number; vCOFINS: number; totalNFs: number }>;
+    topCfop: Array<{ cfop: string; descricao?: string; tipo?: string; vICMS: number; vIPI: number; totalNFs: number }>;
+}
+
+export function useTaxStats(filtros: Record<string, string | number | undefined> = {}) {
+    return useQuery({
+        queryKey: ['stats', 'impostos', filtros],
+        queryFn: () => apiFetch<TaxStats>(`/stats/impostos${qs(filtros)}`),
+    });
+}
