@@ -13,7 +13,7 @@ import { createNFQueue, processNFe, LocalXmlStorage } from '@notagrafo/worker';
 import { Worker, type Queue } from 'bullmq';
 import type { ProcessNFeJobData } from '@notagrafo/worker';
 import { buildApp, API_PREFIX } from '../app.js';
-import { criarUsuario } from '../auth/user.repository.js';
+import { createUser } from '../auth/user.repository.js';
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'core', 'src', '__fixtures__');
 const CHAVE = '35200114200166000187550010000000071234567890';
@@ -41,7 +41,7 @@ beforeAll(async () => {
     storage = new LocalXmlStorage(tmp);
     process.env.AUTH_SECRET = 'test-secret';
     await runMigrations(driver);
-    await criarUsuario(driver, { email: 'u@e.com', nome: 'U', senha: 'p' });
+    await createUser(driver, { email: 'u@e.com', nome: 'U', senha: 'p' });
     app = await buildApp({ rateLimit: false, driver, queue, storage });
     await app.ready();
     const login = await app.inject({ method: 'POST', url: `${API_PREFIX}/auth/login`, payload: { email: 'u@e.com', password: 'p' } });

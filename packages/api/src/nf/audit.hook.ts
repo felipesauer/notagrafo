@@ -5,10 +5,10 @@ import type { Driver } from 'neo4j-driver';
  * (regra 4 da seção 9): nunca aguardar a gravação para responder ao cliente.
  * Erros são apenas logados — auditoria não pode quebrar a resposta.
  */
-export function registrarConsulta(
+export function recordQuery(
     driver: Driver,
     chaveAcesso: string,
-    contexto: { autor?: string; ipOrigem?: string } = {},
+    context: { autor?: string; ipOrigem?: string } = {},
     onError?: (err: unknown) => void,
 ): void {
     // Dispara sem await — fire-and-forget.
@@ -22,8 +22,8 @@ export function registrarConsulta(
                  MERGE (nf)-[:TEM_EVENTO]->(ev)`,
                 {
                     chave: chaveAcesso,
-                    autor: contexto.autor ?? 'sistema',
-                    extra: contexto.ipOrigem ? { ipOrigem: contexto.ipOrigem } : {},
+                    autor: context.autor ?? 'sistema',
+                    extra: context.ipOrigem ? { ipOrigem: context.ipOrigem } : {},
                 },
             );
         } catch (err) {

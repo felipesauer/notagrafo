@@ -4,9 +4,9 @@ import fastifyJwt from '@fastify/jwt';
 import type { Driver } from 'neo4j-driver';
 
 const repo = vi.hoisted(() => ({
-    buscarPorEmail: vi.fn(),
-    buscarPorId: vi.fn(),
-    verificarSenha: vi.fn(),
+    findByEmail: vi.fn(),
+    findById: vi.fn(),
+    verifyPassword: vi.fn(),
 }));
 vi.mock('./user.repository.js', () => repo);
 
@@ -27,8 +27,8 @@ async function build(): Promise<FastifyInstance> {
 
 describe('POST /auth/login (unit)', () => {
     it('200 com token quando credenciais válidas', async () => {
-        repo.buscarPorEmail.mockResolvedValue({ id: 'u1', email: 'a@b.com', nome: 'A', senhaHash: 'h' });
-        repo.verificarSenha.mockResolvedValue(true);
+        repo.findByEmail.mockResolvedValue({ id: 'u1', email: 'a@b.com', nome: 'A', senhaHash: 'h' });
+        repo.verifyPassword.mockResolvedValue(true);
         app = await build();
         const res = await app.inject({ method: 'POST', url: '/auth/login', payload: { email: 'a@b.com', password: 'p' } });
         expect(res.statusCode).toBe(200);
@@ -38,13 +38,13 @@ describe('POST /auth/login (unit)', () => {
     });
 
     it('401 quando usuário não existe ou senha errada', async () => {
-        repo.buscarPorEmail.mockResolvedValue(null);
+        repo.findByEmail.mockResolvedValue(null);
         app = await build();
         const r1 = await app.inject({ method: 'POST', url: '/auth/login', payload: { email: 'x', password: 'p' } });
         expect(r1.statusCode).toBe(401);
 
-        repo.buscarPorEmail.mockResolvedValue({ id: 'u1', email: 'a', nome: 'A', senhaHash: 'h' });
-        repo.verificarSenha.mockResolvedValue(false);
+        repo.findByEmail.mockResolvedValue({ id: 'u1', email: 'a', nome: 'A', senhaHash: 'h' });
+        repo.verifyPassword.mockResolvedValue(false);
         app = await build();
         const r2 = await app.inject({ method: 'POST', url: '/auth/login', payload: { email: 'a', password: 'errada' } });
         expect(r2.statusCode).toBe(401);
@@ -77,14 +77,14 @@ describe('POST /auth/refresh (unit)', () => {
 
 describe('GET /auth/me (unit)', () => {
     it('200 com o usuário do token', async () => {
-        repo.buscarPorId.mockResolvedValue({ id: 'u1', email: 'a@b.com', nome: 'A' });
+        repo.findById.mockResolvedValue({ id: 'u1', email: 'a@b.com', nome: 'A' });
         app = await build();
         const res = await app.inject({ method: 'GET', url: '/auth/me' });
         expect(res.statusCode).toBe(200);
         expect(res.json().email).toBe('a@b.com');
     });
     it('404 USER_NOT_FOUND quando o usuário sumiu', async () => {
-        repo.buscarPorId.mockResolvedValue(null);
+        repo.findById.mockResolvedValue(null);
         app = await build();
         const res = await app.inject({ method: 'GET', url: '/auth/me' });
         expect(res.statusCode).toBe(404);

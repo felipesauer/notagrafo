@@ -3,7 +3,7 @@ import type { Driver } from 'neo4j-driver';
 import { getCompanyStats, getCompanyGraph, type Direction } from '@notagrafo/graph';
 import { ApiError } from '../errors.js';
 
-export async function empresaRoutes(app: FastifyInstance, driver: Driver): Promise<void> {
+export async function companyRoutes(app: FastifyInstance, driver: Driver): Promise<void> {
     // GET /empresa/:cnpj — dados + stats
     app.get<{ Params: { cnpj: string } }>(
         '/empresa/:cnpj',
