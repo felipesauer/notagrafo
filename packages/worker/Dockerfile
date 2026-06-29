@@ -1,7 +1,7 @@
 # Espelho do Dockerfile da API — entrypoint é o worker.
 
 # ── Stage 1: deps ────────────────────────────────────────────
-FROM node:20-alpine AS deps
+FROM node:22-alpine AS deps
 WORKDIR /app
 # build tools para compilar libxmljs2 (binário nativo)
 RUN apk add --no-cache python3 make g++ && corepack enable
@@ -23,7 +23,7 @@ RUN pnpm --filter @notagrafo/worker build
 
 # ── Stage 3: production ──────────────────────────────────────
 # Copia o workspace já construído (node_modules com libxmljs2 + dist).
-FROM node:20-alpine AS production
+FROM node:22-alpine AS production
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=build /app ./
