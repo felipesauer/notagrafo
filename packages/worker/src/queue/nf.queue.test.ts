@@ -6,8 +6,8 @@ import type { Driver } from 'neo4j-driver';
 import type { Queue } from 'bullmq';
 
 // Mocka a consulta de duplicata no grafo (vi.hoisted: o factory é içado ao topo).
-const { getNotaFiscal } = vi.hoisted(() => ({ getNotaFiscal: vi.fn() }));
-vi.mock('@notagrafo/graph', () => ({ getNotaFiscal }));
+const { getInvoice } = vi.hoisted(() => ({ getInvoice: vi.fn() }));
+vi.mock('@notagrafo/graph', () => ({ getInvoice }));
 
 import { enqueueNFe, NotaFiscalDuplicadaError } from './nf.queue.js';
 import { workerConfigFromEnv, defaultJobOptions, NF_QUEUE } from './config.js';
@@ -18,7 +18,7 @@ const xml = readFileSync(join(FIXTURES, 'nfe-valida-v4.00.xml'), 'utf8');
 const CHAVE = '35200114200166000187550010000000071234567890';
 const fakeDriver = {} as Driver;
 
-beforeEach(() => getNotaFiscal.mockReset());
+beforeEach(() => getInvoice.mockReset());
 
 describe('config (unit)', () => {
     it('workerConfigFromEnv usa defaults e respeita o ambiente', () => {
@@ -40,7 +40,7 @@ describe('config (unit)', () => {
 
 describe('enqueueNFe (unit)', () => {
     it('enfileira com jobId = chaveAcesso quando a NF não existe', async () => {
-        getNotaFiscal.mockResolvedValue(null);
+        getInvoice.mockResolvedValue(null);
         const add = vi.fn(async () => ({ id: CHAVE }));
         const queue = { add, name: NF_QUEUE } as unknown as Queue<ProcessNFeJobData>;
 
@@ -54,7 +54,7 @@ describe('enqueueNFe (unit)', () => {
     });
 
     it('NF já no grafo → NotaFiscalDuplicadaError e não enfileira', async () => {
-        getNotaFiscal.mockResolvedValue({ chaveAcesso: CHAVE });
+        getInvoice.mockResolvedValue({ chaveAcesso: CHAVE });
         const add = vi.fn();
         const queue = { add } as unknown as Queue<ProcessNFeJobData>;
         await expect(enqueueNFe(queue, fakeDriver, xml)).rejects.toBeInstanceOf(NotaFiscalDuplicadaError);

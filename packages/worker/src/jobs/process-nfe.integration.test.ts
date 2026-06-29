@@ -8,7 +8,7 @@ import { RedisContainer, type StartedRedisContainer } from '@testcontainers/redi
 import neo4j, { type Driver } from 'neo4j-driver';
 import { Queue, Worker } from 'bullmq';
 import { Redis } from 'ioredis';
-import { runMigrations, getNotaFiscal } from '@notagrafo/graph';
+import { runMigrations, getInvoice } from '@notagrafo/graph';
 import { processNFe, type ProcessNFeJobData } from './process-nfe.job.js';
 import { LocalXmlStorage } from '../storage/local.storage.js';
 import { NF_QUEUE } from '../queue/config.js';
@@ -62,7 +62,7 @@ describe('processNFe (pipeline ponta a ponta)', () => {
         expect(res.storageRef).toContain(`${CHAVE}.xml`);
 
         // grafo populado
-        const nf = await getNotaFiscal(driver, CHAVE);
+        const nf = await getInvoice(driver, CHAVE);
         expect(nf).not.toBeNull();
         // XML salvo e recuperável
         expect((await storage.get(CHAVE)).toString('utf8')).toContain('<NFe');
@@ -71,7 +71,7 @@ describe('processNFe (pipeline ponta a ponta)', () => {
     it('rejeita XML inválido (sem entrar no grafo)', async () => {
         const invalido = readFileSync(join(FIXTURES, 'nfe-invalida-schema.xml'), 'utf8');
         await expect(processNFe({ xml: invalido }, { driver, storage })).rejects.toThrow(/inválido/);
-        expect(await getNotaFiscal(driver, CHAVE)).toBeNull();
+        expect(await getInvoice(driver, CHAVE)).toBeNull();
     });
 });
 
@@ -110,7 +110,7 @@ describe('Worker BullMQ (fluxo real com retry/DLQ)', () => {
             await queue.add('process-nfe', { xml: xml() }, { jobId: CHAVE, attempts: 3 });
             await completed;
 
-            expect(await getNotaFiscal(driver, CHAVE)).not.toBeNull();
+            expect(await getInvoice(driver, CHAVE)).not.toBeNull();
         } finally {
             await worker.close();
             await queue.obliterate({ force: true });

@@ -10,7 +10,7 @@ import type {
 } from '@notagrafo/core';
 
 /** Um item da NF pronto para gravação: produto, classificação e a aresta CONTÉM. */
-export interface ItemParaGravar {
+export interface ItemToPersist {
     produto: ProdutoNode;
     ncm: NCMNode;
     cfop: CFOPNode;
@@ -18,16 +18,16 @@ export interface ItemParaGravar {
 }
 
 /** Payload completo de uma NF para gravar no grafo. */
-export interface NotaFiscalParaGravar {
+export interface InvoiceToPersist {
     nota: NotaFiscalNode;
     emitente: EmpresaNode;
     destinatario?: EmpresaNode;
     raw: RawDataNode;
-    itens: ItemParaGravar[];
+    itens: ItemToPersist[];
 }
 
 /** Remove chaves com valor undefined/null (o Neo4j não aceita propriedade null). */
-function limpar(obj: object): Record<string, unknown> {
+function clean(obj: object): Record<string, unknown> {
     const out: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(obj)) {
         if (v !== undefined && v !== null) out[k] = v;
@@ -36,8 +36,8 @@ function limpar(obj: object): Record<string, unknown> {
 }
 
 /** Converte Date para string ISO (o driver grava como datetime via toString). */
-function serializarNota(nota: NotaFiscalNode): Record<string, unknown> {
-    return limpar({
+function serializeInvoice(nota: NotaFiscalNode): Record<string, unknown> {
+    return clean({
         ...nota,
         dataEmissao: nota.dataEmissao.toISOString(),
         dataSaida: nota.dataSaida.toISOString(),
@@ -54,8 +54,8 @@ function serializarNota(nota: NotaFiscalNode): Record<string, unknown> {
  *
  * Roda numa única transação de escrita.
  */
-export async function mergeNotaFiscal(driver: Driver, dados: NotaFiscalParaGravar): Promise<void> {
-    const { nota, emitente, destinatario, raw, itens } = dados;
+export async function mergeInvoice(driver: Driver, data: InvoiceToPersist): Promise<void> {
+    const { nota, emitente, destinatario, raw, itens } = data;
     const session = driver.session();
     try {
         await session.executeWrite(async (tx) => {
@@ -64,7 +64,7 @@ export async function mergeNotaFiscal(driver: Driver, dados: NotaFiscalParaGrava
                 `MERGE (emit:Empresa {cnpj: $cnpj})
                  ON CREATE SET emit += $dados
                  ON MATCH SET emit += $dados`,
-                { cnpj: emitente.cnpj, dados: limpar(emitente) },
+                { cnpj: emitente.cnpj, dados: clean(emitente) },
             );
             await tx.run(`MATCH (emit:Empresa {cnpj: $cnpj}) RETURN emit`, { cnpj: emitente.cnpj });
 
@@ -72,7 +72,7 @@ export async function mergeNotaFiscal(driver: Driver, dados: NotaFiscalParaGrava
             if (destinatario) {
                 await tx.run(
                     `MERGE (dest:Empresa {cnpj: $cnpj}) ON CREATE SET dest += $dados`,
-                    { cnpj: destinatario.cnpj, dados: limpar(destinatario) },
+                    { cnpj: destinatario.cnpj, dados: clean(destinatario) },
                 );
             }
 
@@ -81,7 +81,7 @@ export async function mergeNotaFiscal(driver: Driver, dados: NotaFiscalParaGrava
                 `MERGE (nf:NotaFiscal {chaveAcesso: $chave})
                  ON CREATE SET nf += $dados
                  ON MATCH SET nf += $dados`,
-                { chave: nota.chaveAcesso, dados: serializarNota(nota) },
+                { chave: nota.chaveAcesso, dados: serializeInvoice(nota) },
             );
 
             // 4. RawData — reconciliado pela NF (MERGE da relação evita duplicar em reprocesso)
@@ -89,7 +89,7 @@ export async function mergeNotaFiscal(driver: Driver, dados: NotaFiscalParaGrava
                 `MATCH (nf:NotaFiscal {chaveAcesso: $chave})
                  MERGE (nf)-[:TEM_RAW]->(raw:RawData)
                  SET raw = $dados`,
-                { chave: nota.chaveAcesso, dados: limpar(raw) },
+                { chave: nota.chaveAcesso, dados: clean(raw) },
             );
 
             // 5. Emitente/destinatário ligados à NF
@@ -121,13 +121,13 @@ export async function mergeNotaFiscal(driver: Driver, dados: NotaFiscalParaGrava
                     {
                         chave: nota.chaveAcesso,
                         idUnico: item.produto.idUnico,
-                        dadosProd: limpar(item.produto),
+                        dadosProd: clean(item.produto),
                         codigoNcm: item.ncm.codigo,
-                        dadosNcm: limpar(item.ncm),
+                        dadosNcm: clean(item.ncm),
                         codigoCfop: item.cfop.codigo,
-                        dadosCfop: limpar(item.cfop),
+                        dadosCfop: clean(item.cfop),
                         numeroItem: item.contem.numeroItem,
-                        dadosContem: limpar(item.contem),
+                        dadosContem: clean(item.contem),
                     },
                 );
             }
