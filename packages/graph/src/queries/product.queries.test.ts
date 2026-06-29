@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { makeFakeDriver, fakeRecord } from '../__test-helpers__/fake-driver.js';
-import { topProducts, productPriceHistory } from './product.queries.js';
+import { topProducts, productPriceHistory, productCompanies } from './product.queries.js';
 
 describe('topProducts (unit)', () => {
     it('mapeia ranking com posição e preço médio; omite ean nulo', async () => {
@@ -43,5 +43,22 @@ describe('productPriceHistory (unit)', () => {
     it('produto sem histórico → []', async () => {
         const { driver } = makeFakeDriver(() => []);
         expect(await productPriceHistory(driver, 'nope')).toEqual([]);
+    });
+});
+
+describe('productCompanies (unit)', () => {
+    it('mapeia empresas com papel (emitente/destinatario), totalNFs e valor', async () => {
+        const rows = [
+            fakeRecord({ cnpj: '14200166000187', razaoSocial: 'Alpha', uf: 'SP', papel: 'emitente', totalNFs: 5, valor: 5000 }),
+            fakeRecord({ cnpj: '99999999000191', razaoSocial: 'Beta', uf: 'RJ', papel: 'destinatario', totalNFs: 3, valor: 3000 }),
+        ];
+        const { driver, runs } = makeFakeDriver(() => rows);
+        const out = await productCompanies(driver, 'p1');
+        // une emitentes e destinatários (UNION) e passa o idUnico
+        expect(runs[0]!.cypher).toContain('UNION');
+        expect(runs[0]!.cypher).toContain('CONTÉM]->(:Produto {idUnico: $idUnico})');
+        expect(runs[0]!.params.idUnico).toBe('p1');
+        expect(out[0]).toEqual({ cnpj: '14200166000187', razaoSocial: 'Alpha', uf: 'SP', papel: 'emitente', totalNFs: 5, valor: 5000 });
+        expect(out[1]!.papel).toBe('destinatario');
     });
 });

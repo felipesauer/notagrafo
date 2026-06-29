@@ -54,4 +54,26 @@ describe('getCompanyGraph (unit)', () => {
         await getCompanyGraph(driver, '111', { direction: 'destinatario', depth: 1 });
         expect(runs[0]!.cypher).toContain('DESTINADA_A|EMITIU');
     });
+
+    it('sem includeProdutos não consulta produtos e não retorna o campo', async () => {
+        const { driver, runs } = makeFakeDriver(() => []);
+        const grafo = await getCompanyGraph(driver, '111', { depth: 1 });
+        expect(runs).toHaveLength(2); // só nós + arestas
+        expect(grafo).not.toHaveProperty('produtos');
+    });
+
+    it('includeProdutos=true faz a 3ª query e mapeia os produtos da raiz', async () => {
+        const responder = (_c: string, _p: Record<string, unknown>, i: number) => {
+            if (i === 0) return []; // nós
+            if (i === 1) return []; // arestas
+            return [fakeRecord({ idUnico: 'p1', descricao: 'Notebook', ncm: '84713012', totalNFs: 4, valorTotal: 14000 })];
+        };
+        const { driver, runs } = makeFakeDriver(responder);
+        const grafo = await getCompanyGraph(driver, '111', { depth: 1, includeProdutos: true });
+        expect(runs).toHaveLength(3);
+        expect(runs[2]!.cypher).toContain('-[c:CONTÉM]->(p:Produto)');
+        expect(grafo.produtos).toEqual([
+            { idUnico: 'p1', descricao: 'Notebook', ncm: '84713012', totalNFs: 4, valorTotal: 14000 },
+        ]);
+    });
 });

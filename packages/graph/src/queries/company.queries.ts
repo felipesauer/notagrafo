@@ -6,6 +6,7 @@ export interface GrafoOptions {
     depth?: number; // 1..4 (padrão 1)
     direction?: Direction; // padrão 'both'
     limit?: number; // padrão 100
+    includeProdutos?: boolean; // inclui os produtos emitidos pela empresa-raiz (padrão false)
 }
 
 export interface NoVizinho {
@@ -24,11 +25,22 @@ export interface ArestaGrafo {
     valorTotal: number;
 }
 
+/** Produto emitido pela empresa-raiz (nó de produto opcional no grafo visual). */
+export interface ProdutoNoGrafo {
+    idUnico: string;
+    descricao: string;
+    ncm: string;
+    totalNFs: number;
+    valorTotal: number;
+}
+
 export interface EmpresaGrafo {
     cnpj: string;
     depth: number;
     nos: NoVizinho[];
     arestas: ArestaGrafo[];
+    /** Presente apenas quando includeProdutos=true. Produtos emitidos pela empresa-raiz. */
+    produtos?: ProdutoNoGrafo[];
 }
 
 export interface EmpresaStats {
@@ -140,7 +152,29 @@ export async function getCompanyGraph(
             valorTotal: toNum(r.get('valorTotal')),
         }));
 
-        return { cnpj, depth, nos, arestas };
+        // Produtos da empresa-raiz (opcional): nós de Produto para o grafo visual.
+        let produtos: ProdutoNoGrafo[] | undefined;
+        if (opts.includeProdutos) {
+            const prodRes = await session.run(
+                `MATCH (origem:Empresa {cnpj: $cnpj})-[:EMITIU]->(nf:NotaFiscal)-[c:CONTÉM]->(p:Produto)
+                 OPTIONAL MATCH (p)-[:CLASSIFICADO_EM]->(ncm:NCM)
+                 WITH p, ncm, count(DISTINCT nf) AS totalNFs, sum(c.valorTotal) AS valorTotal
+                 RETURN p.idUnico AS idUnico, p.descricao AS descricao, ncm.codigo AS ncm,
+                        totalNFs, valorTotal
+                 ORDER BY valorTotal DESC
+                 LIMIT $limit`,
+                { cnpj, limit: neo4j.int(limit) },
+            );
+            produtos = prodRes.records.map((r) => ({
+                idUnico: r.get('idUnico') as string,
+                descricao: (r.get('descricao') as string) ?? '',
+                ncm: (r.get('ncm') as string) ?? '',
+                totalNFs: toNum(r.get('totalNFs')),
+                valorTotal: toNum(r.get('valorTotal')),
+            }));
+        }
+
+        return { cnpj, depth, nos, arestas, ...(produtos ? { produtos } : {}) };
     } finally {
         await session.close();
     }
