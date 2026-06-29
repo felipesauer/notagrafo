@@ -2,7 +2,7 @@ import { Queue } from 'bullmq';
 import type { Redis } from 'ioredis';
 import type { Driver } from 'neo4j-driver';
 import { parseNFe } from '@notagrafo/core';
-import { getNotaFiscal } from '@notagrafo/graph';
+import { getInvoice } from '@notagrafo/graph';
 import { NF_QUEUE, defaultJobOptions, workerConfigFromEnv, type WorkerConfig } from './config.js';
 import type { ProcessNFeJobData } from '../jobs/process-nfe.job.js';
 
@@ -41,7 +41,7 @@ export async function enqueueNFe(
     const parsed = parseNFe(xml, new Date());
     const chaveAcesso = parsed.nota.chaveAcesso;
 
-    const existente = await getNotaFiscal(driver, chaveAcesso);
+    const existente = await getInvoice(driver, chaveAcesso);
     if (existente) throw new NotaFiscalDuplicadaError(chaveAcesso);
 
     const config = opts?.config ?? workerConfigFromEnv();

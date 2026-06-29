@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { makeFakeDriver, fakeRecord, fakeNode } from '../__test-helpers__/fake-driver.js';
-import { listNotasFiscais, countNotasFiscais, filtrosAtivos, getNotaFiscal } from './nf.queries.js';
+import { listInvoices, countInvoices, activeFilters, getInvoice } from './nf.queries.js';
 
 const nfNode = (over: Record<string, unknown> = {}) =>
     fakeNode({
@@ -20,14 +20,14 @@ const nfNode = (over: Record<string, unknown> = {}) =>
     });
 const empNode = (cnpj: string, uf: string) => fakeNode({ cnpj, razaoSocial: `Emp ${cnpj}`, uf });
 
-describe('filtrosAtivos (unit)', () => {
+describe('activeFilters (unit)', () => {
     it('lista apenas chaves preenchidas, ignorando undefined e vazio', () => {
-        expect(filtrosAtivos({ status: 'ativa', numero: '', ufEmitente: 'SP' })).toEqual(['status', 'ufEmitente']);
-        expect(filtrosAtivos({})).toEqual([]);
+        expect(activeFilters({ status: 'ativa', numero: '', ufEmitente: 'SP' })).toEqual(['status', 'ufEmitente']);
+        expect(activeFilters({})).toEqual([]);
     });
 });
 
-describe('listNotasFiscais (unit, driver fake)', () => {
+describe('listInvoices (unit, driver fake)', () => {
     it('mapeia nó/emitente/destinatário e respeita limit (hasMore via N+1)', async () => {
         // pede limit 2 → query usa limit+1=3; devolvemos 3 → hasMore true, 2 itens
         const rows = [
@@ -37,7 +37,7 @@ describe('listNotasFiscais (unit, driver fake)', () => {
         ].map(([nf, emit, dest]) => fakeRecord({ nf, emit, dest }));
         const { driver, runs } = makeFakeDriver(() => rows);
 
-        const page = await listNotasFiscais(driver, {}, { limit: 2, orderBy: 'chaveAcesso', order: 'asc' });
+        const page = await listInvoices(driver, {}, { limit: 2, orderBy: 'chaveAcesso', order: 'asc' });
         expect(page.data).toHaveLength(2);
         expect(page.hasMore).toBe(true);
         expect(page.limit).toBe(2);
@@ -54,7 +54,7 @@ describe('listNotasFiscais (unit, driver fake)', () => {
     it('orderBy inválido cai no default dataEmissao; sem hasMore quando vem <= limit', async () => {
         const rows = [fakeRecord({ nf: nfNode(), emit: empNode('111', 'SP'), dest: null })];
         const { driver, runs } = makeFakeDriver(() => rows);
-        const page = await listNotasFiscais(driver, {}, { limit: 20, orderBy: 'campo_invalido' });
+        const page = await listInvoices(driver, {}, { limit: 20, orderBy: 'campo_invalido' });
         expect(page.hasMore).toBe(false);
         expect(page.nextCursor).toBeNull();
         expect(runs[0]!.cypher).toContain('ORDER BY nf.dataEmissao');
@@ -62,7 +62,7 @@ describe('listNotasFiscais (unit, driver fake)', () => {
 
     it('aplica todos os filtros nos params da query (where + matches)', async () => {
         const { driver, runs } = makeFakeDriver(() => []);
-        await listNotasFiscais(driver, {
+        await listInvoices(driver, {
             status: 'ativa',
             numero: '7',
             cnpjEmitente: '111',
@@ -102,20 +102,20 @@ describe('listNotasFiscais (unit, driver fake)', () => {
             fakeRecord({ nf: nfNode({ chaveAcesso: 'b' }), emit: empNode('111', 'SP'), dest: null }),
         ];
         const { driver, runs } = makeFakeDriver(() => rows1);
-        const p1 = await listNotasFiscais(driver, {}, { limit: 1, orderBy: 'chaveAcesso', order: 'asc' });
+        const p1 = await listInvoices(driver, {}, { limit: 1, orderBy: 'chaveAcesso', order: 'asc' });
         expect(p1.nextCursor).toBeTruthy();
 
-        await listNotasFiscais(driver, {}, { limit: 1, orderBy: 'chaveAcesso', order: 'asc', cursor: p1.nextCursor! });
+        await listInvoices(driver, {}, { limit: 1, orderBy: 'chaveAcesso', order: 'asc', cursor: p1.nextCursor! });
         const segunda = runs[1]!;
         expect(segunda.params.cursorChave).toBe('a'); // último item da página 1
         expect(segunda.cypher).toContain('$cursorV');
     });
 });
 
-describe('countNotasFiscais (unit)', () => {
+describe('countInvoices (unit)', () => {
     it('retorna o total e usa count(DISTINCT nf)', async () => {
         const { driver, runs } = makeFakeDriver(() => [fakeRecord({ total: 42 })]);
-        const total = await countNotasFiscais(driver, { status: 'ativa' });
+        const total = await countInvoices(driver, { status: 'ativa' });
         expect(total).toBe(42);
         expect(runs[0]!.cypher).toContain('count(DISTINCT nf)');
         expect(runs[0]!.params.status).toBe('ativa');
@@ -123,11 +123,11 @@ describe('countNotasFiscais (unit)', () => {
 
     it('total ausente → 0', async () => {
         const { driver } = makeFakeDriver(() => []);
-        expect(await countNotasFiscais(driver)).toBe(0);
+        expect(await countInvoices(driver)).toBe(0);
     });
 });
 
-describe('getNotaFiscal (unit)', () => {
+describe('getInvoice (unit)', () => {
     it('monta detalhe com emitente/destinatário e filtra itens sem produto', async () => {
         const itens = [
             { item: fakeNode({ numeroItem: 1, quantidade: 2, valorTotal: 10 }), produto: fakeNode({ idUnico: 'p1', descricao: 'X' }), ncm: fakeNode({ codigo: '6109' }) },
@@ -136,7 +136,7 @@ describe('getNotaFiscal (unit)', () => {
         const rec = fakeRecord({ nf: nfNode(), emit: empNode('111', 'SP'), dest: empNode('222', 'MG'), itens });
         const { driver } = makeFakeDriver(() => [rec]);
 
-        const nf = await getNotaFiscal(driver, '351');
+        const nf = await getInvoice(driver, '351');
         expect(nf).not.toBeNull();
         expect(nf!.chaveAcesso).toBe('351');
         expect((nf!.emitente as { cnpj: string }).cnpj).toBe('111');
@@ -146,6 +146,6 @@ describe('getNotaFiscal (unit)', () => {
 
     it('chave inexistente → null', async () => {
         const { driver } = makeFakeDriver(() => []);
-        expect(await getNotaFiscal(driver, 'nope')).toBeNull();
+        expect(await getInvoice(driver, 'nope')).toBeNull();
     });
 });

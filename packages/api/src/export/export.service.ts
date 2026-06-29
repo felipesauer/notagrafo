@@ -4,7 +4,7 @@ import { writeFile, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { Driver } from 'neo4j-driver';
-import { listNotasFiscais, countNotasFiscais, type NFFilters } from '@notagrafo/graph';
+import { listInvoices, countInvoices, type NFFilters } from '@notagrafo/graph';
 
 export type ExportFormato = 'csv' | 'xlsx' | 'json';
 export type ExportStatus = 'queued' | 'processing' | 'ready' | 'failed';
@@ -127,13 +127,13 @@ export class ExportService {
         await this.persistir(job);
         try {
             // Total estimado para reportar progresso durante a geração (contrato §6).
-            job.total = await countNotasFiscais(this.driver, filtros ?? {});
+            job.total = await countInvoices(this.driver, filtros ?? {});
 
             // Busca todas as NFs (paginando até o fim), atualizando o progresso.
             const linhas: Record<string, unknown>[] = [];
             let cursor: string | undefined;
             do {
-                const page = await listNotasFiscais(this.driver, filtros ?? {}, { limit: 200, ...(cursor ? { cursor } : {}) });
+                const page = await listInvoices(this.driver, filtros ?? {}, { limit: 200, ...(cursor ? { cursor } : {}) });
                 linhas.push(...(page.data as unknown as Record<string, unknown>[]));
                 job.progresso = linhas.length;
                 cursor = page.nextCursor ?? undefined;
