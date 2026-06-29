@@ -23,6 +23,18 @@ describe('runSeed (unit)', () => {
         expect(processFn).toHaveBeenCalledTimes(3);
     });
 
+    it('emite ao menos uma devolução (finNFe=4 com NFref) num lote >= 14', async () => {
+        const xmls: string[] = [];
+        const processFn = vi.fn(async (data: { xml: string }) => {
+            xmls.push(data.xml);
+        });
+        const r = await runSeed({ count: 14, seed: 1 }, { driver: fakeDriver, storage: fakeStorage, processFn });
+        expect(r.processadas).toBe(14);
+        // i=14 cai na regra (i>7 && i%7===0) → uma devolução referenciando uma venda anterior
+        const devolucoes = xmls.filter((x) => /<finNFe>4<\/finNFe>/.test(x) && /<refNFe>/.test(x));
+        expect(devolucoes.length).toBeGreaterThanOrEqual(1);
+    });
+
     it('reporta primeiroErro e agrega errosPorTipo sem engolir', async () => {
         let i = 0;
         const processFn = vi.fn(async () => {

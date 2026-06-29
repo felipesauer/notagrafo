@@ -65,8 +65,14 @@ export async function runSeed(opts: SeedOptions, deps: SeedDeps = {}): Promise<S
     let falhas = 0;
     let primeiroErro: string | null = null;
     const errosPorTipo: Record<string, number> = {};
+    // Chaves de vendas já emitidas — alvo das devoluções (aresta DEVOLVE).
+    const chavesVenda: string[] = [];
     for (let i = 1; i <= opts.count; i++) {
-        const { xml } = generateNFe(i, rng);
+        // A cada 7 notas (a partir da 8ª), emite uma devolução de uma venda anterior.
+        const ehDevolucao = i > 7 && i % 7 === 0 && chavesVenda.length > 0;
+        const ref = ehDevolucao ? chavesVenda[Math.floor(rng() * chavesVenda.length)]! : undefined;
+        const { xml, chaveAcesso } = generateNFe(i, rng, ref ? { devolucaoRef: ref } : {});
+        if (!ehDevolucao) chavesVenda.push(chaveAcesso);
         try {
             await processFn({ xml, origem: 'demo-seed' }, { driver, storage });
             processadas++;
