@@ -17,6 +17,10 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # typecheck resolve os workspaces internos por dist/ — buildar antes.
+      - run: pnpm --filter @notagrafo/core build
+      - run: pnpm --filter @notagrafo/graph build
+      - run: pnpm --filter @notagrafo/worker build
       - run: pnpm lint
       - run: pnpm typecheck
 

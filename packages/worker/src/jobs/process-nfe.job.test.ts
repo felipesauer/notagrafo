@@ -5,7 +5,9 @@ import { fileURLToPath } from 'node:url';
 import type { Driver } from 'neo4j-driver';
 
 // Mocka a gravação no grafo (vi.hoisted: o factory é içado ao topo).
-const { mergeInvoice } = vi.hoisted(() => ({ mergeInvoice: vi.fn(async () => {}) }));
+const { mergeInvoice } = vi.hoisted(() => ({
+    mergeInvoice: vi.fn(async (_driver: unknown, _payload: unknown): Promise<void> => {}),
+}));
 vi.mock('@notagrafo/graph', () => ({ mergeInvoice }));
 
 import { processNFe } from './process-nfe.job.js';
@@ -36,7 +38,7 @@ describe('processNFe (unit)', () => {
     });
 
     it('reporta progresso nos marcos do pipeline (25/50/75/100)', async () => {
-        const onProgress = vi.fn(async () => {});
+        const onProgress = vi.fn(async (_pct: number) => {});
         await processNFe({ xml: xml() }, { driver: fakeDriver, storage: fakeStorage(), onProgress });
         const marcos = onProgress.mock.calls.map((c) => c[0]);
         expect(marcos).toEqual([25, 50, 75, 100]);

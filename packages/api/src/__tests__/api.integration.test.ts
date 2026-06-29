@@ -55,7 +55,7 @@ describe('API end-to-end (setup.integration compartilhado)', () => {
         expect(res.json().arquivos).toBe(2);
         // duas chaves distintas → dois jobs realmente enfileirados.
         const counts = await ctx.queue.getJobCounts('waiting', 'active', 'delayed');
-        expect(counts.waiting + counts.active + counts.delayed).toBe(2);
+        expect((counts.waiting ?? 0) + (counts.active ?? 0) + (counts.delayed ?? 0)).toBe(2);
     });
 
     it('upload de XML inválido → 422', async () => {
@@ -89,7 +89,7 @@ describe('API end-to-end (setup.integration compartilhado)', () => {
         const res = await ctx.app.inject({ method: 'POST', url: `${API_PREFIX}/nf/upload`, payload: body, headers });
         expect(res.statusCode).toBe(409);
         const counts = await ctx.queue.getJobCounts('waiting', 'active', 'delayed');
-        expect(counts.waiting + counts.active + counts.delayed).toBe(0);
+        expect((counts.waiting ?? 0) + (counts.active ?? 0) + (counts.delayed ?? 0)).toBe(0);
     });
 
     it('upload duplicado → 409', async () => {
