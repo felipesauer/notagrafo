@@ -162,6 +162,24 @@ describe('rotas de NF', () => {
         expect(consultada.autor).toBeTruthy();
     });
 
+    it('GET /nf/:chave reformata o detalhe no contrato (tributos, totais, cfop)', async () => {
+        const CHAVE_TRIB = '35200114200166000187550010000000081234567891';
+        await processNFe({ xml: xml('nfe-tributada-v4.00.xml') }, { driver, storage });
+        const res = await app.inject({ method: 'GET', url: `${API_PREFIX}/nf/${CHAVE_TRIB}`, headers: bearer() });
+        expect(res.statusCode).toBe(200);
+        const j = res.json();
+        // cfop com descrição do catálogo
+        expect(j.cfop).toMatchObject({ codigo: '6102', descricao: expect.any(String) });
+        // totais sem prefixo total_
+        expect(j.totais).toMatchObject({ vNF: 1373.5, vICMS: 180, vIPI: 50 });
+        expect(j).not.toHaveProperty('total_vNF');
+        // item com tributos agrupados e ncm aninhado no produto
+        const item = j.itens[0];
+        expect(item.tributos).toMatchObject({ vICMS: 180, vICMSST: 72, vFCP: 20, vIPI: 50, vPIS: 16.5, vCOFINS: 76 });
+        expect(item).not.toHaveProperty('vICMS');
+        expect(item.produto.ncm).toMatchObject({ codigo: '84713012', descricao: expect.stringContaining('Máquinas') });
+    });
+
     it('GET /nf/:chave inexistente → 404 NF_NOT_FOUND', async () => {
         const res = await app.inject({ method: 'GET', url: `${API_PREFIX}/nf/00000000000000000000000000000000000000000000`, headers: bearer() });
         expect(res.statusCode).toBe(404);

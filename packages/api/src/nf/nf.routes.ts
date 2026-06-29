@@ -19,6 +19,7 @@ import {
 import { ApiError } from '../errors.js';
 import { recordQuery } from './audit.hook.js';
 import { extrairXmls } from './upload.utils.js';
+import { formatInvoiceDetail } from './nf.detail.js';
 import { nfListQuerySchema, nfUploadResponse, nfDetailResponse } from './nf.schemas.js';
 
 export interface NFRouteDeps {
@@ -181,7 +182,8 @@ export async function nfRoutes(app: FastifyInstance, deps: NFRouteDeps): Promise
             const nf = await getInvoice(driver, request.params.chave);
             if (!nf) throw ApiError.notFound('NF_NOT_FOUND', 'NFe não encontrada.');
             recordQuery(driver, request.params.chave, { autor: request.user?.email, ipOrigem: request.ip }, (err) => request.log.warn({ err }, 'falha ao registrar evento consultada'));
-            return nf;
+            // Reformata para o contrato (.plan/02 §4): tributos por item, totais e cfop.
+            return formatInvoiceDetail(nf);
         },
     );
 
