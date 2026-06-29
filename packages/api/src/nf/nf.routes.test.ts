@@ -65,6 +65,17 @@ describe('GET /nf (unit)', () => {
         expect(res.json().meta).toEqual({ total: 1, filtrosAtivos: ['status'] });
         expect(res.json().pagination.hasMore).toBe(false);
     });
+
+    it('repassa os filtros fiscais (vICMSMin/Max, comImposto) coagidos a listInvoices', async () => {
+        g.listInvoices.mockResolvedValue({ data: [], nextCursor: null, limit: 50, hasMore: false });
+        g.countInvoices.mockResolvedValue(0);
+        app = await build(makeQueue(() => null));
+        const res = await app.inject({ method: 'GET', url: '/nf?vICMSMin=100&vICMSMax=500&comImposto=true' });
+        expect(res.statusCode).toBe(200);
+        // o ajv coage a query string → number/boolean antes de chegar ao filtro
+        const filtros = g.listInvoices.mock.calls[0]![1];
+        expect(filtros).toMatchObject({ vICMSMin: 100, vICMSMax: 500, comImposto: true });
+    });
 });
 
 describe('GET /nf/:chave (unit)', () => {
