@@ -1,6 +1,6 @@
 import { type JSX, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from '@tanstack/react-router';
+import { Link, useSearch } from '@tanstack/react-router';
 import { useNFList } from '../api/hooks.js';
 import { NFStatusBadge, CNPJText, CurrencyValue, DateDisplay, LoadingSkeleton, InlineError, EmptyState } from '../components/shared.js';
 import { UploadModal } from '../components/UploadModal.js';
@@ -9,9 +9,15 @@ import { FilterSidebar, type NFFiltros } from '../components/FilterSidebar.js';
 /** Página de listagem de NFs: toolbar + FilterSidebar + tabela com paginação cursor. */
 export function NFListPage(): JSX.Element {
     const { t } = useTranslation();
-    const [status, setStatus] = useState('');
+    // Filtros vindos por deep-link (Empresas/Grafo): semeiam o estado inicial.
+    const search = useSearch({ strict: false }) as { cnpjEmitente?: string; ncm?: string; comImposto?: boolean; status?: string };
+    const [status, setStatus] = useState(search.status ?? '');
     const [q, setQ] = useState('');
-    const [filtros, setFiltros] = useState<NFFiltros>({}); // filtros avançados da sidebar
+    const [filtros, setFiltros] = useState<NFFiltros>(() => ({
+        ...(search.cnpjEmitente ? { cnpjEmitente: search.cnpjEmitente } : {}),
+        ...(search.ncm ? { ncm: search.ncm } : {}),
+        ...(search.comImposto ? { comImposto: true } : {}),
+    })); // filtros avançados da sidebar (+ deep-link)
     const [cursores, setCursores] = useState<string[]>([]); // pilha de cursores (páginas)
     const [modalAberto, setModalAberto] = useState(false);
 

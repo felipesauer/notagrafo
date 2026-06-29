@@ -214,4 +214,6 @@ body {
     overflow-y: auto;
 }
 .graph-panel__close { float: right; }
+.graph-panel__links { display: flex; flex-direction: column; gap: 0.3rem; margin-top: 0.5rem; }
 .grafo-page .toolbar { flex-wrap: wrap; align-items: center; }
+.grafo-toggle { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.85rem; }

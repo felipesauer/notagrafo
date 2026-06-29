@@ -20,24 +20,27 @@ function GraphInner(): JSX.Element {
 
     const depth = useGraphStore((s) => s.depth);
     const direction = useGraphStore((s) => s.direction);
+    const includeProdutos = useGraphStore((s) => s.includeProdutos);
     const setDepth = useGraphStore((s) => s.setDepth);
     const setDirection = useGraphStore((s) => s.setDirection);
+    const setIncludeProdutos = useGraphStore((s) => s.setIncludeProdutos);
 
     const [graph, setGraph] = useState<{ nodes: GraphNode[]; edges: Edge[] }>({ nodes: [], edges: [] });
     const [selected, setSelected] = useState<NodeData | null>(null);
     const [searchInput, setSearchInput] = useState(search.cnpj ?? '');
     const { nodes, edges } = graph;
 
-    const load = useCallback(async (cnpj: string, degree: number, dir: GraphDirection, merge: boolean) => {
-        const api = await apiFetch<ApiGraph>(`/empresa/${cnpj}/grafo?depth=${degree}&direction=${dir}`);
+    const load = useCallback(async (cnpj: string, degree: number, dir: GraphDirection, merge: boolean, produtos = false) => {
+        const prodParam = produtos ? '&includeProdutos=true' : '';
+        const api = await apiFetch<ApiGraph>(`/empresa/${cnpj}/grafo?depth=${degree}&direction=${dir}${prodParam}`);
         // setState funcional: lê o grafo atual sem virar dependência (callback estável).
         setGraph((prev) => mergeGraph(merge ? prev : { nodes: [], edges: [] }, api, cnpj));
     }, []);
 
     // ?cnpj= é a fonte de verdade do estado inicial.
     useEffect(() => {
-        if (search.cnpj) void load(search.cnpj, depth, direction, false);
-    }, [search.cnpj, depth, direction, load]);
+        if (search.cnpj) void load(search.cnpj, depth, direction, false, includeProdutos);
+    }, [search.cnpj, depth, direction, includeProdutos, load]);
 
     useEffect(() => {
         if (nodes.length) queueMicrotask(() => fitView({ duration: 300 }));
@@ -86,6 +89,10 @@ function GraphInner(): JSX.Element {
                     <option value="emitente">{t('grafo.emitente')}</option>
                     <option value="destinatario">{t('grafo.destinatario')}</option>
                 </select>
+                <label className="grafo-toggle">
+                    <input type="checkbox" checked={includeProdutos} onChange={(e) => setIncludeProdutos(e.target.checked)} />
+                    {t('grafo.incluirProdutos')}
+                </label>
                 <button type="button" onClick={reset}>{t('grafo.resetar')}</button>
                 <button type="button" onClick={() => void exportPng()}>{t('grafo.exportPng')}</button>
             </div>

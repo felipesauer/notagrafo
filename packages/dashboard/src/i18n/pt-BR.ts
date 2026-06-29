@@ -81,6 +81,8 @@ export const ptBR = {
         ambos: 'Ambos', emitente: 'Emitente', destinatario: 'Destinatário',
         resetar: 'Resetar', exportPng: 'Exportar PNG',
         vazio: 'Busque uma empresa para começar.',
+        incluirProdutos: 'Incluir produtos',
+        nfsComImposto: 'NFs com ICMS', nfsDoNcm: 'NFs deste NCM',
     },
     exportacoes: {
         nova: 'Nova exportação', formato: 'Formato', campos: 'Campos', gerar: 'Gerar exportação',

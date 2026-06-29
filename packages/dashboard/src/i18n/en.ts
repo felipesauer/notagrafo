@@ -92,6 +92,8 @@ export const en = {
         ambos: 'Both', emitente: 'Issuer', destinatario: 'Recipient',
         resetar: 'Reset', exportPng: 'Export PNG',
         vazio: 'Search a company to start.',
+        incluirProdutos: 'Include products',
+        nfsComImposto: 'Invoices with ICMS', nfsDoNcm: 'Invoices of this NCM',
     },
     exportacoes: {
         nova: 'New export', formato: 'Format', campos: 'Fields', gerar: 'Generate export',

@@ -45,7 +45,18 @@ const childRoute = (path: string, component: () => JSX.Element) =>
     createRoute({ getParentRoute: () => protectedLayout, path, component });
 
 const overviewRoute = childRoute('/', OverviewPage);
-const nfRoute = childRoute('/nf', NFListPage);
+/** /nf aceita filtros via search (deep-link de Empresas/Grafo): cnpjEmitente, ncm, comImposto, status. */
+const nfRoute = createRoute({
+    getParentRoute: () => protectedLayout,
+    path: '/nf',
+    validateSearch: (search: Record<string, unknown>): { cnpjEmitente?: string; ncm?: string; comImposto?: boolean; status?: string } => ({
+        cnpjEmitente: typeof search.cnpjEmitente === 'string' ? search.cnpjEmitente : undefined,
+        ncm: typeof search.ncm === 'string' ? search.ncm : undefined,
+        comImposto: search.comImposto === true || search.comImposto === 'true' ? true : undefined,
+        status: typeof search.status === 'string' ? search.status : undefined,
+    }),
+    component: NFListPage,
+});
 const nfDetailRoute = childRoute('/nf/$chave', NFDetailPage);
 const empresasRoute = childRoute('/empresas', CompaniesPage);
 const produtosRoute = childRoute('/produtos', ProductsPage);

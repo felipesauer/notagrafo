@@ -18,6 +18,8 @@ export interface NFFiltros {
     ufDestinatario?: string;
     cfop?: string;
     ncm?: string;
+    /** Filtro fiscal por deep-link (não editado na sidebar): NFs com ICMS recolhido. */
+    comImposto?: boolean;
 }
 
 interface FilterSidebarProps {

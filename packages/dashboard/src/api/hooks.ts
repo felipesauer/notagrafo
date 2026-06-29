@@ -36,7 +36,8 @@ export interface TopEmpresa {
     valorTotal: number;
 }
 
-const qs = (params: Record<string, string | number | undefined>): string => {
+type QueryValue = string | number | boolean | undefined;
+const qs = (params: Record<string, QueryValue>): string => {
     const sp = new URLSearchParams();
     for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== '') sp.set(k, String(v));
     const s = sp.toString();
@@ -74,7 +75,7 @@ export function useVolume(granularidade = 'dia') {
     });
 }
 
-export function useNFList(filtros: Record<string, string | number | undefined>) {
+export function useNFList(filtros: Record<string, QueryValue>) {
     return useQuery({
         queryKey: ['nf', filtros],
         queryFn: () => apiFetch<NFPage>(`/nf${qs(filtros)}`),
