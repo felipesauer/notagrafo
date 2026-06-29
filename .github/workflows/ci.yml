@@ -14,9 +14,13 @@ jobs:
       - uses: pnpm/action-setup@v3
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # typecheck resolve os workspaces internos por dist/ — buildar antes.
+      - run: pnpm --filter @notagrafo/core build
+      - run: pnpm --filter @notagrafo/graph build
+      - run: pnpm --filter @notagrafo/worker build
       - run: pnpm lint
       - run: pnpm typecheck
 
@@ -28,11 +32,14 @@ jobs:
       - uses: pnpm/action-setup@v3
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      # core copia os XSDs para dist no build; o validador precisa deles nos testes
+      # core copia os XSDs para dist no build; o validador precisa deles nos testes.
+      # graph/worker precisam de dist/ para serem resolvidos pelos testes da api.
       - run: pnpm --filter @notagrafo/core build
+      - run: pnpm --filter @notagrafo/graph build
+      - run: pnpm --filter @notagrafo/worker build
       - run: pnpm test:unit --coverage
       - uses: actions/upload-artifact@v4
         with:
@@ -47,7 +54,7 @@ jobs:
       - uses: pnpm/action-setup@v3
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @notagrafo/core build
@@ -66,11 +73,18 @@ jobs:
       - uses: pnpm/action-setup@v3
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @notagrafo/dashboard exec playwright install --with-deps chromium
+      # O compose usa env_file: .env, que não é versionado. Deriva do exemplo.
+      - run: cp .env.example .env
       - run: docker compose --profile app up -d --wait
+        env:
+          DEMO: "true"
+          DEMO_NF_COUNT: "50"
+      # Cria o usuário demo + NFes que os e2e usam para login (profile demo).
+      - run: docker compose --profile app --profile demo run --rm seed
         env:
           DEMO: "true"
           DEMO_NF_COUNT: "50"

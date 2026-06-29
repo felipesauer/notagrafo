@@ -117,7 +117,7 @@ describe('stats', () => {
         expect(res.json().idUnico).toBe(idUnico);
         const hist = res.json().historico as Array<{ periodo: string; precoMedio: number }>;
         expect(hist.length).toBeGreaterThanOrEqual(1);
-        expect(hist[0].precoMedio).toBeGreaterThan(0);
+        expect(hist[0]!.precoMedio).toBeGreaterThan(0);
     });
 
     it('GET /stats/por-uf retorna distribuição por UF do emitente', async () => {
@@ -127,7 +127,7 @@ describe('stats', () => {
         const porUf = res.json().porUf as Array<{ uf: string; totalNFs: number; valorTotal: number }>;
         expect(Array.isArray(porUf)).toBe(true);
         expect(porUf.length).toBeGreaterThanOrEqual(1);
-        expect(porUf[0].totalNFs).toBeGreaterThanOrEqual(1);
+        expect(porUf[0]!.totalNFs).toBeGreaterThanOrEqual(1);
         expect(porUf[0]).toHaveProperty('valorTotal');
     });
 });

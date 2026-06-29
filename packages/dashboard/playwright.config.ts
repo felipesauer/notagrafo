@@ -20,6 +20,9 @@ export default defineConfig({
         command: 'docker compose --profile app up --wait',
         url: 'http://localhost:8080',
         timeout: 120_000,
-        reuseExistingServer: !process.env.CI,
+        // A stack (e o seed do usuário demo) é subida fora do Playwright — no CI
+        // pelo job e2e, em dev pelo `pnpm dev`. Sempre reusa o que já está de pé;
+        // só sobe a stack se a porta 8080 estiver livre.
+        reuseExistingServer: true,
     },
 });

@@ -41,7 +41,7 @@ describe('config (unit)', () => {
 describe('enqueueNFe (unit)', () => {
     it('enfileira com jobId = chaveAcesso quando a NF não existe', async () => {
         getInvoice.mockResolvedValue(null);
-        const add = vi.fn(async () => ({ id: CHAVE }));
+        const add = vi.fn(async (_name: string, _data: unknown, _opts?: unknown) => ({ id: CHAVE }));
         const queue = { add, name: NF_QUEUE } as unknown as Queue<ProcessNFeJobData>;
 
         const res = await enqueueNFe(queue, fakeDriver, xml, { origem: 'lote.xml' });

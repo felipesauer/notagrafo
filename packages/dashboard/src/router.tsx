@@ -1,6 +1,7 @@
 import { type JSX } from 'react';
 import { createRootRoute, createRoute, createRouter, Outlet, redirect } from '@tanstack/react-router';
 import { useAuthStore } from './stores/auth.store.js';
+import { isAuthRequired } from './lib/auth-config.js';
 import { AppLayout } from './components/AppLayout.js';
 import { LoginPage } from './pages/Login.js';
 import { OverviewPage } from './pages/Overview.js';
@@ -23,12 +24,16 @@ const loginRoute = createRoute({
     component: LoginPage,
 });
 
-/** Layout route protegido: exige token; senão redireciona a /login?redirect=origem. */
+/**
+ * Layout route protegido: exige token; senão redireciona a /login?redirect=origem.
+ * Quando a auth está desabilitada por env (ver lib/auth-config), o guard é
+ * ignorado e as páginas ficam acessíveis sem login.
+ */
 const protectedLayout = createRoute({
     getParentRoute: () => rootRoute,
     id: 'protected',
     beforeLoad: ({ location }) => {
-        if (!useAuthStore.getState().isAuthenticated) {
+        if (isAuthRequired() && !useAuthStore.getState().isAuthenticated) {
             throw redirect({ to: '/login', search: { redirect: location.pathname } });
         }
     },

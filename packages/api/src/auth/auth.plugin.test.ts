@@ -1,10 +1,18 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { errorHandler } from '../errors.js';
-import { authPlugin } from './auth.plugin.js';
+import { authPlugin, isAuthRequired } from './auth.plugin.js';
 
 let app: FastifyInstance;
-afterEach(async () => app?.close());
+const SAVED = { AUTH_ENABLED: process.env.AUTH_ENABLED, DEMO: process.env.DEMO, DEMO_AUTH_ENABLED: process.env.DEMO_AUTH_ENABLED };
+afterEach(async () => {
+    await app?.close();
+    // restaura flags para não vazar entre testes/arquivos
+    for (const [k, v] of Object.entries(SAVED)) {
+        if (v === undefined) delete process.env[k];
+        else process.env[k] = v;
+    }
+});
 
 async function build(): Promise<FastifyInstance> {
     process.env.AUTH_SECRET = 'test-secret';
@@ -41,5 +49,38 @@ describe('authPlugin (unit)', () => {
         app = await build();
         const res = await app.inject({ method: 'GET', url: '/protegido', headers: { authorization: 'Bearer lixo' } });
         expect(res.statusCode).toBe(401);
+    });
+
+    it('AUTH_ENABLED=false: rota protegida fica aberta sem token', async () => {
+        process.env.AUTH_ENABLED = 'false';
+        delete process.env.DEMO;
+        app = await build();
+        const res = await app.inject({ method: 'GET', url: '/protegido' });
+        expect(res.statusCode).toBe(200);
+        expect(res.json().ok).toBe(true);
+    });
+
+    it('DEMO=true + DEMO_AUTH_ENABLED=false sobrepõe AUTH_ENABLED=true', async () => {
+        process.env.AUTH_ENABLED = 'true';
+        process.env.DEMO = 'true';
+        process.env.DEMO_AUTH_ENABLED = 'false';
+        app = await build();
+        const res = await app.inject({ method: 'GET', url: '/protegido' });
+        expect(res.statusCode).toBe(200);
+    });
+});
+
+describe('isAuthRequired', () => {
+    it('padrão (sem flags) é true', () => {
+        expect(isAuthRequired({})).toBe(true);
+    });
+
+    it('AUTH_ENABLED=false desliga fora do modo demo', () => {
+        expect(isAuthRequired({ AUTH_ENABLED: 'false' })).toBe(false);
+    });
+
+    it('em modo demo, DEMO_AUTH_ENABLED sobrepõe AUTH_ENABLED', () => {
+        expect(isAuthRequired({ DEMO: 'true', DEMO_AUTH_ENABLED: 'false', AUTH_ENABLED: 'true' })).toBe(false);
+        expect(isAuthRequired({ DEMO: 'true', DEMO_AUTH_ENABLED: 'true', AUTH_ENABLED: 'false' })).toBe(true);
     });
 });
