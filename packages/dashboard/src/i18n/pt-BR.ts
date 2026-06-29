@@ -42,6 +42,8 @@ export const ptBR = {
         falhou: 'Falha no processamento.',
         anterior: 'Anterior', proxima: 'Próxima', detalheTitulo: 'NF', itens: 'Itens',
         produto: 'Produto', qtd: 'Qtd', miniGrafo: 'Grafo', verNoGrafo: 'Ver no grafo',
+        ncm: 'NCM', cfop: 'CFOP', icms: 'ICMS', ipi: 'IPI', pis: 'PIS', cofins: 'COFINS',
+        totais: 'Totais', valorNF: 'Valor da NF',
         filtros: {
             titulo: 'Filtros',
             numero: 'Número', serie: 'Série',

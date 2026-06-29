@@ -52,6 +52,8 @@ export const en = {
         falhou: 'Processing failed.',
         anterior: 'Previous', proxima: 'Next', detalheTitulo: 'Invoice', itens: 'Items',
         produto: 'Product', qtd: 'Qty', miniGrafo: 'Graph', verNoGrafo: 'View in graph',
+        ncm: 'NCM', cfop: 'CFOP', icms: 'ICMS', ipi: 'IPI', pis: 'PIS', cofins: 'COFINS',
+        totais: 'Totals', valorNF: 'Invoice total',
         filtros: {
             titulo: 'Filters',
             numero: 'Number', serie: 'Series',
