@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-42
-  state: IN_REVIEW
+  state: DONE
   title: Reportar progresso real do job (updateProgress)
   description: >-
     Achado D (MÉDIA menor): processNFe não chama updateProgress; progresso fica
@@ -21,6 +21,6 @@ mnema:
   sprint_key: NOTA-SPRINT-9
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-28T22:34:05.644Z'
+  updated_at: '2026-06-29T02:35:39.357Z'
 ---
 # Reportar progresso real do job (updateProgress)

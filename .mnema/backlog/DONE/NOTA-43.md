@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-43
-  state: IN_REVIEW
+  state: DONE
   title: GET /nf/:chave/eventos retorna 404 para NF inexistente
   description: >-
     Achado E (BAIXA): /eventos retorna 200 {eventos:[]} para chave inexistente,
@@ -19,6 +19,6 @@ mnema:
   sprint_key: NOTA-SPRINT-9
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-28T22:36:57.645Z'
+  updated_at: '2026-06-29T02:35:41.154Z'
 ---
 # GET /nf/:chave/eventos retorna 404 para NF inexistente

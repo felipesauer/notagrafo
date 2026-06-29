@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-46
-  state: IN_REVIEW
+  state: DONE
   title: Decidir destino de historicoPrecoProduto (expor ou remover)
   description: >-
     Achado G (BAIXA): historicoPrecoProduto existe no graph mas não é exposto
@@ -22,6 +22,6 @@ mnema:
   sprint_key: NOTA-SPRINT-9
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-28T23:12:50.604Z'
+  updated_at: '2026-06-29T02:35:50.105Z'
 ---
 # Decidir destino de historicoPrecoProduto (expor ou remover)

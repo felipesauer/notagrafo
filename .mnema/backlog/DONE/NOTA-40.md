@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-40
-  state: IN_REVIEW
+  state: DONE
   title: Cobertura unit para 90% global (mock de driver/queue/storage)
   description: >-
     Achado A (ALTA): cobertura unit real é 39,83% (não 80%). Escrever testes
@@ -24,6 +24,6 @@ mnema:
   sprint_key: NOTA-SPRINT-9
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-28T22:28:20.985Z'
+  updated_at: '2026-06-29T02:35:30.937Z'
 ---
 # Cobertura unit para 90% global (mock de driver/queue/storage)

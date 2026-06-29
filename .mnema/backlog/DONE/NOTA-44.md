@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-44
-  state: IN_REVIEW
+  state: DONE
   title: Cobrir todos os filtros do GET /nf em testes
   description: >-
     Achado F (BAIXA): ~10 dos 16 filtros (valorTotalMin/Max, dataEmissao*,
@@ -22,6 +22,6 @@ mnema:
   sprint_key: NOTA-SPRINT-9
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-28T22:39:10.923Z'
+  updated_at: '2026-06-29T02:35:46.421Z'
 ---
 # Cobrir todos os filtros do GET /nf em testes

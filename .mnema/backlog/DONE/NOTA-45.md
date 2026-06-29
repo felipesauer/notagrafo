@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-45
-  state: IN_REVIEW
+  state: DONE
   title: >-
     e2e dos fluxos novos (upload polling, Overview, NFDetail, Empresas,
     Produtos)
@@ -21,6 +21,6 @@ mnema:
   sprint_key: NOTA-SPRINT-9
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-28T23:02:27.424Z'
+  updated_at: '2026-06-29T02:35:48.369Z'
 ---
 # e2e dos fluxos novos (upload polling, Overview, NFDetail, Empresas, Produtos)

@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-41
-  state: IN_REVIEW
+  state: DONE
   title: Alinhar status do job ao contrato (waiting/active/delayed → processing)
   description: >-
     Achado C (MÉDIA): GET /nf/jobs/:jobId retorna status cru do BullMQ
@@ -22,6 +22,6 @@ mnema:
   sprint_key: NOTA-SPRINT-9
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-28T22:30:57.619Z'
+  updated_at: '2026-06-29T02:35:32.744Z'
 ---
 # Alinhar status do job ao contrato (waiting/active/delayed → processing)
