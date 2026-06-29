@@ -31,7 +31,7 @@ function loadXsd(path: string): Document {
 }
 
 /** Extrai o atributo `versao` do elemento infNFe. */
-function extrairVersao(doc: Document): string | null {
+function extractVersion(doc: Document): string | null {
     const infNFe = doc.get(
         '//*[local-name()="infNFe"]',
     ) as { attr(name: string): { value(): string } | null } | null;
@@ -47,7 +47,7 @@ function extrairVersao(doc: Document): string | null {
  * @throws {XmlMalformadoError} se o XML não for bem-formado ou não declarar versão.
  * @throws {VersaoSchemaNaoSuportadaError} se a versão não tiver XSD (regra 3).
  */
-export function validarNFe(xml: string): ValidationResult {
+export function validateNFe(xml: string): ValidationResult {
     let doc: Document;
     try {
         doc = parseXml(xml);
@@ -57,7 +57,7 @@ export function validarNFe(xml: string): ValidationResult {
         );
     }
 
-    const versao = extrairVersao(doc);
+    const versao = extractVersion(doc);
     if (!versao) {
         throw new XmlMalformadoError(
             'XML não declara a versão do schema (infNFe/@versao ausente).',

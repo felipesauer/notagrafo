@@ -1,7 +1,7 @@
 import { gzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
 import type { Driver } from 'neo4j-driver';
-import { parseNFe, validarNFe, type RawDataNode } from '@notagrafo/core';
+import { parseNFe, validateNFe, type RawDataNode } from '@notagrafo/core';
 import { mergeNotaFiscal, type NotaFiscalParaGravar } from '@notagrafo/graph';
 import type { XmlStorage } from '../storage/xml.storage.js';
 
@@ -41,7 +41,7 @@ export async function processNFe(
     };
 
     // 1. Validação XSD (lança se inválido ou versão não suportada)
-    const validacao = validarNFe(xml);
+    const validacao = validateNFe(xml);
     if (!validacao.valid) {
         throw new Error(`XML inválido contra o XSD ${validacao.versao}: ${validacao.errors.join('; ')}`);
     }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validarNFe } from '@notagrafo/core';
+import { validateNFe } from '@notagrafo/core';
 import { gerarNFe, makeRng } from './generator.js';
 
 describe('gerarNFe', () => {
@@ -8,7 +8,7 @@ describe('gerarNFe', () => {
         for (let i = 1; i <= 20; i++) {
             const { xml, chaveAcesso } = gerarNFe(i, rng);
             expect(chaveAcesso).toHaveLength(44);
-            const res = validarNFe(xml);
+            const res = validateNFe(xml);
             expect(res.valid, `NFe ${i} inválida: ${res.errors.join('; ')}`).toBe(true);
         }
     });
