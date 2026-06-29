@@ -32,7 +32,7 @@ export async function startWorker(): Promise<Worker<ProcessNFeJobData>> {
 }
 
 // Entry point quando executado diretamente (dist/worker.js).
-if (process.argv[1] && process.argv[1].endsWith('worker.js')) {
+if (process.argv[1] && /worker\.(js|ts)$/.test(process.argv[1])) {
     startWorker().catch((err) => {
         // eslint-disable-next-line no-console
         console.error('[worker] falha no boot:', err);

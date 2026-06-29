@@ -16,7 +16,7 @@ async function main(): Promise<void> {
     await app.listen({ port, host: '0.0.0.0' });
 }
 
-if (process.argv[1] && process.argv[1].endsWith('server.js')) {
+if (process.argv[1] && /server\.(js|ts)$/.test(process.argv[1])) {
     main().catch((err) => {
         // eslint-disable-next-line no-console
         console.error('[api] falha no boot:', err);

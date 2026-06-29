@@ -8,8 +8,10 @@
   },
   "packageManager": "pnpm@10.34.1",
   "scripts": {
-    "dev": "docker compose up -d && pnpm --parallel dev:packages",
-    "dev:packages": "pnpm --filter @notagrafo/api dev & pnpm --filter @notagrafo/worker dev & pnpm --filter @notagrafo/dashboard dev",
+    "dev": "docker compose up -d && pnpm dev:libs && pnpm dev:seed && pnpm dev:packages",
+    "dev:libs": "pnpm --filter @notagrafo/core --filter @notagrafo/graph build",
+    "dev:seed": "dotenv -e .env -- tsx packages/worker/src/seed/index.ts || true",
+    "dev:packages": "pnpm --parallel --filter @notagrafo/api --filter @notagrafo/worker --filter @notagrafo/dashboard dev",
     "build": "pnpm --filter @notagrafo/core build && pnpm --filter @notagrafo/graph build && pnpm --filter @notagrafo/api build && pnpm --filter @notagrafo/worker build && pnpm --filter @notagrafo/dashboard build",
     "test": "pnpm test:unit && pnpm test:integration",
     "test:unit": "vitest run --config vitest.config.ts",
@@ -30,8 +32,10 @@
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
     "@vitest/coverage-v8": "^4.1.9",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^8.57.1",
     "testcontainers": "^12.0.3",
+    "tsx": "^4.22.4",
     "typescript": "^6.0.3",
     "vitest": "^4.1.9"
   },
