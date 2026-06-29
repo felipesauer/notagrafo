@@ -70,7 +70,7 @@ export const ptBR = {
     grafo: {
         buscarEmpresa: 'Buscar empresa (CNPJ)', profundidade: 'Profundidade',
         ambos: 'Ambos', emitente: 'Emitente', destinatario: 'Destinatário',
-        resetar: 'Resetar', exportarPng: 'Exportar PNG',
+        resetar: 'Resetar', exportPng: 'Exportar PNG',
         vazio: 'Busque uma empresa para começar.',
     },
     exportacoes: {

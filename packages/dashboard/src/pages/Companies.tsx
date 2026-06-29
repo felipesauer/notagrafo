@@ -1,13 +1,13 @@
 import { type JSX, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from '@tanstack/react-router';
-import { useTopEmpresas, useEmpresa } from '../api/hooks.js';
+import { useTopCompanies, useCompany } from '../api/hooks.js';
 import { CNPJText, LoadingSkeleton, InlineError, EmptyState } from '../components/shared.js';
 
 /** Card de detalhes inline de uma empresa (expandido na tabela). */
-function EmpresaCard({ cnpj }: { cnpj: string }): JSX.Element {
+function CompanyCard({ cnpj }: { cnpj: string }): JSX.Element {
     const { t } = useTranslation();
-    const { data, isLoading } = useEmpresa(cnpj);
+    const { data, isLoading } = useCompany(cnpj);
     if (isLoading) return <LoadingSkeleton linhas={2} />;
     const e = data as (Record<string, unknown> & { stats?: { totalNFsEmitidas?: number; totalNFsRecebidas?: number } }) | undefined;
     return (
@@ -19,9 +19,9 @@ function EmpresaCard({ cnpj }: { cnpj: string }): JSX.Element {
     );
 }
 
-export function EmpresasPage(): JSX.Element {
+export function CompaniesPage(): JSX.Element {
     const { t } = useTranslation();
-    const { data, isLoading, isError, refetch } = useTopEmpresas();
+    const { data, isLoading, isError, refetch } = useTopCompanies();
     const [expandida, setExpandida] = useState<string | null>(null);
 
     if (isLoading) return <LoadingSkeleton linhas={6} />;
@@ -46,7 +46,7 @@ export function EmpresasPage(): JSX.Element {
                             </tr>
                             {expandida === e.cnpj && (
                                 <tr key={`${e.cnpj}-card`}>
-                                    <td colSpan={4}><EmpresaCard cnpj={e.cnpj} /></td>
+                                    <td colSpan={4}><CompanyCard cnpj={e.cnpj} /></td>
                                 </tr>
                             )}
                         </>

@@ -80,7 +80,7 @@ export const en = {
     grafo: {
         buscarEmpresa: 'Search company (Tax ID)', profundidade: 'Depth',
         ambos: 'Both', emitente: 'Issuer', destinatario: 'Recipient',
-        resetar: 'Reset', exportarPng: 'Export PNG',
+        resetar: 'Reset', exportPng: 'Export PNG',
         vazio: 'Search a company to start.',
     },
     exportacoes: {

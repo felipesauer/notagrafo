@@ -47,7 +47,7 @@ export function useOverview() {
     return useQuery({ queryKey: ['stats', 'overview'], queryFn: () => apiFetch<Overview>('/stats/overview') });
 }
 
-export function useTopEmpresas() {
+export function useTopCompanies() {
     return useQuery({
         queryKey: ['stats', 'top-empresas'],
         queryFn: () => apiFetch<{ ranking: TopEmpresa[] }>('/stats/top-empresas?metrica=valor&limit=10'),
@@ -60,7 +60,7 @@ export interface UfStat {
     valorTotal: number;
 }
 
-export function usePorUf(tipo: 'emitente' | 'destinatario' = 'emitente') {
+export function useByUf(tipo: 'emitente' | 'destinatario' = 'emitente') {
     return useQuery({
         queryKey: ['stats', 'por-uf', tipo],
         queryFn: () => apiFetch<{ tipo: string; porUf: UfStat[] }>(`/stats/por-uf${qs({ tipo })}`),
@@ -89,7 +89,7 @@ export function useNFDetail(chave: string) {
     });
 }
 
-export function useEmpresa(cnpj: string) {
+export function useCompany(cnpj: string) {
     return useQuery({
         queryKey: ['empresa', cnpj],
         queryFn: () => apiFetch<Record<string, unknown>>(`/empresa/${cnpj}`),
@@ -97,7 +97,7 @@ export function useEmpresa(cnpj: string) {
     });
 }
 
-export function useTopProdutos() {
+export function useTopProducts() {
     return useQuery({
         queryKey: ['stats', 'top-produtos'],
         queryFn: () => apiFetch<{ ranking: Array<Record<string, unknown>> }>('/stats/top-produtos?limit=20'),
@@ -111,7 +111,7 @@ export interface PrecoHistoricoPonto {
     totalNFs: number;
 }
 
-export function useHistoricoPreco(idUnico: string) {
+export function usePriceHistory(idUnico: string) {
     return useQuery({
         queryKey: ['stats', 'produto-historico', idUnico],
         queryFn: () => apiFetch<{ idUnico: string; historico: PrecoHistoricoPonto[] }>(`/stats/produto/${encodeURIComponent(idUnico)}/historico`),
