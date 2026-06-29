@@ -77,7 +77,14 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @notagrafo/dashboard exec playwright install --with-deps chromium
+      # O compose usa env_file: .env, que não é versionado. Deriva do exemplo.
+      - run: cp .env.example .env
       - run: docker compose --profile app up -d --wait
+        env:
+          DEMO: "true"
+          DEMO_NF_COUNT: "50"
+      # Cria o usuário demo + NFes que os e2e usam para login (profile demo).
+      - run: docker compose --profile app --profile demo run --rm seed
         env:
           DEMO: "true"
           DEMO_NF_COUNT: "50"
