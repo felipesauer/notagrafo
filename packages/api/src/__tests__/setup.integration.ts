@@ -11,7 +11,7 @@ import { createNFQueue, LocalXmlStorage } from '@notagrafo/worker';
 import type { Queue } from 'bullmq';
 import type { ProcessNFeJobData } from '@notagrafo/worker';
 import { buildApp, API_PREFIX } from '../app.js';
-import { criarUsuario } from '../auth/user.repository.js';
+import { createUser } from '../auth/user.repository.js';
 
 /** Contexto compartilhado por testes de integração da API. */
 export interface ApiTestContext {
@@ -56,7 +56,7 @@ export async function setupApiIntegration(): Promise<ApiTestContext> {
     const queue = createNFQueue(redis);
 
     await runMigrations(driver);
-    await criarUsuario(driver, TEST_USER);
+    await createUser(driver, TEST_USER);
 
     const app = await buildApp({ rateLimit: false, driver, queue, storage, redis });
     await app.ready();

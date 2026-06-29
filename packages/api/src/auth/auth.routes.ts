@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import type { Driver } from 'neo4j-driver';
 import { ApiError } from '../errors.js';
-import { buscarPorEmail, buscarPorId, verificarSenha } from './user.repository.js';
+import { findByEmail, findById, verifyPassword } from './user.repository.js';
 import type { JwtClaims } from './auth.plugin.js';
 
 interface LoginBody {
@@ -37,8 +37,8 @@ export async function authRoutes(app: FastifyInstance, driver: Driver): Promise<
         },
         async (request) => {
             const { email, password } = request.body;
-            const user = await buscarPorEmail(driver, email);
-            if (!user || !(await verificarSenha(password, user.senhaHash))) {
+            const user = await findByEmail(driver, email);
+            if (!user || !(await verifyPassword(password, user.senhaHash))) {
                 throw new ApiError(401, 'INVALID_CREDENTIALS', 'E-mail ou senha inválidos.');
             }
             const claims: JwtClaims = { sub: user.id, email: user.email, nome: user.nome };
@@ -77,8 +77,8 @@ export async function authRoutes(app: FastifyInstance, driver: Driver): Promise<
             } catch {
                 throw ApiError.unauthorized('Token inválido ou expirado para refresh.');
             }
-            const novo = app.jwt.sign({ sub: claims.sub, email: claims.email, nome: claims.nome });
-            return { token: novo, expiresAt: expiresAtFromToken(app, novo) };
+            const freshToken = app.jwt.sign({ sub: claims.sub, email: claims.email, nome: claims.nome });
+            return { token: freshToken, expiresAt: expiresAtFromToken(app, freshToken) };
         },
     );
 
@@ -90,7 +90,7 @@ export async function authRoutes(app: FastifyInstance, driver: Driver): Promise<
             preHandler: app.authenticate,
         },
         async (request) => {
-            const user = await buscarPorId(driver, request.user.sub);
+            const user = await findById(driver, request.user.sub);
             if (!user) throw ApiError.notFound('USER_NOT_FOUND', 'Usuário não encontrado.');
             return user;
         },

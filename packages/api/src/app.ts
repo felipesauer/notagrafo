@@ -14,7 +14,7 @@ import { metricsPlugin } from './plugins/metrics.plugin.js';
 import { loggerConfig } from './observability/logger.js';
 import { nfRoutes } from './nf/nf.routes.js';
 import { healthRoutes } from './routes/health.routes.js';
-import { empresaRoutes } from './routes/empresa.routes.js';
+import { companyRoutes } from './routes/company.routes.js';
 import { statsRoutes } from './routes/stats.routes.js';
 import { exportRoutes } from './export/export.routes.js';
 import { ExportService } from './export/export.service.js';
@@ -87,7 +87,7 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<FastifyInsta
             api.get('/ping', { schema: { tags: ['health'], summary: 'Ping', response: { 200: { type: 'object', properties: { pong: { type: 'boolean' } } } } } }, async () => ({ pong: true }));
             if (opts.driver) {
                 await authRoutes(api, opts.driver);
-                await empresaRoutes(api, opts.driver);
+                await companyRoutes(api, opts.driver);
                 await statsRoutes(api, opts.driver);
                 if (exportService) await exportRoutes(api, exportService);
                 if (opts.queue && opts.storage) {
