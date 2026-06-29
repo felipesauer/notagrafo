@@ -41,9 +41,9 @@ export async function processNFe(
     };
 
     // 1. Validação XSD (lança se inválido ou versão não suportada)
-    const validacao = validateNFe(xml);
-    if (!validacao.valid) {
-        throw new Error(`XML inválido contra o XSD ${validacao.versao}: ${validacao.errors.join('; ')}`);
+    const validation = validateNFe(xml);
+    if (!validation.valid) {
+        throw new Error(`XML inválido contra o XSD ${validation.versao}: ${validation.errors.join('; ')}`);
     }
     await report(25);
 
@@ -56,7 +56,7 @@ export async function processNFe(
         jsonCompleto: JSON.stringify(parsed),
         checksum: createHash('sha256').update(xml).digest('hex'),
         tamanhoBytes: Buffer.byteLength(xml),
-        versaoSchema: validacao.versao,
+        versaoSchema: validation.versao,
     };
     await report(50);
 
@@ -69,5 +69,5 @@ export async function processNFe(
     const storageRef = await deps.storage.save(parsed.nota.chaveAcesso, xml);
     await report(100);
 
-    return { chaveAcesso: parsed.nota.chaveAcesso, versao: validacao.versao, storageRef };
+    return { chaveAcesso: parsed.nota.chaveAcesso, versao: validation.versao, storageRef };
 }

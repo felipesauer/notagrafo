@@ -7,7 +7,7 @@ import neo4j, { type Driver } from 'neo4j-driver';
 import { runMigrations } from '@notagrafo/graph';
 import { processNFe } from '../jobs/process-nfe.job.js';
 import { LocalXmlStorage } from '../storage/local.storage.js';
-import { gerarNFe, makeRng } from './generator.js';
+import { generateNFe, makeRng } from './generator.js';
 import { runSeed } from './index.js';
 
 let container: StartedNeo4jContainer;
@@ -44,7 +44,7 @@ describe('seed de demo (pipeline real)', () => {
         const rng = makeRng(123);
         let ok = 0;
         for (let i = 1; i <= N; i++) {
-            const { xml } = gerarNFe(i, rng);
+            const { xml } = generateNFe(i, rng);
             await processNFe({ xml, origem: 'demo-seed' }, { driver, storage });
             ok++;
         }
