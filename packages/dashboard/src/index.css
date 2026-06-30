@@ -161,6 +161,8 @@ body {
 .data-table { width: 100%; border-collapse: collapse; }
 .data-table th, .data-table td { text-align: left; padding: 0.5rem; border-bottom: 1px solid var(--card); }
 .data-table__row--clickable { cursor: pointer; }
+.table-scroll { overflow-x: auto; }
+.data-table__totais td { font-weight: 600; border-top: 2px solid var(--muted, #888); }
 .toolbar { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
 .pagination { display: flex; gap: 0.5rem; margin-top: 1rem; }
 .empty-hint { color: var(--muted, #888); padding: 1rem 0; }
@@ -175,6 +177,8 @@ body {
 @media (max-width: 800px) { .nf-list--with-sidebar { grid-template-columns: 1fr; } }
 .badge { color: #fff; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.8rem; }
 .nf-detail { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
+.impostos__rankings { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start; }
+@media (max-width: 800px) { .impostos__rankings { grid-template-columns: 1fr; } }
 .inline-card { display: flex; gap: 1.5rem; padding: 0.75rem; background: var(--card); border-radius: 6px; }
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: grid; place-items: center; }
 .modal { background: var(--bg); padding: 1.5rem; border-radius: 12px; width: 360px; }
@@ -210,4 +214,6 @@ body {
     overflow-y: auto;
 }
 .graph-panel__close { float: right; }
+.graph-panel__links { display: flex; flex-direction: column; gap: 0.3rem; margin-top: 0.5rem; }
 .grafo-page .toolbar { flex-wrap: wrap; align-items: center; }
+.grafo-toggle { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.85rem; }

@@ -1,6 +1,15 @@
 import type { FastifyInstance } from 'fastify';
 import type { Driver } from 'neo4j-driver';
-import { topProducts, productPriceHistory, type MetricaProduto } from '@notagrafo/graph';
+import {
+    topProducts,
+    productPriceHistory,
+    productCompanies,
+    taxSummary,
+    taxByNcm,
+    taxByCfop,
+    type MetricaProduto,
+    type TaxFilters,
+} from '@notagrafo/graph';
 
 const toNum = (v: unknown): number =>
     typeof v === 'number'
@@ -17,17 +26,18 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
         async () => {
             const session = driver.session();
             try {
+                // status IS NOT NULL exclui NFs stub (origem de DEVOLVE ainda não importada — auditoria F3).
                 const totais = await session.run(
-                    `MATCH (nf:NotaFiscal)
+                    `MATCH (nf:NotaFiscal) WHERE nf.status IS NOT NULL
                      RETURN count(nf) AS totalNFs, sum(nf.valorTotal) AS valor`,
                 );
                 const empresas = await session.run('MATCH (e:Empresa) RETURN count(e) AS c');
                 const produtos = await session.run('MATCH (p:Produto) RETURN count(p) AS c');
                 const porStatus = await session.run(
-                    'MATCH (nf:NotaFiscal) RETURN nf.status AS status, count(nf) AS c',
+                    'MATCH (nf:NotaFiscal) WHERE nf.status IS NOT NULL RETURN nf.status AS status, count(nf) AS c',
                 );
                 const ultimas = await session.run(
-                    `MATCH (nf:NotaFiscal)
+                    `MATCH (nf:NotaFiscal) WHERE nf.status IS NOT NULL
                      RETURN nf.chaveAcesso AS chaveAcesso, nf.numero AS numero,
                             nf.valorTotal AS valorTotal, nf.importadaEm AS processadaEm
                      ORDER BY nf.importadaEm DESC LIMIT 10`,
@@ -250,6 +260,60 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
             } finally {
                 await session.close();
             }
+        },
+    );
+
+    // GET /stats/impostos — KPIs de carga tributária, série temporal e top NCM/CFOP por imposto
+    app.get<{ Querystring: { dataInicio?: string; dataFim?: string; uf?: string; limit?: number } }>(
+        '/stats/impostos',
+        {
+            preHandler: app.authenticate,
+            schema: {
+                tags: ['stats'],
+                summary: 'Carga tributária: totais por tributo, série temporal e top NCM/CFOP',
+                querystring: {
+                    type: 'object',
+                    properties: {
+                        dataInicio: { type: 'string' },
+                        dataFim: { type: 'string' },
+                        uf: { type: 'string' },
+                        limit: { type: 'integer', minimum: 1, maximum: 50 },
+                    },
+                },
+                security: [{ bearerAuth: [] }],
+            },
+        },
+        async (request) => {
+            const filtros: TaxFilters = {
+                ...(request.query.dataInicio ? { dataInicio: request.query.dataInicio } : {}),
+                ...(request.query.dataFim ? { dataFim: request.query.dataFim } : {}),
+                ...(request.query.uf ? { uf: request.query.uf } : {}),
+            };
+            const limit = request.query.limit ? Number(request.query.limit) : 10;
+            const [resumo, porNcm, porCfop] = await Promise.all([
+                taxSummary(driver, filtros),
+                taxByNcm(driver, filtros, limit),
+                taxByCfop(driver, filtros, limit),
+            ]);
+            return { totais: resumo.totais, serie: resumo.serie, topNcm: porNcm, topCfop: porCfop };
+        },
+    );
+
+    // GET /stats/produto/:idUnico/empresas — empresas ligadas ao produto (produto↔empresa)
+    app.get<{ Params: { idUnico: string } }>(
+        '/stats/produto/:idUnico/empresas',
+        {
+            preHandler: app.authenticate,
+            schema: {
+                tags: ['stats'],
+                summary: 'Empresas ligadas a um produto (emitentes e destinatários)',
+                params: { type: 'object', properties: { idUnico: { type: 'string' } }, required: ['idUnico'] },
+                security: [{ bearerAuth: [] }],
+            },
+        },
+        async (request) => {
+            const empresas = await productCompanies(driver, request.params.idUnico);
+            return { idUnico: request.params.idUnico, empresas };
         },
     );
 }

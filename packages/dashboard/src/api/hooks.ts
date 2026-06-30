@@ -36,7 +36,8 @@ export interface TopEmpresa {
     valorTotal: number;
 }
 
-const qs = (params: Record<string, string | number | undefined>): string => {
+type QueryValue = string | number | boolean | undefined;
+const qs = (params: Record<string, QueryValue>): string => {
     const sp = new URLSearchParams();
     for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== '') sp.set(k, String(v));
     const s = sp.toString();
@@ -74,7 +75,7 @@ export function useVolume(granularidade = 'dia') {
     });
 }
 
-export function useNFList(filtros: Record<string, string | number | undefined>) {
+export function useNFList(filtros: Record<string, QueryValue>) {
     return useQuery({
         queryKey: ['nf', filtros],
         queryFn: () => apiFetch<NFPage>(`/nf${qs(filtros)}`),
@@ -116,5 +117,19 @@ export function usePriceHistory(idUnico: string) {
         queryKey: ['stats', 'produto-historico', idUnico],
         queryFn: () => apiFetch<{ idUnico: string; historico: PrecoHistoricoPonto[] }>(`/stats/produto/${encodeURIComponent(idUnico)}/historico`),
         enabled: !!idUnico,
+    });
+}
+
+export interface TaxStats {
+    totais: { vICMS: number; vICMSST: number; vIPI: number; vPIS: number; vCOFINS: number; vII: number; vFCP: number };
+    serie: Array<{ periodo: string; vICMS: number; vIPI: number; vPIS: number; vCOFINS: number }>;
+    topNcm: Array<{ ncm: string; descricao?: string; totalImposto: number; vICMS: number; vIPI: number; vPIS: number; vCOFINS: number; totalNFs: number }>;
+    topCfop: Array<{ cfop: string; descricao?: string; tipo?: string; vICMS: number; vIPI: number; totalNFs: number }>;
+}
+
+export function useTaxStats(filtros: Record<string, string | number | undefined> = {}) {
+    return useQuery({
+        queryKey: ['stats', 'impostos', filtros],
+        queryFn: () => apiFetch<TaxStats>(`/stats/impostos${qs(filtros)}`),
     });
 }

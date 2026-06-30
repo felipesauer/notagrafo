@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Neo4jContainer, type StartedNeo4jContainer } from '@testcontainers/neo4j';
 import neo4j, { type Driver } from 'neo4j-driver';
-import { runMigrations } from '@notagrafo/graph';
+import { runMigrations, taxSummary } from '@notagrafo/graph';
 import { processNFe } from '../jobs/process-nfe.job.js';
 import { LocalXmlStorage } from '../storage/local.storage.js';
 import { generateNFe, makeRng } from './generator.js';
@@ -93,4 +93,33 @@ describe('seed de demo (pipeline real)', () => {
         expect(r.primeiroErro).toBeNull();
         expect(r.errosPorTipo).toEqual({});
     }, 60_000);
+
+    it('seed realista popula impostos != 0 e arestas DEVOLVE (objetivo da Fase 5)', async () => {
+        // grafo limpo só para este caso (asserções absolutas).
+        const limpar = driver.session();
+        try {
+            await limpar.run('MATCH (n) WHERE NOT n:Usuario DETACH DELETE n');
+        } finally {
+            await limpar.close();
+        }
+
+        const r = await runSeed({ count: 21, seed: 2026 }, { driver, storage });
+        expect(r.falhas).toBe(0);
+
+        // /stats/impostos teria valores != 0 — taxSummary soma os total_* das NFs.
+        const resumo = await taxSummary(driver);
+        expect(resumo.totais.vICMS).toBeGreaterThan(0);
+        expect(resumo.totais.vIPI).toBeGreaterThan(0);
+        expect(resumo.totais.vCOFINS).toBeGreaterThan(0);
+        expect(resumo.serie.length).toBeGreaterThanOrEqual(1);
+
+        // pelo menos uma aresta DEVOLVE foi criada (i=14 e i=21 caem na regra do runSeed).
+        const session = driver.session();
+        try {
+            const dev = await session.run('MATCH (:NotaFiscal)-[d:DEVOLVE]->(:NotaFiscal) RETURN count(d) AS c');
+            expect(dev.records[0]!.get('c').toNumber()).toBeGreaterThanOrEqual(1);
+        } finally {
+            await session.close();
+        }
+    }, 90_000);
 });

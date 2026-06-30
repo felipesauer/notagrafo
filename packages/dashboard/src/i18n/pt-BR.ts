@@ -42,6 +42,8 @@ export const ptBR = {
         falhou: 'Falha no processamento.',
         anterior: 'Anterior', proxima: 'Próxima', detalheTitulo: 'NF', itens: 'Itens',
         produto: 'Produto', qtd: 'Qtd', miniGrafo: 'Grafo', verNoGrafo: 'Ver no grafo',
+        ncm: 'NCM', cfop: 'CFOP', icms: 'ICMS', ipi: 'IPI', pis: 'PIS', cofins: 'COFINS',
+        totais: 'Totais', valorNF: 'Valor da NF',
         filtros: {
             titulo: 'Filtros',
             numero: 'Número', serie: 'Série',
@@ -67,11 +69,20 @@ export const ptBR = {
         quantidade: 'Quantidade', valorTotal: 'Valor total', precoMedio: 'Preço médio',
         historicoPreco: 'Histórico de preço médio', semHistorico: 'Sem histórico de preço.',
     },
+    impostos: {
+        titulo: 'Impostos', vazio: 'Nenhum imposto registrado na base.',
+        icmsSt: 'ICMS-ST', fcp: 'FCP',
+        serieTitulo: 'Carga tributária por mês',
+        topNcm: 'Top NCM por imposto', topCfop: 'Top CFOP por imposto',
+        totalImposto: 'Imposto total',
+    },
     grafo: {
         buscarEmpresa: 'Buscar empresa (CNPJ)', profundidade: 'Profundidade',
         ambos: 'Ambos', emitente: 'Emitente', destinatario: 'Destinatário',
         resetar: 'Resetar', exportPng: 'Exportar PNG',
         vazio: 'Busque uma empresa para começar.',
+        incluirProdutos: 'Incluir produtos',
+        nfsComImposto: 'NFs com ICMS', nfsDoNcm: 'NFs deste NCM',
     },
     exportacoes: {
         nova: 'Nova exportação', formato: 'Formato', campos: 'Campos', gerar: 'Gerar exportação',
@@ -92,6 +103,7 @@ export const ptBR = {
         nfs: 'Notas Fiscais',
         empresas: 'Empresas',
         produtos: 'Produtos',
+        impostos: 'Impostos',
         grafo: 'Grafo',
         exportacoes: 'Exportações',
         configuracoes: 'Configurações',

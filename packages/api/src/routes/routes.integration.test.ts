@@ -130,6 +130,33 @@ describe('stats', () => {
         expect(porUf[0]!.totalNFs).toBeGreaterThanOrEqual(1);
         expect(porUf[0]).toHaveProperty('valorTotal');
     });
+
+    it('GET /stats/impostos retorna totais, série e rankings por NCM/CFOP', async () => {
+        const res = await app.inject({ method: 'GET', url: `${API_PREFIX}/stats/impostos`, headers: bearer() });
+        expect(res.statusCode).toBe(200);
+        const j = res.json();
+        // estrutura do contrato (a NF base do setup tem imposto 0 → totais válidos e zerados)
+        expect(j.totais).toMatchObject({ vICMS: expect.any(Number), vIPI: expect.any(Number), vCOFINS: expect.any(Number) });
+        expect(Array.isArray(j.serie)).toBe(true);
+        expect(Array.isArray(j.topNcm)).toBe(true);
+        expect(Array.isArray(j.topCfop)).toBe(true);
+        // o CFOP 5102 da NF base aparece no ranking, com descrição do catálogo
+        const cfop = (j.topCfop as Array<{ cfop: string; descricao?: string; tipo?: string }>).find((c) => c.cfop === '5102');
+        expect(cfop).toBeTruthy();
+        expect(cfop!.tipo).toBe('saida');
+    });
+
+    it('GET /stats/produto/:idUnico/empresas retorna o cruzamento produto↔empresa', async () => {
+        const top = await app.inject({ method: 'GET', url: `${API_PREFIX}/stats/top-produtos?limit=1`, headers: bearer() });
+        const idUnico = top.json().ranking[0].idUnico as string;
+        const res = await app.inject({ method: 'GET', url: `${API_PREFIX}/stats/produto/${encodeURIComponent(idUnico)}/empresas`, headers: bearer() });
+        expect(res.statusCode).toBe(200);
+        expect(res.json().idUnico).toBe(idUnico);
+        const empresas = res.json().empresas as Array<{ cnpj: string; papel: string; valor: number }>;
+        expect(empresas.length).toBeGreaterThanOrEqual(1);
+        // o emitente da NF base é emitente do produto
+        expect(empresas.some((e) => e.cnpj === EMIT && e.papel === 'emitente')).toBe(true);
+    });
 });
 
 describe('export (fluxo assíncrono)', () => {

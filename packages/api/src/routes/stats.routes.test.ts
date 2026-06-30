@@ -75,3 +75,39 @@ describe('GET /stats/por-uf (unit)', () => {
         expect(res.json().porUf[0]).toEqual({ uf: 'SP', totalNFs: 4, valorTotal: 400 });
     });
 });
+
+describe('GET /stats/impostos (unit)', () => {
+    it('agrega totais, série e rankings por NCM/CFOP', async () => {
+        // roteia cada query (taxSummary totais+série, taxByNcm, taxByCfop) pelo Cypher
+        const responder = (cypher: string) => {
+            if (cypher.includes('substring(nf.dataEmissao, 0, 7)')) return [rec({ periodo: '2026-06', vICMS: 180, vIPI: 50, vPIS: 16.5, vCOFINS: 76 })];
+            if (cypher.includes('AS vFCP')) return [rec({ vICMS: 180, vICMSST: 72, vIPI: 50, vPIS: 16.5, vCOFINS: 76, vII: 0, vFCP: 20 })];
+            if (cypher.includes('CLASSIFICADO_EM]->(ncm:NCM)')) return [rec({ ncm: '84713012', descricao: 'Máquinas', vICMS: 252, vIPI: 50, vPIS: 16.5, vCOFINS: 76, totalImposto: 394.5, totalNFs: 1 })];
+            if (cypher.includes('c.cfop AS cfop')) return [rec({ cfop: '6102', descricao: 'Venda', tipo: 'saida', vICMS: 180, vIPI: 50, totalNFs: 1 })];
+            return [];
+        };
+        const { driver } = makeFakeDriver(responder);
+        app = await buildTestApi((a) => statsRoutes(a, driver));
+        const res = await app.inject({ method: 'GET', url: '/stats/impostos?dataInicio=2026-01-01&limit=5' });
+        expect(res.statusCode).toBe(200);
+        const j = res.json();
+        expect(j.totais).toMatchObject({ vICMS: 180, vIPI: 50, vFCP: 20, vICMSST: 72 });
+        expect(j.serie[0]).toMatchObject({ periodo: '2026-06', vICMS: 180 });
+        expect(j.topNcm[0]).toMatchObject({ ncm: '84713012', totalImposto: 394.5 });
+        expect(j.topCfop[0]).toMatchObject({ cfop: '6102', tipo: 'saida' });
+    });
+});
+
+describe('GET /stats/produto/:idUnico/empresas (unit)', () => {
+    it('retorna idUnico + empresas ligadas ao produto', async () => {
+        const { driver, runs } = makeFakeDriver(() => [
+            rec({ cnpj: '111', razaoSocial: 'Alpha', uf: 'SP', papel: 'emitente', totalNFs: 5, valor: 5000 }),
+        ]);
+        app = await buildTestApi((a) => statsRoutes(a, driver));
+        const res = await app.inject({ method: 'GET', url: '/stats/produto/789/empresas' });
+        expect(res.statusCode).toBe(200);
+        expect(res.json().idUnico).toBe('789');
+        expect(res.json().empresas[0]).toMatchObject({ cnpj: '111', papel: 'emitente', valor: 5000 });
+        expect(runs[0]!.params.idUnico).toBe('789');
+    });
+});

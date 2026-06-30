@@ -21,6 +21,7 @@ export const en = {
         nfs: 'Invoices',
         empresas: 'Companies',
         produtos: 'Products',
+        impostos: 'Taxes',
         grafo: 'Graph',
         exportacoes: 'Exports',
         configuracoes: 'Settings',
@@ -52,6 +53,8 @@ export const en = {
         falhou: 'Processing failed.',
         anterior: 'Previous', proxima: 'Next', detalheTitulo: 'Invoice', itens: 'Items',
         produto: 'Product', qtd: 'Qty', miniGrafo: 'Graph', verNoGrafo: 'View in graph',
+        ncm: 'NCM', cfop: 'CFOP', icms: 'ICMS', ipi: 'IPI', pis: 'PIS', cofins: 'COFINS',
+        totais: 'Totals', valorNF: 'Invoice total',
         filtros: {
             titulo: 'Filters',
             numero: 'Number', serie: 'Series',
@@ -77,11 +80,20 @@ export const en = {
         quantidade: 'Quantity', valorTotal: 'Total value', precoMedio: 'Average price',
         historicoPreco: 'Average price history', semHistorico: 'No price history.',
     },
+    impostos: {
+        titulo: 'Taxes', vazio: 'No taxes recorded in the dataset.',
+        icmsSt: 'ICMS-ST', fcp: 'FCP',
+        serieTitulo: 'Tax burden per month',
+        topNcm: 'Top NCM by tax', topCfop: 'Top CFOP by tax',
+        totalImposto: 'Total tax',
+    },
     grafo: {
         buscarEmpresa: 'Search company (Tax ID)', profundidade: 'Depth',
         ambos: 'Both', emitente: 'Issuer', destinatario: 'Recipient',
         resetar: 'Reset', exportPng: 'Export PNG',
         vazio: 'Search a company to start.',
+        incluirProdutos: 'Include products',
+        nfsComImposto: 'Invoices with ICMS', nfsDoNcm: 'Invoices of this NCM',
     },
     exportacoes: {
         nova: 'New export', formato: 'Format', campos: 'Fields', gerar: 'Generate export',

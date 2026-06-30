@@ -42,11 +42,26 @@ interface ApiEdge {
     de: string;
     para: string;
     totalNFs: number;
+    valorTotal?: number;
+}
+interface ApiProduto {
+    idUnico: string;
+    descricao: string;
+    ncm: string;
+    totalNFs: number;
+    valorTotal: number;
 }
 export interface ApiGraph {
     cnpj: string;
     nos: ApiNode[];
     arestas: ApiEdge[];
+    /** Presente quando a consulta usa includeProdutos=true (produtos da empresa-raiz). */
+    produtos?: ApiProduto[];
+}
+
+/** Valor em BRL compacto para rótulos do grafo (ex.: R$ 14 mil). */
+function brlCompact(v: number): string {
+    return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact', maximumFractionDigits: 1 });
 }
 
 /** Iniciais da razão social para o rótulo do nó Empresa. */
@@ -89,7 +104,25 @@ export function mergeGraph(
     for (const a of api.arestas) {
         const id = `${a.de}->${a.para}`;
         if (!edgesById.has(id) && nodesById.has(a.de) && nodesById.has(a.para)) {
-            edgesById.set(id, { id, source: a.de, target: a.para, label: String(a.totalNFs), markerEnd: { type: 'arrowclosed' } } as Edge);
+            // Rótulo: "N NFs" + valor agregado quando disponível ("· R$ X").
+            const label = a.valorTotal ? `${a.totalNFs} NFs · ${brlCompact(a.valorTotal)}` : String(a.totalNFs);
+            edgesById.set(id, { id, source: a.de, target: a.para, label, markerEnd: { type: 'arrowclosed' } } as Edge);
+        }
+    }
+
+    // Produtos da empresa-raiz (quando includeProdutos): nó Produto + aresta CONTÉM.
+    for (const p of api.produtos ?? []) {
+        const id = `prod:${p.idUnico}`;
+        if (!nodesById.has(id)) {
+            nodesById.set(id, {
+                id,
+                position: { x: 0, y: 0 },
+                data: { tipo: 'produto', label: p.descricao || p.idUnico, detalhes: { ...p } },
+            });
+        }
+        const edgeId = `${rootCnpj}->${id}`;
+        if (!edgesById.has(edgeId)) {
+            edgesById.set(edgeId, { id: edgeId, source: rootCnpj, target: id, label: brlCompact(p.valorTotal), markerEnd: { type: 'arrowclosed' } } as Edge);
         }
     }
 

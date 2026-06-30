@@ -29,6 +29,16 @@ export interface PrecoHistoricoPonto {
     totalNFs: number;
 }
 
+/** Uma empresa ligada a um produto, com o papel que exerce nas NFs desse produto. */
+export interface ProdutoEmpresa {
+    cnpj: string;
+    razaoSocial: string;
+    uf: string;
+    papel: 'emitente' | 'destinatario';
+    totalNFs: number;
+    valor: number; // soma do valorTotal dos itens (aresta CONTÉM) desse produto
+}
+
 const MAX_LIMIT = 50;
 const DEFAULT_LIMIT = 10;
 
@@ -118,6 +128,40 @@ export async function productPriceHistory(
                 totalNFs: toNum(r.get('totalNFs')),
             };
         });
+    } finally {
+        await session.close();
+    }
+}
+
+/**
+ * Empresas ligadas a um produto (cruzamento produto↔empresa): emitentes (quem
+ * emitiu NFs que CONTÊM o produto) e destinatários (quem as recebeu). Para cada
+ * empresa, soma o valorTotal dos itens daquele produto e conta as NFs. Ordena
+ * por valor desc. Uma empresa pode aparecer nos dois papéis (linhas distintas).
+ */
+export async function productCompanies(driver: Driver, idUnico: string): Promise<ProdutoEmpresa[]> {
+    const session = driver.session();
+    try {
+        const res = await session.run(
+            `MATCH (e:Empresa)-[:EMITIU]->(nf:NotaFiscal)-[c:CONTÉM]->(:Produto {idUnico: $idUnico})
+             WITH e, 'emitente' AS papel, count(DISTINCT nf) AS totalNFs, sum(c.valorTotal) AS valor
+             RETURN e.cnpj AS cnpj, e.razaoSocial AS razaoSocial, e.uf AS uf, papel, totalNFs, valor
+             UNION
+             MATCH (nf:NotaFiscal)-[c:CONTÉM]->(:Produto {idUnico: $idUnico}),
+                   (nf)-[:DESTINADA_A]->(e:Empresa)
+             WITH e, 'destinatario' AS papel, count(DISTINCT nf) AS totalNFs, sum(c.valorTotal) AS valor
+             RETURN e.cnpj AS cnpj, e.razaoSocial AS razaoSocial, e.uf AS uf, papel, totalNFs, valor
+             ORDER BY valor DESC`,
+            { idUnico },
+        );
+        return res.records.map((r) => ({
+            cnpj: r.get('cnpj') as string,
+            razaoSocial: (r.get('razaoSocial') as string) ?? '',
+            uf: (r.get('uf') as string) ?? '',
+            papel: r.get('papel') as 'emitente' | 'destinatario',
+            totalNFs: toNum(r.get('totalNFs')),
+            valor: toNum(r.get('valor')),
+        }));
     } finally {
         await session.close();
     }

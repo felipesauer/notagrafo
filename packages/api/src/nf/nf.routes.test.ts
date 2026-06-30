@@ -65,6 +65,17 @@ describe('GET /nf (unit)', () => {
         expect(res.json().meta).toEqual({ total: 1, filtrosAtivos: ['status'] });
         expect(res.json().pagination.hasMore).toBe(false);
     });
+
+    it('repassa os filtros fiscais (vICMSMin/Max, comImposto) coagidos a listInvoices', async () => {
+        g.listInvoices.mockResolvedValue({ data: [], nextCursor: null, limit: 50, hasMore: false });
+        g.countInvoices.mockResolvedValue(0);
+        app = await build(makeQueue(() => null));
+        const res = await app.inject({ method: 'GET', url: '/nf?vICMSMin=100&vICMSMax=500&comImposto=true' });
+        expect(res.statusCode).toBe(200);
+        // o ajv coage a query string → number/boolean antes de chegar ao filtro
+        const filtros = g.listInvoices.mock.calls[0]![1];
+        expect(filtros).toMatchObject({ vICMSMin: 100, vICMSMax: 500, comImposto: true });
+    });
 });
 
 describe('GET /nf/:chave (unit)', () => {
@@ -74,6 +85,29 @@ describe('GET /nf/:chave (unit)', () => {
         const res = await app.inject({ method: 'GET', url: `/nf/${CHAVE}` });
         expect(res.statusCode).toBe(200);
         expect(res.json().chaveAcesso).toBe(CHAVE);
+    });
+
+    it('reformata o detalhe no contrato: tributos por item, ncm aninhado, totais e cfop', async () => {
+        g.getInvoice.mockResolvedValue({
+            chaveAcesso: CHAVE,
+            numero: '8',
+            total_vNF: 1373.5,
+            total_vICMS: 180,
+            cfop: { codigo: '6102', descricao: 'Venda interestadual' },
+            itens: [
+                { numeroItem: 1, valorTotal: 1000, vICMS: 180, vIPI: 50, produto: { idUnico: '789' }, ncm: { codigo: '84713012', descricao: 'Máquinas' } },
+            ],
+        });
+        app = await build(makeQueue(() => null));
+        const res = await app.inject({ method: 'GET', url: `/nf/${CHAVE}` });
+        expect(res.statusCode).toBe(200);
+        const j = res.json();
+        expect(j.cfop).toEqual({ codigo: '6102', descricao: 'Venda interestadual' });
+        expect(j.totais).toMatchObject({ vNF: 1373.5, vICMS: 180 });
+        expect(j).not.toHaveProperty('total_vNF');
+        expect(j.itens[0].tributos).toMatchObject({ vICMS: 180, vIPI: 50 });
+        expect(j.itens[0].produto.ncm).toMatchObject({ codigo: '84713012', descricao: 'Máquinas' });
+        expect(j.itens[0]).not.toHaveProperty('vICMS');
     });
     it('404 NF_NOT_FOUND quando não existe', async () => {
         g.getInvoice.mockResolvedValue(null);

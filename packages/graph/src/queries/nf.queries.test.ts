@@ -25,6 +25,11 @@ describe('activeFilters (unit)', () => {
         expect(activeFilters({ status: 'ativa', numero: '', ufEmitente: 'SP' })).toEqual(['status', 'ufEmitente']);
         expect(activeFilters({})).toEqual([]);
     });
+
+    it('inclui os filtros fiscais, inclusive vICMSMin=0 e comImposto=false', () => {
+        expect(activeFilters({ vICMSMin: 0, comImposto: false })).toEqual(['vICMSMin', 'comImposto']);
+        expect(activeFilters({ vICMSMax: 500 })).toEqual(['vICMSMax']);
+    });
 });
 
 describe('listInvoices (unit, driver fake)', () => {
@@ -95,6 +100,19 @@ describe('listInvoices (unit, driver fake)', () => {
         expect(cypher).toContain('CONTAINS');
     });
 
+    it('aplica os filtros fiscais (vICMSMin/Max sobre total_vICMS, comImposto)', async () => {
+        const comTrue = makeFakeDriver(() => []);
+        await listInvoices(comTrue.driver, { vICMSMin: 100, vICMSMax: 500, comImposto: true });
+        expect(comTrue.runs[0]!.cypher).toContain('coalesce(nf.total_vICMS, 0) >= $vICMSMin');
+        expect(comTrue.runs[0]!.cypher).toContain('coalesce(nf.total_vICMS, 0) <= $vICMSMax');
+        expect(comTrue.runs[0]!.cypher).toContain('coalesce(nf.total_vICMS, 0) > 0');
+        expect(comTrue.runs[0]!.params).toMatchObject({ vICMSMin: 100, vICMSMax: 500 });
+
+        const comFalse = makeFakeDriver(() => []);
+        await listInvoices(comFalse.driver, { comImposto: false });
+        expect(comFalse.runs[0]!.cypher).toContain('coalesce(nf.total_vICMS, 0) = 0');
+    });
+
     it('cursor é round-trip: a 2ª página injeta cursorV/cursorChave nos params', async () => {
         // 1ª página: 2 itens (limit 1 → +1 = 2) para gerar nextCursor
         const rows1 = [
@@ -128,12 +146,14 @@ describe('countInvoices (unit)', () => {
 });
 
 describe('getInvoice (unit)', () => {
-    it('monta detalhe com emitente/destinatário e filtra itens sem produto', async () => {
+    it('monta detalhe com emitente/destinatário, cfops e filtra itens sem produto', async () => {
         const itens = [
             { item: fakeNode({ numeroItem: 1, quantidade: 2, valorTotal: 10 }), produto: fakeNode({ idUnico: 'p1', descricao: 'X' }), ncm: fakeNode({ codigo: '6109' }) },
             { item: null, produto: null, ncm: null }, // sem produto → filtrado
         ];
-        const rec = fakeRecord({ nf: nfNode(), emit: empNode('111', 'SP'), dest: empNode('222', 'MG'), itens });
+        // A query agora retorna `cfops` (lista); a NF pode ter vários CFOPs (A1).
+        const cfops = [fakeNode({ codigo: '5102', descricao: 'Venda' }), fakeNode({ codigo: '5101' })];
+        const rec = fakeRecord({ nf: nfNode(), emit: empNode('111', 'SP'), dest: empNode('222', 'MG'), itens, cfops });
         const { driver } = makeFakeDriver(() => [rec]);
 
         const nf = await getInvoice(driver, '351');
@@ -142,6 +162,17 @@ describe('getInvoice (unit)', () => {
         expect((nf!.emitente as { cnpj: string }).cnpj).toBe('111');
         const lista = nf!.itens as unknown[];
         expect(lista).toHaveLength(1);
+        // cfop = primeiro (compat. contrato); cfops = todos (sem perder os demais)
+        expect((nf!.cfop as { codigo: string }).codigo).toBe('5102');
+        expect((nf!.cfops as unknown[]).length).toBe(2);
+    });
+
+    it('NF sem CFOP: cfop/cfops ausentes (cfops vazio)', async () => {
+        const rec = fakeRecord({ nf: nfNode(), emit: empNode('111', 'SP'), dest: null, itens: [], cfops: [] });
+        const { driver } = makeFakeDriver(() => [rec]);
+        const nf = await getInvoice(driver, '351');
+        expect('cfop' in nf!).toBe(false);
+        expect('cfops' in nf!).toBe(false);
     });
 
     it('chave inexistente → null', async () => {

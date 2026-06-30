@@ -102,4 +102,68 @@ describe('parseNFe', () => {
         const xml = base().replace(/Id="NFe\d+"/, 'versao="4.00"');
         expect(() => parseNFe(xml, IMPORTADO_EM)).toThrow(NFeParseError);
     });
+
+    describe('tributos ampliados e totais (NOTA-56)', () => {
+        const tributada = () => parseNFe(fixture('nfe-tributada-v4.00.xml'), IMPORTADO_EM);
+
+        it('extrai CST, CEST, ICMS-ST e FCP do item', () => {
+            const item = tributada().itens[0]!.contem;
+            expect(item.cst).toBe('10'); // CST do ICMS10 (string, preserva zero)
+            expect(item.cest).toBe('2104700');
+            expect(item.vICMS).toBe(180);
+            expect(item.vBCICMS).toBe(1000);
+            expect(item.pICMS).toBe(18);
+            expect(item.vBCST).toBe(1400);
+            expect(item.vICMSST).toBe(72);
+            expect(item.vFCP).toBe(20);
+        });
+
+        it('extrai IPI, PIS e COFINS do item', () => {
+            const item = tributada().itens[0]!.contem;
+            expect(item.vIPI).toBe(50);
+            expect(item.vPIS).toBe(16.5);
+            expect(item.vCOFINS).toBe(76);
+        });
+
+        it('extrai os totais da NF (grupo total/ICMSTot)', () => {
+            const { totais } = tributada();
+            expect(totais.vNF).toBe(1373.5);
+            expect(totais.vProd).toBe(1000);
+            expect(totais.vICMS).toBe(180);
+            expect(totais.vST).toBe(72);
+            expect(totais.vFCP).toBe(20);
+            expect(totais.vIPI).toBe(50);
+            expect(totais.vPIS).toBe(16.5);
+            expect(totais.vCOFINS).toBe(76);
+            expect(totais.vFrete).toBe(30);
+            expect(totais.vSeg).toBe(10);
+            expect(totais.vOutro).toBe(5);
+        });
+
+        it('extrai CSOSN como cst em NF do Simples Nacional', () => {
+            // fixture base usa ICMSSN102 → CSOSN 102
+            const item = parseNFe(base(), IMPORTADO_EM).itens[0]!.contem;
+            expect(item.cst).toBe('102');
+        });
+
+        it('não cria campos fiscais ausentes (Simples sem ST/FCP/IPI)', () => {
+            const item = parseNFe(base(), IMPORTADO_EM).itens[0]!.contem;
+            expect('vICMSST' in item).toBe(false);
+            expect('vFCP' in item).toBe(false);
+            expect('vIPI' in item).toBe(false);
+            expect('cest' in item).toBe(false);
+        });
+    });
+
+    describe('referências NFref (NOTA-56)', () => {
+        it('extrai as chaves de ide/NFref/refNFe', () => {
+            const nf = parseNFe(fixture('nfe-devolucao-ref-v4.00.xml'), IMPORTADO_EM);
+            expect(nf.nota.finalidade).toBe('devolucao');
+            expect(nf.referencias).toEqual(['35200114200166000187550010000000071234567890']);
+        });
+
+        it('retorna referencias vazio quando não há NFref', () => {
+            expect(parseNFe(base(), IMPORTADO_EM).referencias).toEqual([]);
+        });
+    });
 });

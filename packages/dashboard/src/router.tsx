@@ -9,6 +9,7 @@ import { NFListPage } from './pages/NFList.js';
 import { NFDetailPage } from './pages/NFDetail.js';
 import { CompaniesPage } from './pages/Companies.js';
 import { ProductsPage } from './pages/Products.js';
+import { TaxesPage } from './pages/Taxes.js';
 import { GraphPage } from './pages/Graph.js';
 import { ExportsPage } from './pages/Exports.js';
 import { SettingsPage } from './pages/Settings.js';
@@ -44,10 +45,22 @@ const childRoute = (path: string, component: () => JSX.Element) =>
     createRoute({ getParentRoute: () => protectedLayout, path, component });
 
 const overviewRoute = childRoute('/', OverviewPage);
-const nfRoute = childRoute('/nf', NFListPage);
+/** /nf aceita filtros via search (deep-link de Empresas/Grafo): cnpjEmitente, ncm, comImposto, status. */
+const nfRoute = createRoute({
+    getParentRoute: () => protectedLayout,
+    path: '/nf',
+    validateSearch: (search: Record<string, unknown>): { cnpjEmitente?: string; ncm?: string; comImposto?: boolean; status?: string } => ({
+        cnpjEmitente: typeof search.cnpjEmitente === 'string' ? search.cnpjEmitente : undefined,
+        ncm: typeof search.ncm === 'string' ? search.ncm : undefined,
+        comImposto: search.comImposto === true || search.comImposto === 'true' ? true : undefined,
+        status: typeof search.status === 'string' ? search.status : undefined,
+    }),
+    component: NFListPage,
+});
 const nfDetailRoute = childRoute('/nf/$chave', NFDetailPage);
 const empresasRoute = childRoute('/empresas', CompaniesPage);
 const produtosRoute = childRoute('/produtos', ProductsPage);
+const impostosRoute = childRoute('/impostos', TaxesPage);
 const grafoRoute = createRoute({
     getParentRoute: () => protectedLayout,
     path: '/grafo',
@@ -67,6 +80,7 @@ const routeTree = rootRoute.addChildren([
         nfDetailRoute,
         empresasRoute,
         produtosRoute,
+        impostosRoute,
         grafoRoute,
         exportacoesRoute,
         configuracoesRoute,

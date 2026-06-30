@@ -116,4 +116,63 @@ describe('mergeInvoice (Neo4j real)', () => {
         expect(await count('CFOP')).toBe(1);
         expect(await count('RawData')).toBe(1); // MERGE da relação evita duplicar
     });
+
+    it('popula descricao/secao/capitulo no NCM e descricao/tipo/natureza no CFOP via catálogo', async () => {
+        await mergeInvoice(driver, payloadDaFixture('nfe-valida-v4.00.xml'));
+        const session = driver.session();
+        try {
+            const ncm = await session.run(`MATCH (n:NCM {codigo: '61091000'}) RETURN n`);
+            const np = ncm.records[0]!.get('n').properties as Record<string, unknown>;
+            expect(np.capitulo).toBe('61');
+            expect(String(np.descricao)).toContain('Vestuário');
+            expect(np.secao).toBeTruthy();
+
+            const cfop = await session.run(`MATCH (c:CFOP {codigo: '5102'}) RETURN c`);
+            const cp = cfop.records[0]!.get('c').properties as Record<string, unknown>;
+            expect(cp.tipo).toBe('saida');
+            expect(cp.natureza).toBe('interna');
+            expect(cp.descricao).toBeTruthy();
+        } finally {
+            await session.close();
+        }
+    });
+
+    it('grava os totais da NF como propriedades total_* no nó', async () => {
+        await mergeInvoice(driver, payloadDaFixture('nfe-tributada-v4.00.xml'));
+        const session = driver.session();
+        try {
+            const r = await session.run(
+                `MATCH (nf:NotaFiscal {chaveAcesso: '35200114200166000187550010000000081234567891'})
+                 RETURN nf.total_vNF AS vNF, nf.total_vICMS AS vICMS, nf.total_vIPI AS vIPI`,
+            );
+            expect(r.records[0]!.get('vNF')).toBe(1373.5);
+            expect(r.records[0]!.get('vICMS')).toBe(180);
+            expect(r.records[0]!.get('vIPI')).toBe(50);
+        } finally {
+            await session.close();
+        }
+    });
+
+    it('cria aresta DEVOLVE para a NF de origem (com stub) e é idempotente', async () => {
+        const devolucao = payloadDaFixture('nfe-devolucao-ref-v4.00.xml');
+        // a NF de origem ainda NÃO foi importada → deve virar um stub
+        await mergeInvoice(driver, devolucao);
+        await mergeInvoice(driver, devolucao); // reprocessa: não pode duplicar a aresta
+
+        const session = driver.session();
+        try {
+            const rel = await session.run(
+                `MATCH (dev:NotaFiscal {chaveAcesso: '35200114200166000187550010000000091234567892'})
+                       -[d:DEVOLVE]->(orig:NotaFiscal)
+                 RETURN orig.chaveAcesso AS origem, d.chaveRefNF AS ref, count(d) AS n`,
+            );
+            expect(rel.records[0]!.get('origem')).toBe('35200114200166000187550010000000071234567890');
+            expect(rel.records[0]!.get('ref')).toBe('35200114200166000187550010000000071234567890');
+            expect(rel.records[0]!.get('n').toNumber()).toBe(1); // MERGE → aresta única
+            // a origem existe como nó (stub) mesmo sem ter sido importada
+            expect(await count('NotaFiscal')).toBe(2);
+        } finally {
+            await session.close();
+        }
+    });
 });

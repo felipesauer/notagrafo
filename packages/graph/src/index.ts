@@ -5,3 +5,4 @@ export * from './nf.repository.js';
 export * from './queries/company.queries.js';
 export * from './queries/nf.queries.js';
 export * from './queries/product.queries.js';
+export * from './queries/tax.queries.js';
