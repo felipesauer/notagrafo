@@ -62,10 +62,14 @@ busque uma empresa e navegue pelos relacionamentos.
 ### Subir só a infraestrutura (para desenvolvimento)
 
 ```bash
-docker compose up -d            # redis, neo4j, minio, mailpit
 pnpm install
-pnpm dev                        # API + worker + dashboard em modo dev
+pnpm dev                        # sobe a infra (--wait) + API + worker + dashboard em modo dev
 ```
+
+No modo `pnpm dev`, o dashboard roda pelo **Vite** em **http://localhost:5173**
+(a porta `8080` só existe no modo Docker completo, `--profile app`). A API fica
+em http://localhost:3000. O `pnpm dev` espera o Neo4j ficar *healthy* antes de
+rodar o seed e subir os serviços (`docker compose up -d --wait`).
 
 ---
 
