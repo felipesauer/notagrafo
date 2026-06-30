@@ -26,14 +26,32 @@ export const MIGRATIONS: readonly string[] = [
 /**
  * Aplica todas as constraints e índices no boot da API e do worker.
  * Idempotente: rodar múltiplas vezes não gera erro.
+ *
+ * Faz retry com backoff: no boot (API/worker/seed) o Neo4j pode ainda não aceitar
+ * conexões de aplicação mesmo já tendo passado o healthcheck — em vez de derrubar
+ * o processo na 1ª falha, tenta algumas vezes antes de desistir. `attempts` e
+ * `delayMs` são parametrizáveis (testes usam valores baixos).
  */
-export async function runMigrations(driver: Driver): Promise<void> {
-    const session = driver.session();
-    try {
-        for (const stmt of MIGRATIONS) {
-            await session.run(stmt);
+export async function runMigrations(
+    driver: Driver,
+    opts: { attempts?: number; delayMs?: number } = {},
+): Promise<void> {
+    const attempts = opts.attempts ?? 10;
+    const delayMs = opts.delayMs ?? 3000;
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+        const session = driver.session();
+        try {
+            for (const stmt of MIGRATIONS) {
+                await session.run(stmt);
+            }
+            return; // sucesso
+        } catch (err) {
+            if (attempt === attempts) throw err; // esgotou — propaga o erro real
+            // eslint-disable-next-line no-console
+            console.warn(`[migrations] tentativa ${attempt}/${attempts} falhou; retry em ${delayMs}ms…`);
+            await new Promise((resolve) => setTimeout(resolve, delayMs));
+        } finally {
+            await session.close();
         }
-    } finally {
-        await session.close();
     }
 }

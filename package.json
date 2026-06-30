@@ -8,7 +8,7 @@
   },
   "packageManager": "pnpm@10.34.1",
   "scripts": {
-    "dev": "docker compose up -d && pnpm dev:libs && pnpm dev:seed && pnpm dev:packages",
+    "dev": "docker compose up -d --wait && pnpm dev:libs && pnpm dev:seed && pnpm dev:packages",
     "dev:libs": "pnpm --filter @notagrafo/core --filter @notagrafo/graph build",
     "dev:seed": "dotenv -e .env -- tsx packages/worker/src/seed/index.ts || true",
     "dev:packages": "pnpm --parallel --filter @notagrafo/api --filter @notagrafo/worker --filter @notagrafo/dashboard dev",
