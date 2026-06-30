@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Dúvidas e discussões
+    url: https://github.com/felipesauer/notagrafo/discussions
+    about: Perguntas, ideias e discussões gerais — use as Discussions, não abra uma issue.
+  - name: 🔒 Reportar vulnerabilidade de segurança
+    url: https://github.com/felipesauer/notagrafo/security/advisories/new
+    about: Não abra issue pública para falhas de segurança. Use o canal privado (ver SECURITY.md).
