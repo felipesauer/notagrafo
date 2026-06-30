@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-57
-  state: IN_PROGRESS
+  state: IN_REVIEW
   title: >-
     Fase 1b — Repository: gravar CANCELA/DEVOLVE, totais e catálogo NCM/CFOP
     (graph)
@@ -35,6 +35,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-29T20:37:05.835Z'
+  updated_at: '2026-06-30T00:07:03.755Z'
 ---
 # Fase 1b — Repository: gravar CANCELA/DEVOLVE, totais e catálogo NCM/CFOP (graph)

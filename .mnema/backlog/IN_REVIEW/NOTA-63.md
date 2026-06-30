@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-63
-  state: IN_PROGRESS
+  state: IN_REVIEW
   title: >-
     Fase 4c — Dashboard: grafo enriquecido (produtos, valor nas arestas, painel
     fiscal)
@@ -29,6 +29,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-29T23:14:39.817Z'
+  updated_at: '2026-06-30T00:07:25.037Z'
 ---
 # Fase 4c — Dashboard: grafo enriquecido (produtos, valor nas arestas, painel fiscal)

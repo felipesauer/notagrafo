@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-65
-  state: READY
+  state: IN_REVIEW
   title: Fase 6 — Atualizar docs .plan e ADR do modelo fiscal/agregação
   description: >-
     Atualizar .plan/01 (catálogo NCM/CFOP, totais total_* no nó NotaFiscal,
@@ -21,12 +21,12 @@ mnema:
     - Memória de planejamento atualizada apontando o EPIC-11 e suas entregas
   estimate: 3
   priority: 4
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f03ba-735c-725c-b52a-22a88c9abe61
   epic_key: NOTA-EPIC-11
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-29T23:28:31.857Z'
+  updated_at: '2026-06-30T00:07:29.014Z'
 ---
 # Fase 6 — Atualizar docs .plan e ADR do modelo fiscal/agregação

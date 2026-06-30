@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-55
-  state: IN_PROGRESS
+  state: IN_REVIEW
   title: Fase 0 — Catálogo NCM/CFOP em @notagrafo/core
   description: >-
     Criar um catálogo enxuto e versionado de NCM (por capítulo, 2 dígitos) e
@@ -30,6 +30,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-29T20:09:26.155Z'
+  updated_at: '2026-06-30T00:06:59.342Z'
 ---
 # Fase 0 — Catálogo NCM/CFOP em @notagrafo/core
