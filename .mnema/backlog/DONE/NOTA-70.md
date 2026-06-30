@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-70
-  state: IN_REVIEW
+  state: DONE
   title: Cobrir NFref múltiplo (array) com teste no parser de NFe
   description: >-
     Achado A4 da auditoria. O parser trata NFref como objeto único OU array
@@ -24,6 +24,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-30T17:57:07.278Z'
+  updated_at: '2026-06-30T19:09:09.287Z'
 ---
 # Cobrir NFref múltiplo (array) com teste no parser de NFe
