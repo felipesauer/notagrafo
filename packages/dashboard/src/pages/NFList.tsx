@@ -1,4 +1,4 @@
-import { type JSX, useState } from 'react';
+import { type JSX, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useSearch } from '@tanstack/react-router';
 import { useNFList } from '../api/hooks.js';
@@ -20,6 +20,18 @@ export function NFListPage(): JSX.Element {
     })); // filtros avançados da sidebar (+ deep-link)
     const [cursores, setCursores] = useState<string[]>([]); // pilha de cursores (páginas)
     const [modalAberto, setModalAberto] = useState(false);
+
+    // Deep-link na MESMA rota (ex.: do grafo → /nf?ncm=…): o componente não
+    // remonta, então re-semeia os filtros a partir do search quando ele muda (M1).
+    useEffect(() => {
+        setFiltros({
+            ...(search.cnpjEmitente ? { cnpjEmitente: search.cnpjEmitente } : {}),
+            ...(search.ncm ? { ncm: search.ncm } : {}),
+            ...(search.comImposto ? { comImposto: true } : {}),
+        });
+        setStatus(search.status ?? '');
+        setCursores([]);
+    }, [search.cnpjEmitente, search.ncm, search.comImposto, search.status]);
 
     const cursorAtual = cursores[cursores.length - 1];
     const query = useNFList({

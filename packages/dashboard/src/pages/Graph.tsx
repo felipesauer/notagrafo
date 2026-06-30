@@ -50,9 +50,10 @@ function GraphInner(): JSX.Element {
         (_e: unknown, node: Node) => {
             const data = node.data as NodeData;
             setSelected(data);
-            if (data.cnpj) void load(data.cnpj, 1, direction, true); // expande sem reinicializar
+            // expande sem reinicializar, respeitando o toggle de produtos
+            if (data.cnpj) void load(data.cnpj, 1, direction, true, includeProdutos);
         },
-        [load, direction],
+        [load, direction, includeProdutos],
     );
 
     function runSearch(): void {

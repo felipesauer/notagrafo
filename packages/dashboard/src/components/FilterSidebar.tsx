@@ -1,4 +1,4 @@
-import { type JSX, useState } from 'react';
+import { type JSX, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 /** Filtros do GET /api/v1/nf (contrato §4) expostos na sidebar. */
@@ -41,6 +41,12 @@ function limparVazios(f: NFFiltros): NFFiltros {
 export function FilterSidebar({ valor, onAplicar }: FilterSidebarProps): JSX.Element {
     const { t } = useTranslation();
     const [draft, setDraft] = useState<NFFiltros>(valor);
+
+    // Re-semeia o rascunho quando os filtros externos mudam (deep-link na mesma
+    // rota — ex.: vir do grafo para /nf?ncm=… sem remontar o componente — M1).
+    useEffect(() => {
+        setDraft(valor);
+    }, [valor]);
 
     const set = (campo: keyof NFFiltros) => (e: { target: { value: string } }) =>
         setDraft((d) => ({ ...d, [campo]: e.target.value }));
