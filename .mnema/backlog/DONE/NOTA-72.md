@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-72
-  state: IN_REVIEW
+  state: DONE
   title: >-
     pnpm dev: aguardar Neo4j healthy (--wait) e documentar porta 5173 do
     dashboard no modo dev
@@ -28,6 +28,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-30T19:56:02.602Z'
+  updated_at: '2026-06-30T20:33:36.614Z'
 ---
 # pnpm dev: aguardar Neo4j healthy (--wait) e documentar porta 5173 do dashboard no modo dev
