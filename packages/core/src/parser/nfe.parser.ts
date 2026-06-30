@@ -319,7 +319,8 @@ function parseItem(det: XmlObj, cnpjEmit: string): ParsedItem {
         ...opt('capitulo', asString(prod.NCM)?.slice(0, 2)),
     };
 
-    const cfop: CFOPNode = { codigo: asString(prod.CFOP) ?? '' };
+    const cfopCodigo = asString(prod.CFOP) ?? '';
+    const cfop: CFOPNode = { codigo: cfopCodigo };
 
     const contem: ContemEdge = {
         numeroItem,
@@ -328,6 +329,7 @@ function parseItem(det: XmlObj, cnpjEmit: string): ParsedItem {
         valorTotal: Number(asString(prod.vProd) ?? '0'),
         ...opt('desconto', asString(prod.vDesc), Number),
         ...opt('cest', asString(prod.CEST)),
+        ...opt('cfop', cfopCodigo || undefined),
         ...extractTaxes(imposto),
     };
 

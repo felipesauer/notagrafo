@@ -101,6 +101,9 @@ export interface ContemEdge {
     cst?: string;
     // CEST — Código Especificador da Substituição Tributária (det/prod/CEST).
     cest?: string;
+    // CFOP do item (det/prod/CFOP). Copiado na aresta para agregação fiscal por
+    // CFOP sem ambiguidade — uma NF pode ter itens com CFOPs distintos.
+    cfop?: string;
     // ICMS — grupo det/imposto/ICMS (múltiplas CSTs possíveis no XSD)
     vICMS?: number;
     vBCICMS?: number;
