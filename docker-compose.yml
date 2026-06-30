@@ -97,7 +97,12 @@ services:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/health"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      # start_period: janela de graça no boot — falhas aqui NÃO contam para o
+      # retries. A API roda migrations e conecta no Neo4j (o serviço mais lento
+      # a ficar healthy, ~30s) antes de servir /health; sem isso o healthcheck
+      # marcava 'unhealthy' durante a subida e o `compose up --wait` falhava (CI e2e).
+      start_period: 40s
 
   worker:
     profiles: ["app"]

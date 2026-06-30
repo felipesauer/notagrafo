@@ -5,7 +5,9 @@ test.describe('Empresas', () => {
     test('lista empresas e expande os stats de uma linha', async ({ page }) => {
         await login(page);
         await page.getByRole('link', { name: /empresas|companies/i }).click();
-        await expect(page.getByRole('heading', { name: /empresas|companies/i })).toBeVisible();
+        // level:2 — o título da página é <h2>; sem isso o seletor também casaria
+        // o <h1> de breadcrumb (mesmo texto da rota) → strict mode violation.
+        await expect(page.getByRole('heading', { level: 2, name: /empresas|companies/i })).toBeVisible();
         await expect(page.locator('.data-table')).toBeVisible();
 
         const primeira = page.locator('.data-table tbody tr').first();
