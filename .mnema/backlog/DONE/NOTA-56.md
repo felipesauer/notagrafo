@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-56
-  state: IN_REVIEW
+  state: DONE
   title: 'Fase 1a — Parser: extrair NFref e ampliar tributos (core)'
   description: >-
     Ampliar packages/core/src/parser/nfe.parser.ts: (1) extrair ide/NFref/refNFe
@@ -30,6 +30,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-30T00:07:01.435Z'
+  updated_at: '2026-06-30T00:49:04.105Z'
 ---
 # Fase 1a — Parser: extrair NFref e ampliar tributos (core)

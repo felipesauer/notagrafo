@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-65
-  state: IN_REVIEW
+  state: DONE
   title: Fase 6 — Atualizar docs .plan e ADR do modelo fiscal/agregação
   description: >-
     Atualizar .plan/01 (catálogo NCM/CFOP, totais total_* no nó NotaFiscal,
@@ -27,6 +27,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-30T00:07:29.014Z'
+  updated_at: '2026-06-30T00:49:48.265Z'
 ---
 # Fase 6 — Atualizar docs .plan e ADR do modelo fiscal/agregação

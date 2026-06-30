@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-61
-  state: IN_REVIEW
+  state: DONE
   title: 'Fase 4a — Dashboard: impostos e NCM/CFOP no NFDetail'
   description: >-
     NFDetail.tsx: estender a interface Item para tributos + produto.ncm; colunas
@@ -25,6 +25,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-30T00:07:16.570Z'
+  updated_at: '2026-06-30T00:49:38.979Z'
 ---
 # Fase 4a — Dashboard: impostos e NCM/CFOP no NFDetail

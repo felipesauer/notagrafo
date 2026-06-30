@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-60
-  state: IN_REVIEW
+  state: DONE
   title: 'Fase 3b — API: GET /stats/impostos + filtros fiscais no GET /nf'
   description: >-
     stats.routes.ts: novo GET /stats/impostos (usa taxSummary/taxByNcm/taxByCfop
@@ -27,6 +27,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-30T00:07:14.772Z'
+  updated_at: '2026-06-30T00:49:21.692Z'
 ---
 # Fase 3b — API: GET /stats/impostos + filtros fiscais no GET /nf

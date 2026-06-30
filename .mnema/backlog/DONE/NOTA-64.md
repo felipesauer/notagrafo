@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-64
-  state: IN_REVIEW
+  state: DONE
   title: Fase 5 — Seed realista (impostos, multi-item, devolução) no worker
   description: >-
     generator.ts: gerar NFes com impostos realistas e coerentes (ICMS por CST —
@@ -29,6 +29,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-30T00:07:27.015Z'
+  updated_at: '2026-06-30T00:49:45.657Z'
 ---
 # Fase 5 — Seed realista (impostos, multi-item, devolução) no worker

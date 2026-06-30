@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-62
-  state: IN_REVIEW
+  state: DONE
   title: 'Fase 4b — Dashboard: página/aba de Impostos'
   description: >-
     Nova página Impostos (rota /impostos) consumindo GET /stats/impostos (Fase
@@ -26,6 +26,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-30T00:07:23.058Z'
+  updated_at: '2026-06-30T00:49:41.223Z'
 ---
 # Fase 4b — Dashboard: página/aba de Impostos

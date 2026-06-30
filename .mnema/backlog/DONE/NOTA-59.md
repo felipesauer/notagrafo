@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-59
-  state: IN_REVIEW
+  state: DONE
   title: 'Fase 3a — API: tributos+totais+cfop no GET /nf/:chave (alinhar contrato)'
   description: >-
     Reformatar a resposta de GET /api/v1/nf/:chave para bater com o contrato
@@ -30,6 +30,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-30T00:07:12.828Z'
+  updated_at: '2026-06-30T00:49:17.028Z'
 ---
 # Fase 3a — API: tributos+totais+cfop no GET /nf/:chave (alinhar contrato)

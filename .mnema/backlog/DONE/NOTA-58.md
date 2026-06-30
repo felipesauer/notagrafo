@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-58
-  state: IN_REVIEW
+  state: DONE
   title: Fase 2 — Queries de agregação fiscal e cruzamento produto↔empresa (graph)
   description: >-
     Novas queries em packages/graph/src/queries/: (1) tax.queries.ts com
@@ -31,6 +31,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-30T00:07:11.002Z'
+  updated_at: '2026-06-30T00:49:15.013Z'
 ---
 # Fase 2 — Queries de agregação fiscal e cruzamento produto↔empresa (graph)
