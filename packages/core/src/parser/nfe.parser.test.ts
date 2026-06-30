@@ -165,5 +165,20 @@ describe('parseNFe', () => {
         it('retorna referencias vazio quando não há NFref', () => {
             expect(parseNFe(base(), IMPORTADO_EM).referencias).toEqual([]);
         });
+
+        it('extrai todas as chaves quando há múltiplos NFref (array)', () => {
+            // o fast-xml-parser NÃO força NFref como array; com 2+ <NFref> ele
+            // vira array — extractReferences precisa preservar todas as chaves.
+            const chave2 = '35200114200166000187550010000000081234567890';
+            const xml = fixture('nfe-devolucao-ref-v4.00.xml').replace(
+                '</NFref>',
+                `</NFref>\n      <NFref>\n        <refNFe>${chave2}</refNFe>\n      </NFref>`,
+            );
+            const nf = parseNFe(xml, IMPORTADO_EM);
+            expect(nf.referencias).toEqual([
+                '35200114200166000187550010000000071234567890',
+                chave2,
+            ]);
+        });
     });
 });

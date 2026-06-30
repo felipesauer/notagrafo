@@ -148,15 +148,21 @@ export interface TotaisNF {
     vOutro?: number;
 }
 
-// Propriedades da aresta CANCELA
+// Propriedades da aresta CANCELA.
+// A aresta CANCELA ainda NÃO é gravada (não há ingestão de evento de
+// cancelamento da SEFAZ no fluxo atual — ADR-6); dataEvento/protocolo/motivo
+// viriam desse evento, por isso todos são opcionais até a fonte existir.
 export interface CancelaEdge {
-    dataEvento: Date;
+    dataEvento?: Date;
     protocolo?: string;
     motivo?: string;
 }
 
-// Propriedades da aresta DEVOLVE
+// Propriedades da aresta DEVOLVE.
+// Gravada a partir de ide/NFref/refNFe (mergeInvoice grava apenas chaveRefNF).
+// dataEvento é opcional: a origem da devolução é a NFref, que não carrega a
+// data do evento — só seria preenchida com ingestão de eventos (ADR-6).
 export interface DevolveEdge {
-    dataEvento: Date;
+    dataEvento?: Date;
     chaveRefNF: string;
 }
