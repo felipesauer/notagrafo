@@ -67,15 +67,17 @@ const toNum = (v: unknown): number =>
 export async function getCompanyStats(driver: Driver, cnpj: string): Promise<EmpresaStats> {
     const session = driver.session();
     try {
+        // Emitidas e recebidas são agregadas em ramos SEPARADOS: juntar os dois
+        // OPTIONAL MATCH no mesmo escopo cruzaria emitida×recebida e inflaria as
+        // somas. sum() simples (não DISTINCT) — DISTINCT subcontaria NFs de mesmo
+        // valor (auditoria F4).
         const res = await session.run(
             `MATCH (e:Empresa {cnpj: $cnpj})
              OPTIONAL MATCH (e)-[:EMITIU]->(emitida:NotaFiscal)
+             WITH e, count(emitida) AS emitidas, sum(emitida.valorTotal) AS valorEmitido,
+                  min(emitida.dataEmissao) AS primeira, max(emitida.dataEmissao) AS ultima
              OPTIONAL MATCH (e)<-[:DESTINADA_A]-(recebida:NotaFiscal)
-             RETURN count(DISTINCT emitida) AS emitidas,
-                    count(DISTINCT recebida) AS recebidas,
-                    sum(DISTINCT emitida.valorTotal) AS valorEmitido,
-                    min(emitida.dataEmissao) AS primeira,
-                    max(emitida.dataEmissao) AS ultima`,
+             RETURN emitidas, count(recebida) AS recebidas, valorEmitido, primeira, ultima`,
             { cnpj },
         );
         const r = res.records[0];

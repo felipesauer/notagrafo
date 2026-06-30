@@ -240,14 +240,17 @@ export async function listInvoices(
 export async function getInvoice(driver: Driver, chaveAcesso: string): Promise<Record<string, unknown> | null> {
     const session = driver.session();
     try {
+        // Itens e CFOPs são coletados em ramos SEPARADOS (WITH) para evitar o
+        // produto cartesiano USA_CFOP × CONTÉM, que numa NF multi-CFOP duplicaria
+        // linhas e descartaria CFOPs (auditoria A1). Uma NF pode ter vários CFOPs.
         const res = await session.run(
             `MATCH (emit:Empresa)-[:EMITIU]->(nf:NotaFiscal {chaveAcesso: $chave})
              OPTIONAL MATCH (nf)-[:DESTINADA_A]->(dest:Empresa)
-             OPTIONAL MATCH (nf)-[:USA_CFOP]->(cfop:CFOP)
              OPTIONAL MATCH (nf)-[c:CONTÉM]->(prod:Produto)
              OPTIONAL MATCH (prod)-[:CLASSIFICADO_EM]->(ncm:NCM)
-             RETURN nf, emit, dest, cfop,
-                    collect({item: c, produto: prod, ncm: ncm}) AS itens`,
+             WITH nf, emit, dest, collect({item: c, produto: prod, ncm: ncm}) AS itens
+             OPTIONAL MATCH (nf)-[:USA_CFOP]->(cfop:CFOP)
+             RETURN nf, emit, dest, itens, collect(DISTINCT cfop) AS cfops`,
             { chave: chaveAcesso },
         );
         const r = res.records[0];
@@ -255,7 +258,7 @@ export async function getInvoice(driver: Driver, chaveAcesso: string): Promise<R
         const nf = (r.get('nf') as { properties: Record<string, unknown> }).properties;
         const emit = r.get('emit') as { properties: Record<string, unknown> } | null;
         const dest = r.get('dest') as { properties: Record<string, unknown> } | null;
-        const cfop = r.get('cfop') as { properties: Record<string, unknown> } | null;
+        const cfopNodes = (r.get('cfops') as Array<{ properties: Record<string, unknown> }>).map((c) => c.properties);
         const itensRaw = r.get('itens') as Array<{
             item: { properties: Record<string, unknown> } | null;
             produto: { properties: Record<string, unknown> } | null;
@@ -272,7 +275,9 @@ export async function getInvoice(driver: Driver, chaveAcesso: string): Promise<R
             ...nf,
             emitente: emit?.properties,
             destinatario: dest?.properties,
-            ...(cfop ? { cfop: cfop.properties } : {}),
+            // cfop = primeiro (compat. com o contrato/UI de campo único); cfops = todos.
+            ...(cfopNodes[0] ? { cfop: cfopNodes[0] } : {}),
+            ...(cfopNodes.length ? { cfops: cfopNodes } : {}),
             itens,
         };
     } finally {

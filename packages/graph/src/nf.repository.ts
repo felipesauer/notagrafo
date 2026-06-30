@@ -163,9 +163,11 @@ export async function mergeInvoice(driver: Driver, data: InvoiceToPersist): Prom
                 );
             }
 
-            // 7. Evento de importação
+            // 7. Evento de importação — idempotente: só cria se a NF ainda não tem
+            //    um evento 'importada' (reprocessar a mesma chave não duplica — F2).
             await tx.run(
                 `MATCH (nf:NotaFiscal {chaveAcesso: $chave})
+                 WHERE NOT EXISTS { (nf)-[:TEM_EVENTO]->(:Evento {tipo: 'importada'}) }
                  CREATE (ev:Evento {tipo: 'importada', timestamp: datetime(), autor: 'sistema'})
                  MERGE (nf)-[:TEM_EVENTO]->(ev)`,
                 { chave: nota.chaveAcesso },

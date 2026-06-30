@@ -73,16 +73,22 @@ const toNum = (v: unknown): number =>
           ? (v as { toNumber: () => number }).toNumber()
           : Number(v ?? 0);
 
-/** Monta WHERE + (se filtrar UF) o MATCH do emitente, parametrizado. */
+/**
+ * Cláusulas WHERE comuns às queries fiscais. Sempre exclui:
+ *  - NFs stub (status IS NULL): nós criados via MERGE por uma DEVOLVE cuja origem
+ *    ainda não foi importada — não têm dados (auditoria F3).
+ *  - Devoluções (finalidade='devolucao'): não somam carga tributária — uma
+ *    devolução estorna, não acrescenta imposto (auditoria F1 / ADR-6).
+ * Liga o emitente só quando há filtro de UF.
+ */
 function buildTaxWhere(f: TaxFilters): { match: string; where: string; params: Record<string, unknown> } {
-    const clauses: string[] = [];
+    const clauses: string[] = ['nf.status IS NOT NULL', "coalesce(nf.finalidade, '') <> 'devolucao'"];
     const params: Record<string, unknown> = {};
-    // Sempre parte da NF; só liga o emitente quando há filtro de UF.
     const match = f.uf ? 'MATCH (e:Empresa)-[:EMITIU]->(nf:NotaFiscal)' : 'MATCH (nf:NotaFiscal)';
     if (f.uf) (clauses.push('e.uf = $uf'), (params.uf = f.uf));
     if (f.dataInicio) (clauses.push('nf.dataEmissao >= $dataInicio'), (params.dataInicio = f.dataInicio));
     if (f.dataFim) (clauses.push('nf.dataEmissao <= $dataFim'), (params.dataFim = f.dataFim));
-    const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
+    const where = `WHERE ${clauses.join(' AND ')}`;
     return { match, where, params };
 }
 
@@ -154,14 +160,15 @@ export async function taxByNcm(
     limit = DEFAULT_LIMIT,
 ): Promise<TaxByNcmItem[]> {
     const lim = Math.min(limit, MAX_LIMIT);
-    const clauses: string[] = [];
+    // Exclui stub (sem status) e devoluções, como buildTaxWhere.
+    const clauses: string[] = ['nf.status IS NOT NULL', "coalesce(nf.finalidade, '') <> 'devolucao'"];
     const params: Record<string, unknown> = { limit: neo4j.int(lim) };
     // Liga emitente só quando filtra UF; sempre passa por CONTÉM → NCM.
     const matchEmit = filters.uf ? 'MATCH (e:Empresa)-[:EMITIU]->(nf)' : '';
     if (filters.uf) (clauses.push('e.uf = $uf'), (params.uf = filters.uf));
     if (filters.dataInicio) (clauses.push('nf.dataEmissao >= $dataInicio'), (params.dataInicio = filters.dataInicio));
     if (filters.dataFim) (clauses.push('nf.dataEmissao <= $dataFim'), (params.dataFim = filters.dataFim));
-    const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
+    const where = `WHERE ${clauses.join(' AND ')}`;
 
     const session = driver.session();
     try {
@@ -201,8 +208,10 @@ export async function taxByNcm(
 }
 
 /**
- * Ranking de imposto agregado por CFOP, somando os total_* das NFs por CFOP
- * principal (USA_CFOP). A descrição/tipo vêm do nó CFOP (catálogo, Fase 1b).
+ * Ranking de imposto agregado por CFOP. Agrega pelo CFOP DO ITEM (propriedade
+ * c.cfop da aresta CONTÉM) somando o imposto granular do item — não os total_*
+ * da NF, que dobrariam numa NF com vários CFOPs (auditoria B1). A descrição/tipo
+ * vêm do nó CFOP (catálogo). Exclui stub e devoluções (F1/F3).
  */
 export async function taxByCfop(
     driver: Driver,
@@ -210,25 +219,26 @@ export async function taxByCfop(
     limit = DEFAULT_LIMIT,
 ): Promise<TaxByCfopItem[]> {
     const lim = Math.min(limit, MAX_LIMIT);
-    const clauses: string[] = [];
+    const clauses: string[] = ['nf.status IS NOT NULL', "coalesce(nf.finalidade, '') <> 'devolucao'", 'c.cfop IS NOT NULL'];
     const params: Record<string, unknown> = { limit: neo4j.int(lim) };
     const matchEmit = filters.uf ? 'MATCH (e:Empresa)-[:EMITIU]->(nf)' : '';
     if (filters.uf) (clauses.push('e.uf = $uf'), (params.uf = filters.uf));
     if (filters.dataInicio) (clauses.push('nf.dataEmissao >= $dataInicio'), (params.dataInicio = filters.dataInicio));
     if (filters.dataFim) (clauses.push('nf.dataEmissao <= $dataFim'), (params.dataFim = filters.dataFim));
-    const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
+    const where = `WHERE ${clauses.join(' AND ')}`;
 
     const session = driver.session();
     try {
         const res = await session.run(
-            `MATCH (nf:NotaFiscal)-[:USA_CFOP]->(cfop:CFOP)
+            `MATCH (nf:NotaFiscal)-[c:CONTÉM]->(:Produto)
              ${matchEmit}
              ${where}
-             WITH cfop,
-                  sum(coalesce(nf.total_vICMS, 0)) AS vICMS,
-                  sum(coalesce(nf.total_vIPI, 0)) AS vIPI,
+             WITH c.cfop AS cfop,
+                  sum(coalesce(c.vICMS, 0) + coalesce(c.vICMSST, 0)) AS vICMS,
+                  sum(coalesce(c.vIPI, 0)) AS vIPI,
                   count(DISTINCT nf) AS totalNFs
-             RETURN cfop.codigo AS cfop, cfop.descricao AS descricao, cfop.tipo AS tipo,
+             OPTIONAL MATCH (cfopNode:CFOP {codigo: cfop})
+             RETURN cfop, cfopNode.descricao AS descricao, cfopNode.tipo AS tipo,
                     vICMS, vIPI, totalNFs
              ORDER BY vICMS DESC
              LIMIT $limit`,

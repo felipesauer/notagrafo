@@ -57,12 +57,17 @@ describe('taxByNcm (unit)', () => {
 });
 
 describe('taxByCfop (unit)', () => {
-    it('agrega por CFOP via USA_CFOP usando total_* da NF', async () => {
+    it('agrega por c.cfop da aresta CONTÉM (granular, sem double-count) e exclui devolução/stub', async () => {
         const rows = [fakeRecord({ cfop: '6102', descricao: 'Venda interestadual', tipo: 'saida', vICMS: 180, vIPI: 50, totalNFs: 2 })];
         const { driver, runs } = makeFakeDriver(() => rows);
         const out = await taxByCfop(driver, { uf: 'SP' }, 10);
-        expect(runs[0]!.cypher).toContain('-[:USA_CFOP]->(cfop:CFOP)');
+        // agrega pelo CFOP do ITEM (não USA_CFOP/total_* da NF — evita B1)
+        expect(runs[0]!.cypher).toContain('-[c:CONTÉM]->(:Produto)');
+        expect(runs[0]!.cypher).toContain('c.cfop AS cfop');
         expect(runs[0]!.cypher).toContain('(e:Empresa)-[:EMITIU]->(nf)');
+        // exclui stub e devolução
+        expect(runs[0]!.cypher).toContain('nf.status IS NOT NULL');
+        expect(runs[0]!.cypher).toContain("<> 'devolucao'");
         expect(out[0]).toMatchObject({ cfop: '6102', tipo: 'saida', vICMS: 180, totalNFs: 2 });
     });
 });
