@@ -83,7 +83,7 @@ describe('GET /stats/impostos (unit)', () => {
             if (cypher.includes('substring(nf.dataEmissao, 0, 7)')) return [rec({ periodo: '2026-06', vICMS: 180, vIPI: 50, vPIS: 16.5, vCOFINS: 76 })];
             if (cypher.includes('AS vFCP')) return [rec({ vICMS: 180, vICMSST: 72, vIPI: 50, vPIS: 16.5, vCOFINS: 76, vII: 0, vFCP: 20 })];
             if (cypher.includes('CLASSIFICADO_EM]->(ncm:NCM)')) return [rec({ ncm: '84713012', descricao: 'Máquinas', vICMS: 252, vIPI: 50, vPIS: 16.5, vCOFINS: 76, totalImposto: 394.5, totalNFs: 1 })];
-            if (cypher.includes('USA_CFOP]->(cfop:CFOP)')) return [rec({ cfop: '6102', descricao: 'Venda', tipo: 'saida', vICMS: 180, vIPI: 50, totalNFs: 1 })];
+            if (cypher.includes('c.cfop AS cfop')) return [rec({ cfop: '6102', descricao: 'Venda', tipo: 'saida', vICMS: 180, vIPI: 50, totalNFs: 1 })];
             return [];
         };
         const { driver } = makeFakeDriver(responder);

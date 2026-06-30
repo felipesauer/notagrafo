@@ -53,9 +53,19 @@ describe('formatInvoiceDetail', () => {
         expect(item).toMatchObject({ numeroItem: 1, quantidade: 2, valorUnitario: 500, valorTotal: 1000, cst: '10', cest: '2104700' });
     });
 
-    it('aninha o NCM dentro de produto', () => {
-        const item = (formatInvoiceDetail(rawDetail()).itens as Array<Record<string, unknown>>)[0]!;
+    it('aninha o NCM dentro de produto e poda campos fora do contrato (F5)', () => {
+        const raw = rawDetail();
+        // injeta campos internos que NÃO devem vazar
+        (raw.itens as Array<Record<string, unknown>>)[0]!.produto = { idUnico: '789', codigo: 'PROD010', descricao: 'Produto', cnpjEmitente: '14200166000187' };
+        (raw.itens as Array<Record<string, unknown>>)[0]!.ncm = { codigo: '84713012', descricao: 'Máquinas', capitulo: '84', secao: 'Máquinas e aparelhos' };
+        const item = (formatInvoiceDetail(raw).itens as Array<Record<string, unknown>>)[0]!;
+        // ncm reduzido a {codigo, descricao}
         expect(item.produto).toMatchObject({ idUnico: '789', ncm: { codigo: '84713012', descricao: 'Máquinas' } });
+        const ncm = (item.produto as { ncm: Record<string, unknown> }).ncm;
+        expect('capitulo' in ncm).toBe(false);
+        expect('secao' in ncm).toBe(false);
+        // produto sem cnpjEmitente
+        expect('cnpjEmitente' in (item.produto as object)).toBe(false);
         // ncm não fica solto no item
         expect(item).not.toHaveProperty('ncm');
     });

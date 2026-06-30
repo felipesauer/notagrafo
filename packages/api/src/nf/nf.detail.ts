@@ -42,9 +42,16 @@ function formatItem(item: RawItem): Dict {
     for (const k of TRIBUTO_KEYS) if (item[k] !== undefined) tributos[k] = item[k];
     out.tributos = tributos;
 
-    // produto + ncm aninhado (o graph devolve ncm como objeto irmão do produto).
+    // produto + ncm aninhado. Poda campos internos que não pertencem ao contrato
+    // (.plan/02 §4): ncm reduzido a {codigo,descricao}; produto sem cnpjEmitente.
     if (item.produto) {
-        out.produto = item.ncm ? { ...item.produto, ncm: item.ncm } : { ...item.produto };
+        const produto: Dict = { ...(item.produto as Dict) };
+        delete produto.cnpjEmitente;
+        if (item.ncm) {
+            const ncm = item.ncm as Dict;
+            produto.ncm = { codigo: ncm.codigo, ...(ncm.descricao ? { descricao: ncm.descricao } : {}) };
+        }
+        out.produto = produto;
     }
     return out;
 }

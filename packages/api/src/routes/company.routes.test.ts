@@ -47,4 +47,13 @@ describe('GET /empresa/:cnpj/grafo (unit)', () => {
         expect(res.statusCode).toBe(200);
         expect(g.getCompanyGraph).toHaveBeenCalledWith(driver, '111', { depth: 2, direction: 'emitente', limit: 10 });
     });
+
+    it('repassa includeProdutos=true (coagido) ao getCompanyGraph', async () => {
+        const { driver } = makeFakeDriver(() => []);
+        g.getCompanyGraph.mockResolvedValue({ cnpj: '111', depth: 1, nos: [], arestas: [], produtos: [] });
+        app = await buildTestApi((a) => companyRoutes(a, driver));
+        const res = await app.inject({ method: 'GET', url: '/empresa/111/grafo?includeProdutos=true' });
+        expect(res.statusCode).toBe(200);
+        expect(g.getCompanyGraph).toHaveBeenCalledWith(driver, '111', { depth: 1, includeProdutos: true });
+    });
 });

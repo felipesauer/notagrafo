@@ -38,7 +38,7 @@ export async function companyRoutes(app: FastifyInstance, driver: Driver): Promi
     );
 
     // GET /empresa/:cnpj/grafo — vizinhos; depth máx 4 (regra 6 → 400 antes da query)
-    app.get<{ Params: { cnpj: string }; Querystring: { depth?: number; direction?: Direction; limit?: number } }>(
+    app.get<{ Params: { cnpj: string }; Querystring: { depth?: number; direction?: Direction; limit?: number; includeProdutos?: boolean } }>(
         '/empresa/:cnpj/grafo',
         {
             preHandler: app.authenticate,
@@ -52,6 +52,7 @@ export async function companyRoutes(app: FastifyInstance, driver: Driver): Promi
                         depth: { type: 'integer' },
                         direction: { type: 'string', enum: ['emitente', 'destinatario', 'both'] },
                         limit: { type: 'integer', minimum: 1, maximum: 500 },
+                        includeProdutos: { type: 'boolean' },
                     },
                 },
                 security: [{ bearerAuth: [] }],
@@ -67,6 +68,7 @@ export async function companyRoutes(app: FastifyInstance, driver: Driver): Promi
                 depth,
                 ...(request.query.direction ? { direction: request.query.direction } : {}),
                 ...(request.query.limit ? { limit: Number(request.query.limit) } : {}),
+                ...(request.query.includeProdutos ? { includeProdutos: true } : {}),
             });
         },
     );

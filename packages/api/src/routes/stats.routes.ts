@@ -26,17 +26,18 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
         async () => {
             const session = driver.session();
             try {
+                // status IS NOT NULL exclui NFs stub (origem de DEVOLVE ainda não importada — auditoria F3).
                 const totais = await session.run(
-                    `MATCH (nf:NotaFiscal)
+                    `MATCH (nf:NotaFiscal) WHERE nf.status IS NOT NULL
                      RETURN count(nf) AS totalNFs, sum(nf.valorTotal) AS valor`,
                 );
                 const empresas = await session.run('MATCH (e:Empresa) RETURN count(e) AS c');
                 const produtos = await session.run('MATCH (p:Produto) RETURN count(p) AS c');
                 const porStatus = await session.run(
-                    'MATCH (nf:NotaFiscal) RETURN nf.status AS status, count(nf) AS c',
+                    'MATCH (nf:NotaFiscal) WHERE nf.status IS NOT NULL RETURN nf.status AS status, count(nf) AS c',
                 );
                 const ultimas = await session.run(
-                    `MATCH (nf:NotaFiscal)
+                    `MATCH (nf:NotaFiscal) WHERE nf.status IS NOT NULL
                      RETURN nf.chaveAcesso AS chaveAcesso, nf.numero AS numero,
                             nf.valorTotal AS valorTotal, nf.importadaEm AS processadaEm
                      ORDER BY nf.importadaEm DESC LIMIT 10`,
