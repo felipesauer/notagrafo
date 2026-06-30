@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-68
-  state: IN_REVIEW
+  state: DONE
   title: >-
     Derivar relação emitente/destinatário no getCompanyGraph (corrigir rótulo
     hardcoded)
@@ -31,6 +31,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-30T17:56:59.900Z'
+  updated_at: '2026-06-30T19:09:02.401Z'
 ---
 # Derivar relação emitente/destinatário no getCompanyGraph (corrigir rótulo hardcoded)

@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-69
-  state: IN_REVIEW
+  state: DONE
   title: Alinhar tipo DevolveEdge.dataEvento ao que o repositório grava (opcional)
   description: >-
     Achado A3 da auditoria. nf.types.ts: DevolveEdge declara dataEvento:Date
@@ -25,6 +25,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-30T17:57:02.897Z'
+  updated_at: '2026-06-30T19:09:06.814Z'
 ---
 # Alinhar tipo DevolveEdge.dataEvento ao que o repositório grava (opcional)

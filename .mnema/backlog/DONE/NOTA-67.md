@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-67
-  state: IN_PROGRESS
+  state: DONE
   title: >-
     Excluir NFs stub e devoluções nas queries de produto
     (topProducts/productCompanies)
@@ -37,6 +37,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-30T16:13:08.205Z'
+  updated_at: '2026-06-30T19:08:57.560Z'
 ---
 # Excluir NFs stub e devoluções nas queries de produto (topProducts/productCompanies)
