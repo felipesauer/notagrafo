@@ -9,7 +9,7 @@ API REST e um dashboard interativo com visualização de grafo.
 visual e consultável — padrões, ligações comuns e caminhos entre emitentes e
 destinatários.
 
-> Documento suportado: **NF-e v4.00** ([ADR NOTA-ADR-3](.mnema/roadmap)). Licença **MIT**.
+> Documento suportado: **NF-e v4.00**. Licença **MIT**.
 
 ---
 
