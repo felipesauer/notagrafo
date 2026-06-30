@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-66
-  state: IN_REVIEW
+  state: DONE
   title: >-
     Corrigir config de integração obsoleta no Vitest 4 (serialização de
     Testcontainers)
@@ -36,6 +36,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-06-30T17:03:09.075Z'
+  updated_at: '2026-06-30T19:08:53.721Z'
 ---
 # Corrigir config de integração obsoleta no Vitest 4 (serialização de Testcontainers)
