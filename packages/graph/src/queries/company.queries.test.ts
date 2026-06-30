@@ -35,7 +35,7 @@ describe('getCompanyGraph (unit)', () => {
     it('mapeia nós (1ª query) e arestas (2ª query); grau mínimo 1', async () => {
         const responder = (_c: string, _p: Record<string, unknown>, i: number) =>
             i === 0
-                ? [fakeRecord({ cnpj: '222', razaoSocial: 'B', uf: 'MG', grau: 0, totalNFs: 5 })]
+                ? [fakeRecord({ cnpj: '222', razaoSocial: 'B', uf: 'MG', grau: 0, totalNFs: 5, relacao: 'emitente' })]
                 : [fakeRecord({ de: '111', para: '222', totalNFs: 5, valorTotal: 1000 })];
         const { driver, runs } = makeFakeDriver(responder);
 
@@ -47,6 +47,24 @@ describe('getCompanyGraph (unit)', () => {
         expect(grafo.arestas).toEqual([{ de: '111', para: '222', totalNFs: 5, valorTotal: 1000 }]);
         // o padrão de caminho usa depth*2 na 1ª query
         expect(runs[0]!.cypher).toContain('*1..4');
+    });
+
+    it('relacao vem da query (derivada da direção), não é hardcoded', async () => {
+        // a 1ª query (nós) decide relacao via CASE; aqui o vizinho é destinatário
+        const responder = (_c: string, _p: Record<string, unknown>, i: number) =>
+            i === 0
+                ? [
+                      fakeRecord({ cnpj: '222', razaoSocial: 'B', uf: 'MG', grau: 0, totalNFs: 3, relacao: 'destinatario' }),
+                      fakeRecord({ cnpj: '333', razaoSocial: 'C', uf: 'SP', grau: 0, totalNFs: 2, relacao: 'emitente' }),
+                  ]
+                : [];
+        const { driver, runs } = makeFakeDriver(responder);
+        const grafo = await getCompanyGraph(driver, '111', { depth: 1 });
+        expect(grafo.nos[0]!.relacao).toBe('destinatario'); // raiz emitiu p/ 222
+        expect(grafo.nos[1]!.relacao).toBe('emitente'); // 333 emitiu p/ raiz
+        // a query deriva o papel por CASE sobre os dois sentidos
+        expect(runs[0]!.cypher).toContain('AS relacao');
+        expect(runs[0]!.cypher).toContain('CASE WHEN comoDestinatario > comoEmitente');
     });
 
     it('direction destinatario muda o padrão de relação', async () => {

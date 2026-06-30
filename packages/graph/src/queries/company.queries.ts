@@ -119,13 +119,22 @@ export async function getCompanyGraph(
     const session = driver.session();
     try {
         const nodesRes = await session.run(
+            // relacao = papel do vizinho na relação DIRETA com a raiz: se a raiz
+            // emitiu para ele, é 'destinatario'; se ele emitiu para a raiz, é
+            // 'emitente'. Contamos as NFs trocadas nos dois sentidos; o CASE
+            // rotula pelo sentido predominante (empate → 'emitente').
             `MATCH (origem:Empresa {cnpj: $cnpj})
              MATCH path = (origem)${pattern}(viz:Empresa)
              WHERE viz.cnpj <> $cnpj
-             WITH viz, min(length(path)) AS dist
-             OPTIONAL MATCH (viz)-[:EMITIU]->(nf:NotaFiscal)
+             WITH origem, viz, min(length(path)) AS dist
+             OPTIONAL MATCH (viz)-[:EMITIU]->(:NotaFiscal)-[:DESTINADA_A]->(origem)
+             WITH origem, viz, dist, count(*) AS comoEmitente
+             OPTIONAL MATCH (origem)-[:EMITIU]->(:NotaFiscal)-[:DESTINADA_A]->(viz)
+             WITH viz, dist, comoEmitente, count(*) AS comoDestinatario
              RETURN viz.cnpj AS cnpj, viz.razaoSocial AS razaoSocial, viz.uf AS uf,
-                    (dist / 2) AS grau, count(nf) AS totalNFs
+                    (dist / 2) AS grau,
+                    (comoEmitente + comoDestinatario) AS totalNFs,
+                    CASE WHEN comoDestinatario > comoEmitente THEN 'destinatario' ELSE 'emitente' END AS relacao
              ORDER BY grau ASC, totalNFs DESC
              LIMIT $limit`,
             { cnpj, limit: neo4j.int(limit) },
@@ -135,7 +144,7 @@ export async function getCompanyGraph(
             razaoSocial: (r.get('razaoSocial') as string) ?? '',
             uf: (r.get('uf') as string) ?? '',
             grau: Math.max(1, toNum(r.get('grau'))),
-            relacao: 'emitente',
+            relacao: (r.get('relacao') as 'emitente' | 'destinatario') ?? 'emitente',
             totalNFs: toNum(r.get('totalNFs')),
         }));
 
