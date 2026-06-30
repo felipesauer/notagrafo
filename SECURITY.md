@@ -16,8 +16,6 @@ Prefira o canal privado do GitHub:
    ([GitHub Security Advisories](https://github.com/felipesauer/notagrafo/security/advisories/new)).
 2. Descreva o problema com o máximo de detalhe possível.
 
-Se preferir, você também pode reportar por e-mail para **felipesauer11@hotmail.com**.
-
 ### O que incluir no relato
 
 - Tipo da vulnerabilidade e o componente afetado (`core`, `graph`, `api`,
