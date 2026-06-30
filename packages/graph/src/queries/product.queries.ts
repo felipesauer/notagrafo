@@ -58,7 +58,10 @@ export async function topProducts(
     const limit = Math.min(opts.limit ?? DEFAULT_LIMIT, MAX_LIMIT);
     const orderBy = metric === 'quantidade' ? 'quantidadeTotal' : 'valorTotal';
 
-    const where: string[] = [];
+    // Exclui NFs stub (status IS NULL, criadas via DEVOLVE quando a origem ainda
+    // não foi importada) e devoluções (finalidade='devolucao', que estornam e não
+    // somam volume) — mesma semântica de tax.queries.buildTaxWhere (F1/F3).
+    const where: string[] = ['nf.status IS NOT NULL', "coalesce(nf.finalidade, '') <> 'devolucao'"];
     const params: Record<string, unknown> = { limit: neo4j.int(limit) };
     if (opts.ncm) (where.push('ncm.codigo STARTS WITH $ncm'), (params.ncm = opts.ncm));
     if (opts.dataInicio) (where.push('nf.dataEmissao >= $dataInicio'), (params.dataInicio = opts.dataInicio));
@@ -143,12 +146,16 @@ export async function productCompanies(driver: Driver, idUnico: string): Promise
     const session = driver.session();
     try {
         const res = await session.run(
+            // Exclui NFs stub (status IS NULL) e devoluções (finalidade='devolucao')
+            // em ambos os ramos do UNION — consistente com tax.queries (F1/F3).
             `MATCH (e:Empresa)-[:EMITIU]->(nf:NotaFiscal)-[c:CONTÉM]->(:Produto {idUnico: $idUnico})
+             WHERE nf.status IS NOT NULL AND coalesce(nf.finalidade, '') <> 'devolucao'
              WITH e, 'emitente' AS papel, count(DISTINCT nf) AS totalNFs, sum(c.valorTotal) AS valor
              RETURN e.cnpj AS cnpj, e.razaoSocial AS razaoSocial, e.uf AS uf, papel, totalNFs, valor
              UNION
              MATCH (nf:NotaFiscal)-[c:CONTÉM]->(:Produto {idUnico: $idUnico}),
                    (nf)-[:DESTINADA_A]->(e:Empresa)
+             WHERE nf.status IS NOT NULL AND coalesce(nf.finalidade, '') <> 'devolucao'
              WITH e, 'destinatario' AS papel, count(DISTINCT nf) AS totalNFs, sum(c.valorTotal) AS valor
              RETURN e.cnpj AS cnpj, e.razaoSocial AS razaoSocial, e.uf AS uf, papel, totalNFs, valor
              ORDER BY valor DESC`,

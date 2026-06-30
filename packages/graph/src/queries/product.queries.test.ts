@@ -24,6 +24,14 @@ describe('topProducts (unit)', () => {
         expect(runs[0]!.cypher).toContain('STARTS WITH $ncm');
         expect(runs[0]!.params).toMatchObject({ ncm: '6109', dataInicio: '2026-01-01', dataFim: '2026-12-31' });
     });
+
+    it('exclui NFs stub (status IS NULL) e devoluções do ranking', async () => {
+        const { driver, runs } = makeFakeDriver(() => []);
+        await topProducts(driver, {});
+        // mesma semântica de tax.queries: não conta nota stub nem devolução (F1/F3)
+        expect(runs[0]!.cypher).toContain('nf.status IS NOT NULL');
+        expect(runs[0]!.cypher).toContain("coalesce(nf.finalidade, '') <> 'devolucao'");
+    });
 });
 
 describe('productPriceHistory (unit)', () => {
@@ -60,5 +68,12 @@ describe('productCompanies (unit)', () => {
         expect(runs[0]!.params.idUnico).toBe('p1');
         expect(out[0]).toEqual({ cnpj: '14200166000187', razaoSocial: 'Alpha', uf: 'SP', papel: 'emitente', totalNFs: 5, valor: 5000 });
         expect(out[1]!.papel).toBe('destinatario');
+    });
+
+    it('exclui NFs stub e devoluções nos dois ramos do UNION', async () => {
+        const { driver, runs } = makeFakeDriver(() => []);
+        await productCompanies(driver, 'p1');
+        const filtros = runs[0]!.cypher.match(/nf\.status IS NOT NULL AND coalesce\(nf\.finalidade, ''\) <> 'devolucao'/g);
+        expect(filtros).toHaveLength(2); // um por ramo (emitente + destinatário)
     });
 });
