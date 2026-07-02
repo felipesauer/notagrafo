@@ -1,18 +1,25 @@
 import { Component, type ErrorInfo, type JSX, type ReactNode, useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Check, Copy } from 'lucide-react';
+import { toast } from 'sonner';
 import { maskCpfIf, isCpf } from '@notagrafo/core/lgpd';
 import { isCpfMaskingEnabled } from '../lib/lgpd-config.js';
+import { statusColor } from '../lib/status.js';
+import { Button } from './ui/button.js';
+import { Skeleton } from './ui/skeleton.js';
 
-/** Badge colorido do status da NF. */
+/**
+ * Badge de status de NF ou de exportação. A cor vem de lib/status.ts (CSS var,
+ * responde ao tema); o data-testid é usado pelos e2e. Texto renderizado cru
+ * (o back-end já entrega o rótulo do domínio).
+ */
 export function NFStatusBadge({ status }: { status: string }): JSX.Element {
-    const cores: Record<string, string> = {
-        ativa: '#16a34a',
-        cancelada: '#dc2626',
-        denegada: '#d97706',
-        inutilizada: '#6b7280',
-    };
     return (
-        <span className="badge" data-testid="status-badge" style={{ background: cores[status] ?? '#6b7280' }}>
+        <span
+            className="inline-flex w-fit items-center rounded-full px-2 py-0.5 text-xs font-medium text-white"
+            data-testid="status-badge"
+            style={{ background: statusColor(status) }}
+        >
             {status}
         </span>
     );
@@ -20,7 +27,7 @@ export function NFStatusBadge({ status }: { status: string }): JSX.Element {
 
 /**
  * Chave de acesso da NF-e (44 dígitos) truncada, com botão de copiar a chave
- * completa. Usa a Clipboard API quando disponível (feedback "copiado" por 2s).
+ * completa. Feedback via toast (sonner) + ícone Check por 2s.
  */
 export function CopyableKey({ chave, truncate = true }: { chave: string; truncate?: boolean }): JSX.Element {
     const { t } = useTranslation();
@@ -36,17 +43,25 @@ export function CopyableKey({ chave, truncate = true }: { chave: string; truncat
         if (!p) return; // Clipboard API indisponível (contexto não-seguro): no-op.
         void p.then(() => {
             setCopiado(true);
+            toast.success(t('nf.copiado'));
             clearTimeout(timerRef.current);
             timerRef.current = setTimeout(() => setCopiado(false), 2000);
         });
     }
 
     return (
-        <span className="chave-acesso">
-            <code title={chave}>{exibido}</code>
-            <button type="button" className="chave-acesso__copiar" onClick={copiar} aria-label={t('nf.copiar')} title={t('nf.copiar')}>
-                {copiado ? t('nf.copiado') : '⧉'}
-            </button>
+        <span className="inline-flex items-center gap-1.5">
+            <code className="font-mono text-xs" title={chave}>{exibido}</code>
+            <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                onClick={copiar}
+                aria-label={t('nf.copiar')}
+                title={t('nf.copiar')}
+            >
+                {copiado ? <Check className="text-status-ativa" /> : <Copy />}
+            </Button>
         </span>
     );
 }
@@ -58,38 +73,81 @@ export function CopyableKey({ chave, truncate = true }: { chave: string; truncat
 export function CNPJText({ cnpj }: { cnpj: string }): JSX.Element {
     if (cnpj.length === 14) {
         const f = cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
-        return <span className="cnpj">{f}</span>;
+        return <span className="font-mono text-xs tabular-nums">{f}</span>;
     }
     // Possível CPF de MEI (11 dígitos): aplica o mascaramento LGPD quando ativo.
     const valor = isCpf(cnpj) ? maskCpfIf(isCpfMaskingEnabled(), cnpj) : cnpj;
-    return <span className="cnpj">{valor}</span>;
+    return <span className="font-mono text-xs tabular-nums">{valor}</span>;
 }
 
 /** Valor monetário em BRL. */
 export function CurrencyValue({ value }: { value: number }): JSX.Element {
-    return <span className="currency">{value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>;
+    return <span className="tabular-nums">{value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>;
 }
 
 /** Data/hora ISO formatada para pt-BR. */
 export function DateDisplay({ value }: { value: string | null | undefined }): JSX.Element {
-    if (!value) return <span>—</span>;
+    if (!value) return <span className="text-muted-foreground">—</span>;
     const d = new Date(value);
-    return <span>{Number.isNaN(d.getTime()) ? value : d.toLocaleString('pt-BR')}</span>;
+    return <span className="tabular-nums">{Number.isNaN(d.getTime()) ? value : d.toLocaleString('pt-BR')}</span>;
 }
 
-/** Estado vazio com mensagem. */
-export function EmptyState({ mensagem }: { mensagem?: string }): JSX.Element {
+/** Estado vazio com mensagem e ação opcional. */
+export function EmptyState({ mensagem, action }: { mensagem?: string; action?: ReactNode }): JSX.Element {
     const { t } = useTranslation();
-    return <div className="empty-state">{mensagem ?? t('comum.vazio')}</div>;
+    return (
+        <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border px-6 py-12 text-center">
+            <p className="text-sm text-muted-foreground">{mensagem ?? t('comum.vazio')}</p>
+            {action}
+        </div>
+    );
 }
 
-/** Skeleton de carregamento (n linhas). */
-export function LoadingSkeleton({ linhas = 3 }: { linhas?: number }): JSX.Element {
+type SkeletonVariant = 'table' | 'kpis' | 'card' | 'lines';
+
+/**
+ * Skeleton de carregamento com variantes fiéis ao layout real. `linhas` é o
+ * número de linhas (table/lines) ou de cards (kpis). Mantém aria-busy/live.
+ */
+export function LoadingSkeleton({
+    variant = 'lines',
+    linhas = 3,
+    colunas = 5,
+}: {
+    variant?: SkeletonVariant;
+    linhas?: number;
+    colunas?: number;
+}): JSX.Element {
     return (
-        <div className="skeleton" aria-busy="true" aria-live="polite">
-            {Array.from({ length: linhas }).map((_, i) => (
-                <div key={i} className="skeleton__row" />
-            ))}
+        <div aria-busy="true" aria-live="polite">
+            {variant === 'kpis' && (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    {Array.from({ length: linhas }).map((_, i) => (
+                        <Skeleton key={i} className="h-24 rounded-xl" />
+                    ))}
+                </div>
+            )}
+            {variant === 'card' && <Skeleton className="h-64 w-full rounded-xl" />}
+            {variant === 'lines' &&
+                Array.from({ length: linhas }).map((_, i) => (
+                    <Skeleton key={i} className="mb-2 h-6 w-full" />
+                ))}
+            {variant === 'table' && (
+                <div className="space-y-2">
+                    <div className="flex gap-3">
+                        {Array.from({ length: colunas }).map((_, i) => (
+                            <Skeleton key={i} className="h-5 flex-1" />
+                        ))}
+                    </div>
+                    {Array.from({ length: linhas }).map((_, r) => (
+                        <div key={r} className="flex gap-3">
+                            {Array.from({ length: colunas }).map((_, c) => (
+                                <Skeleton key={c} className="h-8 flex-1" />
+                            ))}
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }
@@ -98,12 +156,12 @@ export function LoadingSkeleton({ linhas = 3 }: { linhas?: number }): JSX.Elemen
 export function InlineError({ onRetry }: { onRetry?: () => void }): JSX.Element {
     const { t } = useTranslation();
     return (
-        <div role="alert" className="inline-error">
+        <div role="alert" className="flex items-center gap-4 rounded-md border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive">
             <span>{t('comum.erro')}</span>
             {onRetry && (
-                <button type="button" onClick={onRetry}>
+                <Button type="button" variant="outline" size="sm" onClick={onRetry}>
                     {t('comum.tentarNovamente')}
-                </button>
+                </Button>
             )}
         </div>
     );
@@ -114,7 +172,7 @@ interface ErrorBoundaryState {
 }
 
 /** ErrorBoundary global para isolar falhas de render. */
-export class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryState> {
+export class ErrorBoundary extends Component<{ children: ReactNode; fallback?: ReactNode }, ErrorBoundaryState> {
     state: ErrorBoundaryState = { erro: false };
 
     static getDerivedStateFromError(): ErrorBoundaryState {
@@ -129,9 +187,11 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBound
     override render(): ReactNode {
         if (this.state.erro) {
             return (
-                <div role="alert" className="inline-error">
-                    Algo deu errado. Recarregue a página.
-                </div>
+                this.props.fallback ?? (
+                    <div role="alert" className="m-8 rounded-md border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+                        Algo deu errado. Recarregue a página.
+                    </div>
+                )
             );
         }
         return this.props.children;

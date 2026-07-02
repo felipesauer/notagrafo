@@ -1,6 +1,12 @@
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+    resolve: {
+        // Alias @/ dos componentes shadcn do dashboard (espelha vite.config e tsconfig
+        // do pacote) — o unit run inclui specs do dashboard que os importam transitivamente.
+        alias: { '@': fileURLToPath(new URL('./packages/dashboard/src', import.meta.url)) },
+    },
     test: {
         globals: true,
         environment: 'node',
