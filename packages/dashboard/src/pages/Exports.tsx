@@ -1,8 +1,8 @@
-import { type JSX, useState } from 'react';
+import { type JSX, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '../api/api.client.js';
-import { NFStatusBadge, InlineError, EmptyState } from '../components/shared.js';
+import { NFStatusBadge, InlineError, EmptyState, LoadingSkeleton } from '../components/shared.js';
 import { useExportStore } from '../stores/export.store.js';
 
 type Formato = 'csv' | 'xlsx' | 'json';
@@ -25,6 +25,15 @@ export function ExportsPage(): JSX.Element {
     const [campos, setCampos] = useState<string[]>(CAMPOS);
     const [registros, setRegistros] = useState<ExportRegistro[]>([]);
     const [erro, setErro] = useState<string | null>(null);
+
+    // Hidrata o histórico ao montar (GET /export): sobrevive a reload/nova aba.
+    const historico = useQuery({
+        queryKey: ['export', 'list'],
+        queryFn: () => apiFetch<{ data: ExportRegistro[] }>('/export'),
+    });
+    useEffect(() => {
+        if (historico.data) setRegistros(historico.data.data);
+    }, [historico.data]);
 
     function alternarCampo(c: string): void {
         setCampos((cs) => (cs.includes(c) ? cs.filter((x) => x !== c) : [...cs, c]));
@@ -71,7 +80,11 @@ export function ExportsPage(): JSX.Element {
 
             <section className="export-list">
                 <h2>{t('exportacoes.historico')}</h2>
-                {registros.length === 0 ? (
+                {historico.isLoading ? (
+                    <LoadingSkeleton linhas={3} />
+                ) : historico.isError ? (
+                    <InlineError onRetry={() => void historico.refetch()} />
+                ) : registros.length === 0 ? (
                     <EmptyState mensagem={t('exportacoes.vazio')} />
                 ) : (
                     <table className="data-table">

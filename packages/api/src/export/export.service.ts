@@ -129,6 +129,19 @@ export class ExportService {
         return job;
     }
 
+    /**
+     * Lista os export jobs conhecidos por esta instância (mais recentes
+     * primeiro), pulando os que já expiraram (ready além do TTL). Sobrevive ao
+     * reload da página do browser enquanto o processo da API estiver no ar; o
+     * arquivo/status por-id continua recuperável do Redis após restart (ADR-5).
+     */
+    list(): ExportJob[] {
+        const agora = Date.now();
+        return [...this.jobs.values()]
+            .filter((j) => !(j.status === 'ready' && agora > j.expiresAt))
+            .reverse();
+    }
+
     /** Lê o conteúdo do arquivo gerado (para o download). */
     async read(job: ExportJob): Promise<Buffer> {
         if (!job.filePath) throw new Error('Export sem arquivo.');

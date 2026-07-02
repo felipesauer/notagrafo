@@ -45,6 +45,21 @@ describe('ExportService — TTL/expiração', () => {
         expect(await service.get(job.exportId)).toBeNull();
     });
 
+    it('list() retorna as exportações mais recentes primeiro e omite ready expiradas', async () => {
+        const service = new ExportService(driverComRegistros([{ chaveAcesso: 'a', numero: '1' }]));
+        const j1 = service.create('json');
+        const j2 = service.create('csv');
+        await vi.waitFor(() => {
+            expect(j1.status).toBe('ready');
+            expect(j2.status).toBe('ready');
+        });
+        // uma ready expirada não deve aparecer na lista
+        Object.assign(j1, { expiresAt: Date.now() - 1000 });
+
+        const lista = service.list();
+        expect(lista.map((j) => j.exportId)).toEqual([j2.exportId]); // j1 expirada some; j2 (mais recente) fica
+    });
+
     it('contentType mapeia o formato', () => {
         const service = new ExportService(fakeDriver);
         expect(service.contentType('csv')).toContain('text/csv');
