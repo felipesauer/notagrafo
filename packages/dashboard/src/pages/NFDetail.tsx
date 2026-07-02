@@ -4,6 +4,7 @@ import { useParams, Link } from '@tanstack/react-router';
 import { ReactFlow, Background, type Edge, type Node } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useNFDetail, useNFEvents } from '../api/hooks.js';
+import { downloadFile } from '../api/api.client.js';
 import { NFStatusBadge, CopyableKey, CurrencyValue, DateDisplay, LoadingSkeleton, InlineError } from '../components/shared.js';
 
 /** Ícone da timeline por tipo de evento (fallback genérico). */
@@ -99,9 +100,9 @@ export function NFDetailPage(): JSX.Element {
             <div className="nf-detail__col">
                 <div className="nf-detail__header">
                     <h2>{t('nf.detalheTitulo')} {nf.numero}</h2>
-                    <a className="btn-baixar-xml" href={`/api/v1/nf/${chave}/xml`} download title={t('nf.baixarXml')}>
+                    <button type="button" className="btn-baixar-xml" onClick={() => void downloadFile(`/nf/${chave}/xml`, `${chave}.xml`)} title={t('nf.baixarXml')}>
                         ⬇ {t('nf.baixarXml')}
-                    </a>
+                    </button>
                 </div>
                 <dl>
                     <dt>{t('nf.chave')}</dt><dd><CopyableKey chave={chave} truncate={false} /></dd>

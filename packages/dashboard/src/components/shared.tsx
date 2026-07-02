@@ -1,4 +1,4 @@
-import { Component, type ErrorInfo, type JSX, type ReactNode, useState } from 'react';
+import { Component, type ErrorInfo, type JSX, type ReactNode, useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { maskCpfIf, isCpf } from '@notagrafo/core/lgpd';
 import { isCpfMaskingEnabled } from '../lib/lgpd-config.js';
@@ -25,12 +25,19 @@ export function NFStatusBadge({ status }: { status: string }): JSX.Element {
 export function CopyableKey({ chave, truncate = true }: { chave: string; truncate?: boolean }): JSX.Element {
     const { t } = useTranslation();
     const [copiado, setCopiado] = useState(false);
+    const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
     const exibido = truncate && chave.length > 16 ? `${chave.slice(0, 8)}…${chave.slice(-6)}` : chave;
 
+    // Limpa o timer pendente ao desmontar (evita setState em componente morto).
+    useEffect(() => () => clearTimeout(timerRef.current), []);
+
     function copiar(): void {
-        void navigator.clipboard?.writeText(chave).then(() => {
+        const p = navigator.clipboard?.writeText(chave);
+        if (!p) return; // Clipboard API indisponível (contexto não-seguro): no-op.
+        void p.then(() => {
             setCopiado(true);
-            setTimeout(() => setCopiado(false), 2000);
+            clearTimeout(timerRef.current);
+            timerRef.current = setTimeout(() => setCopiado(false), 2000);
         });
     }
 

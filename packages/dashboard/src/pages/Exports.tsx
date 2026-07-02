@@ -1,7 +1,7 @@
-import { type JSX, useState, useEffect } from 'react';
+import { type JSX, useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { apiFetch } from '../api/api.client.js';
+import { apiFetch, downloadFile } from '../api/api.client.js';
 import { NFStatusBadge, InlineError, EmptyState, LoadingSkeleton } from '../components/shared.js';
 import { useExportStore } from '../stores/export.store.js';
 
@@ -38,6 +38,11 @@ export function ExportsPage(): JSX.Element {
     function alternarCampo(c: string): void {
         setCampos((cs) => (cs.includes(c) ? cs.filter((x) => x !== c) : [...cs, c]));
     }
+
+    // Estável (setRegistros é estável) — evita re-disparar o efeito de sync em ExportRow.
+    const atualizarRegistro = useCallback((atual: ExportRegistro): void => {
+        setRegistros((rs) => rs.map((x) => (x.exportId === atual.exportId ? atual : x)));
+    }, []);
 
     async function gerar(): Promise<void> {
         setErro(null);
@@ -93,7 +98,7 @@ export function ExportsPage(): JSX.Element {
                         </thead>
                         <tbody>
                             {registros.map((r) => (
-                                <ExportRow key={r.exportId} registro={r} onUpdate={(atual) => setRegistros((rs) => rs.map((x) => (x.exportId === atual.exportId ? atual : x)))} />
+                                <ExportRow key={r.exportId} registro={r} onUpdate={atualizarRegistro} />
                             ))}
                         </tbody>
                     </table>
@@ -113,7 +118,10 @@ function ExportRow({ registro, onUpdate }: { registro: ExportRegistro; onUpdate:
         refetchInterval: pendente ? 10_000 : false,
         enabled: pendente,
     });
-    if (query.data && query.data.status !== registro.status) onUpdate({ ...registro, ...query.data });
+    // Propaga a atualização de status ao pai via efeito (não durante o render).
+    useEffect(() => {
+        if (query.data && query.data.status !== registro.status) onUpdate({ ...registro, ...query.data });
+    }, [query.data, registro, onUpdate]);
     if (query.isError) return <tr><td colSpan={3}><InlineError onRetry={() => void query.refetch()} /></td></tr>;
 
     return (
@@ -122,7 +130,9 @@ function ExportRow({ registro, onUpdate }: { registro: ExportRegistro; onUpdate:
             <td><NFStatusBadge status={registro.status} /></td>
             <td>
                 {registro.status === 'ready' && (
-                    <a href={`/api/v1/export/${registro.exportId}/download`}>{t('exportacoes.baixar')}</a>
+                    <button type="button" className="link-icon" onClick={() => void downloadFile(`/export/${registro.exportId}/download`, `export-${registro.exportId}.${registro.formato}`)}>
+                        {t('exportacoes.baixar')}
+                    </button>
                 )}
             </td>
         </tr>

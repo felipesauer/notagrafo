@@ -2,6 +2,7 @@ import { type JSX, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useSearch } from '@tanstack/react-router';
 import { useNFList } from '../api/hooks.js';
+import { downloadFile } from '../api/api.client.js';
 import { NFStatusBadge, CNPJText, CopyableKey, CurrencyValue, DateDisplay, LoadingSkeleton, InlineError, EmptyState } from '../components/shared.js';
 import { UploadModal } from '../components/UploadModal.js';
 import { FilterSidebar, type NFFiltros } from '../components/FilterSidebar.js';
@@ -100,7 +101,7 @@ export function NFListPage(): JSX.Element {
                                     <td><DateDisplay value={nf.dataEmissao} /></td>
                                     <td className="nf-list__acoes">
                                         <Link to={'/nf/$chave' as string} params={{ chave: nf.chaveAcesso } as never} title={t('nf.verDetalhe')} aria-label={t('nf.verDetalhe')}>👁</Link>
-                                        <a href={`/api/v1/nf/${nf.chaveAcesso}/xml`} title={t('nf.baixarXml')} aria-label={t('nf.baixarXml')} download>⬇</a>
+                                        <button type="button" className="link-icon" title={t('nf.baixarXml')} aria-label={t('nf.baixarXml')} onClick={() => void downloadFile(`/nf/${nf.chaveAcesso}/xml`, `${nf.chaveAcesso}.xml`)}>⬇</button>
                                     </td>
                                 </tr>
                             ))}

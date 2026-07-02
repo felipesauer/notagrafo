@@ -93,3 +93,44 @@ export async function apiFetch<T = unknown>(path: string, opts: RequestOptions =
     if (res.status === 204) return undefined as T;
     return (await res.json()) as T;
 }
+
+/**
+ * Baixa um arquivo de uma rota protegida: anexa o Bearer token (como o
+ * apiFetch), lê a resposta como Blob e dispara o download no browser via link
+ * sintético. Trata 401 com refresh único, igual ao apiFetch. Necessário porque
+ * uma navegação `<a href>` não envia o header Authorization do localStorage.
+ */
+export async function downloadFile(path: string, filenameFallback: string): Promise<void> {
+    const fetchComAuth = async (retried: boolean): Promise<Response> => {
+        const token = getToken();
+        const res = await fetch(`${BASE}${path}`, {
+            headers: { ...(token ? { authorization: `Bearer ${token}` } : {}) },
+        });
+        if (res.status === 401 && !retried) {
+            const novo = await tentarRefresh();
+            if (novo) return fetchComAuth(true);
+            clearToken();
+            onUnauthorized();
+            throw new ApiError(401, 'UNAUTHORIZED', 'Sessão expirada.');
+        }
+        if (!res.ok) {
+            throw new ApiError(res.status, 'DOWNLOAD_ERROR', res.statusText);
+        }
+        return res;
+    };
+
+    const res = await fetchComAuth(false);
+    const blob = await res.blob();
+    const cd = res.headers.get('content-disposition') ?? '';
+    const nomeDoHeader = /filename="?([^"]+)"?/.exec(cd)?.[1];
+    const filename = nomeDoHeader ?? filenameFallback;
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+}
