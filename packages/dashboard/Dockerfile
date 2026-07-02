@@ -3,9 +3,15 @@ FROM node:22-alpine AS build
 WORKDIR /app
 RUN corepack enable
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+# O dashboard depende de @notagrafo/core (util de máscara LGPD compartilhado),
+# então o core precisa ser instalado e construído antes do build do dashboard.
+COPY packages/core/package.json ./packages/core/
 COPY packages/dashboard/package.json ./packages/dashboard/
-RUN pnpm install --frozen-lockfile --filter @notagrafo/dashboard --ignore-scripts
+RUN pnpm install --frozen-lockfile --filter @notagrafo/core --filter @notagrafo/dashboard --ignore-scripts
+COPY tsconfig.json tsconfig.build.json ./
+COPY packages/core ./packages/core
 COPY packages/dashboard ./packages/dashboard
+RUN pnpm --filter @notagrafo/core build
 RUN pnpm --filter @notagrafo/dashboard build
 
 # ── Stage 2: production (nginx) ──────────────────────────────
