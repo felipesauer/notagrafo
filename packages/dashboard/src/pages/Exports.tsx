@@ -1,8 +1,8 @@
-import { type JSX, useState } from 'react';
+import { type JSX, useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { apiFetch } from '../api/api.client.js';
-import { NFStatusBadge, InlineError, EmptyState } from '../components/shared.js';
+import { apiFetch, downloadFile } from '../api/api.client.js';
+import { NFStatusBadge, InlineError, EmptyState, LoadingSkeleton } from '../components/shared.js';
 import { useExportStore } from '../stores/export.store.js';
 
 type Formato = 'csv' | 'xlsx' | 'json';
@@ -26,9 +26,23 @@ export function ExportsPage(): JSX.Element {
     const [registros, setRegistros] = useState<ExportRegistro[]>([]);
     const [erro, setErro] = useState<string | null>(null);
 
+    // Hidrata o histórico ao montar (GET /export): sobrevive a reload/nova aba.
+    const historico = useQuery({
+        queryKey: ['export', 'list'],
+        queryFn: () => apiFetch<{ data: ExportRegistro[] }>('/export'),
+    });
+    useEffect(() => {
+        if (historico.data) setRegistros(historico.data.data);
+    }, [historico.data]);
+
     function alternarCampo(c: string): void {
         setCampos((cs) => (cs.includes(c) ? cs.filter((x) => x !== c) : [...cs, c]));
     }
+
+    // Estável (setRegistros é estável) — evita re-disparar o efeito de sync em ExportRow.
+    const atualizarRegistro = useCallback((atual: ExportRegistro): void => {
+        setRegistros((rs) => rs.map((x) => (x.exportId === atual.exportId ? atual : x)));
+    }, []);
 
     async function gerar(): Promise<void> {
         setErro(null);
@@ -71,7 +85,11 @@ export function ExportsPage(): JSX.Element {
 
             <section className="export-list">
                 <h2>{t('exportacoes.historico')}</h2>
-                {registros.length === 0 ? (
+                {historico.isLoading ? (
+                    <LoadingSkeleton linhas={3} />
+                ) : historico.isError ? (
+                    <InlineError onRetry={() => void historico.refetch()} />
+                ) : registros.length === 0 ? (
                     <EmptyState mensagem={t('exportacoes.vazio')} />
                 ) : (
                     <table className="data-table">
@@ -80,7 +98,7 @@ export function ExportsPage(): JSX.Element {
                         </thead>
                         <tbody>
                             {registros.map((r) => (
-                                <ExportRow key={r.exportId} registro={r} onUpdate={(atual) => setRegistros((rs) => rs.map((x) => (x.exportId === atual.exportId ? atual : x)))} />
+                                <ExportRow key={r.exportId} registro={r} onUpdate={atualizarRegistro} />
                             ))}
                         </tbody>
                     </table>
@@ -100,7 +118,10 @@ function ExportRow({ registro, onUpdate }: { registro: ExportRegistro; onUpdate:
         refetchInterval: pendente ? 10_000 : false,
         enabled: pendente,
     });
-    if (query.data && query.data.status !== registro.status) onUpdate({ ...registro, ...query.data });
+    // Propaga a atualização de status ao pai via efeito (não durante o render).
+    useEffect(() => {
+        if (query.data && query.data.status !== registro.status) onUpdate({ ...registro, ...query.data });
+    }, [query.data, registro, onUpdate]);
     if (query.isError) return <tr><td colSpan={3}><InlineError onRetry={() => void query.refetch()} /></td></tr>;
 
     return (
@@ -109,7 +130,9 @@ function ExportRow({ registro, onUpdate }: { registro: ExportRegistro; onUpdate:
             <td><NFStatusBadge status={registro.status} /></td>
             <td>
                 {registro.status === 'ready' && (
-                    <a href={`/api/v1/export/${registro.exportId}/download`}>{t('exportacoes.baixar')}</a>
+                    <button type="button" className="link-icon" onClick={() => void downloadFile(`/export/${registro.exportId}/download`, `export-${registro.exportId}.${registro.formato}`)}>
+                        {t('exportacoes.baixar')}
+                    </button>
                 )}
             </td>
         </tr>

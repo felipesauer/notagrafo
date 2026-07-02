@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-EPIC-6
   kind: epic
-  state: OPEN
+  state: CLOSED
   title: '@nfp/dashboard — React + Vite'
   description: >-
     Pacote dashboard: setup Vite + TanStack Router/Query/Table, i18n (pt-BR/en),
@@ -11,6 +11,6 @@ mnema:
     testes e2e Playwright.
   metadata: {}
   created_at: '2026-06-26T00:45:40.625Z'
-  closed_at: null
+  closed_at: '2026-06-30T19:42:48.071Z'
 ---
 # @nfp/dashboard — React + Vite

@@ -105,8 +105,21 @@ export class ExportService {
 
     /** Recupera o job (memória ou Redis após restart), expirando se passou do TTL. */
     async get(exportId: string): Promise<ExportJob | 'expired' | null> {
-        const job = this.jobs.get(exportId) ?? (await this.readFromRedis(exportId));
+        const emMemoria = this.jobs.get(exportId);
+        const job = emMemoria ?? (await this.readFromRedis(exportId));
         if (!job) return null;
+
+        // Job em andamento (queued/processing) recuperado do Redis SEM estar em
+        // memória: a geração morreu num restart e nenhuma instância a retomará.
+        // Transiciona para failed para o cliente não fazer polling eterno (ADR-5).
+        if (!emMemoria && (job.status === 'processing' || job.status === 'queued')) {
+            job.status = 'failed';
+            job.erro = 'Geração interrompida por reinício do servidor.';
+            this.jobs.set(exportId, job);
+            await this.persist(job);
+            return job;
+        }
+
         if (job.status === 'ready' && Date.now() > job.expiresAt) {
             if (job.filePath) await rm(job.filePath, { force: true });
             this.jobs.delete(exportId);
@@ -114,6 +127,19 @@ export class ExportService {
             return 'expired';
         }
         return job;
+    }
+
+    /**
+     * Lista os export jobs conhecidos por esta instância (mais recentes
+     * primeiro), pulando os que já expiraram (ready além do TTL). Sobrevive ao
+     * reload da página do browser enquanto o processo da API estiver no ar; o
+     * arquivo/status por-id continua recuperável do Redis após restart (ADR-5).
+     */
+    list(): ExportJob[] {
+        const agora = Date.now();
+        return [...this.jobs.values()]
+            .filter((j) => !(j.status === 'ready' && agora > j.expiresAt))
+            .reverse();
     }
 
     /** Lê o conteúdo do arquivo gerado (para o download). */

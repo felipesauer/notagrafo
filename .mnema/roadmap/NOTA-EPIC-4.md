@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-EPIC-4
   kind: epic
-  state: OPEN
+  state: CLOSED
   title: '@nfp/worker — filas e seed'
   description: >-
     Pacote worker: storage de XML configurável (local/s3/minio), filas BullMQ +
@@ -10,6 +10,6 @@ mnema:
     e seed de demo de NFes fictícias.
   metadata: {}
   created_at: '2026-06-26T00:45:40.294Z'
-  closed_at: null
+  closed_at: '2026-06-30T19:42:43.928Z'
 ---
 # @nfp/worker — filas e seed

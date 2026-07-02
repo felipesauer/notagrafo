@@ -1,8 +1,41 @@
 import { type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, Link } from '@tanstack/react-router';
-import { useNFDetail } from '../api/hooks.js';
-import { NFStatusBadge, CurrencyValue, DateDisplay, LoadingSkeleton, InlineError } from '../components/shared.js';
+import { ReactFlow, Background, type Edge, type Node } from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+import { useNFDetail, useNFEvents } from '../api/hooks.js';
+import { downloadFile } from '../api/api.client.js';
+import { NFStatusBadge, CopyableKey, CurrencyValue, DateDisplay, LoadingSkeleton, InlineError } from '../components/shared.js';
+
+/** Ícone da timeline por tipo de evento (fallback genérico). */
+const EVENTO_ICONE: Record<string, string> = {
+    importada: '⬆',
+    processada: '✓',
+    cancelada: '✕',
+    consultada: '👁',
+    exportada: '⬇',
+    erro: '⚠',
+};
+
+/** Mini-grafo fixo Emitente → NotaFiscal → Destinatário (React Flow). */
+function MiniGrafo({ emitente, destinatario, numero }: { emitente?: { razaoSocial?: string; cnpj?: string }; destinatario?: { razaoSocial?: string; cnpj?: string }; numero?: string }): JSX.Element {
+    const nodes: Node[] = [
+        { id: 'emit', position: { x: 0, y: 0 }, data: { label: emitente?.razaoSocial ?? '—' }, sourcePosition: 'right' as never, type: 'input' },
+        { id: 'nf', position: { x: 180, y: 0 }, data: { label: `NF ${numero ?? ''}` }, sourcePosition: 'right' as never, targetPosition: 'left' as never },
+        { id: 'dest', position: { x: 360, y: 0 }, data: { label: destinatario?.razaoSocial ?? '—' }, targetPosition: 'left' as never, type: 'output' },
+    ];
+    const edges: Edge[] = [
+        { id: 'e1', source: 'emit', target: 'nf', label: 'emitiu' },
+        { id: 'e2', source: 'nf', target: 'dest', label: 'destinada a' },
+    ];
+    return (
+        <div style={{ height: 160 }}>
+            <ReactFlow nodes={nodes} edges={edges} fitView nodesDraggable={false} nodesConnectable={false} elementsSelectable={false} proOptions={{ hideAttribution: true }}>
+                <Background />
+            </ReactFlow>
+        </div>
+    );
+}
 
 interface Tributos {
     vICMS?: number;
@@ -43,6 +76,7 @@ export function NFDetailPage(): JSX.Element {
     const { t } = useTranslation();
     const { chave } = useParams({ strict: false }) as { chave: string };
     const { data, isLoading, isError, refetch } = useNFDetail(chave);
+    const eventos = useNFEvents(chave);
 
     if (isLoading) return <LoadingSkeleton linhas={6} />;
     if (isError || !data) return <InlineError onRetry={() => void refetch()} />;
@@ -64,8 +98,14 @@ export function NFDetailPage(): JSX.Element {
     return (
         <div className="nf-detail">
             <div className="nf-detail__col">
-                <h2>{t('nf.detalheTitulo')} {nf.numero}</h2>
+                <div className="nf-detail__header">
+                    <h2>{t('nf.detalheTitulo')} {nf.numero}</h2>
+                    <button type="button" className="btn-baixar-xml" onClick={() => void downloadFile(`/nf/${chave}/xml`, `${chave}.xml`)} title={t('nf.baixarXml')}>
+                        ⬇ {t('nf.baixarXml')}
+                    </button>
+                </div>
                 <dl>
+                    <dt>{t('nf.chave')}</dt><dd><CopyableKey chave={chave} truncate={false} /></dd>
                     <dt>{t('nf.status')}</dt><dd><NFStatusBadge status={nf.status ?? 'ativa'} /></dd>
                     <dt>{t('nf.valor')}</dt><dd><CurrencyValue value={nf.valorTotal ?? 0} /></dd>
                     <dt>{t('nf.emissao')}</dt><dd><DateDisplay value={nf.dataEmissao} /></dd>
@@ -127,10 +167,30 @@ export function NFDetailPage(): JSX.Element {
 
             <aside className="nf-detail__grafo">
                 <h3>{t('nf.miniGrafo')}</h3>
+                <MiniGrafo emitente={nf.emitente} destinatario={nf.destinatario} numero={nf.numero} />
                 {nf.emitente?.cnpj && (
                     <Link to={'/grafo' as string} search={{ cnpj: nf.emitente.cnpj } as never}>
                         {t('nf.verNoGrafo')}
                     </Link>
+                )}
+
+                <h3>{t('nf.eventos')}</h3>
+                {eventos.isLoading ? (
+                    <LoadingSkeleton linhas={2} />
+                ) : eventos.isError ? (
+                    <InlineError onRetry={() => void eventos.refetch()} />
+                ) : (eventos.data?.eventos.length ?? 0) === 0 ? (
+                    <p className="nf-detail__sem-eventos">{t('nf.semEventos')}</p>
+                ) : (
+                    <ul className="timeline">
+                        {eventos.data!.eventos.map((ev, i) => (
+                            <li key={i} className="timeline__item">
+                                <span className="timeline__icone">{EVENTO_ICONE[ev.tipo] ?? '•'}</span>
+                                <span className="timeline__tipo">{ev.tipo}</span>
+                                <DateDisplay value={ev.timestamp} />
+                            </li>
+                        ))}
+                    </ul>
                 )}
             </aside>
         </div>

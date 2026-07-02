@@ -5,6 +5,10 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
+    "./lgpd": { "types": "./dist/utils/lgpd.utils.d.ts", "default": "./dist/utils/lgpd.utils.js" }
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json && pnpm run copy:schemas",
     "copy:schemas": "node -e \"require('node:fs').cpSync('src/schemas','dist/schemas',{recursive:true})\"",

@@ -11,6 +11,7 @@ function fakeService(over: Partial<ExportService>): ExportService {
     return {
         create: vi.fn(),
         get: vi.fn(),
+        list: vi.fn(() => []),
         read: vi.fn(),
         contentType: vi.fn(() => 'application/json'),
         ...over,
@@ -26,6 +27,30 @@ describe('POST /export (unit)', () => {
         const res = await app.inject({ method: 'POST', url: '/export', payload: { formato: 'json' } });
         expect(res.statusCode).toBe(202);
         expect(res.json().exportId).toBe('exp_1');
+    });
+});
+
+describe('GET /export (lista/histórico) (unit)', () => {
+    it('200 com a lista de exportações (mais recentes primeiro), com downloadUrl nas ready', async () => {
+        const svc = fakeService({
+            list: vi.fn(() => [job({ exportId: 'exp_2', status: 'ready' }), job({ exportId: 'exp_1', status: 'failed', erro: 'x' })]),
+        });
+        app = await buildTestApi((a) => exportRoutes(a, svc));
+        const res = await app.inject({ method: 'GET', url: '/export' });
+        expect(res.statusCode).toBe(200);
+        const data = res.json().data as Array<Record<string, unknown>>;
+        expect(data).toHaveLength(2);
+        expect(data[0]).toMatchObject({ exportId: 'exp_2', status: 'ready', downloadUrl: '/api/v1/export/exp_2/download' });
+        expect(data[1]).toMatchObject({ exportId: 'exp_1', status: 'failed', erro: 'x' });
+        expect(data[1]).not.toHaveProperty('downloadUrl');
+    });
+
+    it('200 com lista vazia quando não há exportações', async () => {
+        const svc = fakeService({ list: vi.fn(() => []) });
+        app = await buildTestApi((a) => exportRoutes(a, svc));
+        const res = await app.inject({ method: 'GET', url: '/export' });
+        expect(res.statusCode).toBe(200);
+        expect(res.json().data).toEqual([]);
     });
 });
 

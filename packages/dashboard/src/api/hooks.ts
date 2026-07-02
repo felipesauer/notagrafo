@@ -90,6 +90,21 @@ export function useNFDetail(chave: string) {
     });
 }
 
+export interface NFEvento {
+    tipo: string;
+    timestamp: string;
+    autor?: string;
+    ipOrigem?: string;
+}
+
+export function useNFEvents(chave: string) {
+    return useQuery({
+        queryKey: ['nf', 'eventos', chave],
+        queryFn: () => apiFetch<{ chaveAcesso: string; eventos: NFEvento[] }>(`/nf/${chave}/eventos`),
+        enabled: !!chave,
+    });
+}
+
 export function useCompany(cnpj: string) {
     return useQuery({
         queryKey: ['empresa', cnpj],

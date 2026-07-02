@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-EPIC-11
   kind: epic
-  state: OPEN
+  state: CLOSED
   title: >-
     Enriquecimento das ligações do grafo (impostos, produtos, NCM/CFOP) — API +
     dashboard
@@ -59,6 +59,6 @@ mnema:
     projeto: fake-driver/build-test-api/vi.hoisted, cobertura 90/90/70).
   metadata: {}
   created_at: '2026-06-29T19:04:53.090Z'
-  closed_at: null
+  closed_at: '2026-06-30T19:43:08.528Z'
 ---
 # Enriquecimento das ligações do grafo (impostos, produtos, NCM/CFOP) — API + dashboard

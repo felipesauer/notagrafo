@@ -1,5 +1,7 @@
-import { Component, type ErrorInfo, type JSX, type ReactNode } from 'react';
+import { Component, type ErrorInfo, type JSX, type ReactNode, useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { maskCpfIf, isCpf } from '@notagrafo/core/lgpd';
+import { isCpfMaskingEnabled } from '../lib/lgpd-config.js';
 
 /** Badge colorido do status da NF. */
 export function NFStatusBadge({ status }: { status: string }): JSX.Element {
@@ -16,10 +18,51 @@ export function NFStatusBadge({ status }: { status: string }): JSX.Element {
     );
 }
 
-/** CNPJ formatado (00.000.000/0000-00). */
+/**
+ * Chave de acesso da NF-e (44 dígitos) truncada, com botão de copiar a chave
+ * completa. Usa a Clipboard API quando disponível (feedback "copiado" por 2s).
+ */
+export function CopyableKey({ chave, truncate = true }: { chave: string; truncate?: boolean }): JSX.Element {
+    const { t } = useTranslation();
+    const [copiado, setCopiado] = useState(false);
+    const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+    const exibido = truncate && chave.length > 16 ? `${chave.slice(0, 8)}…${chave.slice(-6)}` : chave;
+
+    // Limpa o timer pendente ao desmontar (evita setState em componente morto).
+    useEffect(() => () => clearTimeout(timerRef.current), []);
+
+    function copiar(): void {
+        const p = navigator.clipboard?.writeText(chave);
+        if (!p) return; // Clipboard API indisponível (contexto não-seguro): no-op.
+        void p.then(() => {
+            setCopiado(true);
+            clearTimeout(timerRef.current);
+            timerRef.current = setTimeout(() => setCopiado(false), 2000);
+        });
+    }
+
+    return (
+        <span className="chave-acesso">
+            <code title={chave}>{exibido}</code>
+            <button type="button" className="chave-acesso__copiar" onClick={copiar} aria-label={t('nf.copiar')} title={t('nf.copiar')}>
+                {copiado ? t('nf.copiado') : '⧉'}
+            </button>
+        </span>
+    );
+}
+
+/**
+ * CNPJ formatado (00.000.000/0000-00). Se o valor for na verdade um CPF de MEI
+ * (11 dígitos) e o mascaramento LGPD estiver ativo, exibe-o pseudonimizado.
+ */
 export function CNPJText({ cnpj }: { cnpj: string }): JSX.Element {
-    const f = cnpj.length === 14 ? cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : cnpj;
-    return <span className="cnpj">{f}</span>;
+    if (cnpj.length === 14) {
+        const f = cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+        return <span className="cnpj">{f}</span>;
+    }
+    // Possível CPF de MEI (11 dígitos): aplica o mascaramento LGPD quando ativo.
+    const valor = isCpf(cnpj) ? maskCpfIf(isCpfMaskingEnabled(), cnpj) : cnpj;
+    return <span className="cnpj">{valor}</span>;
 }
 
 /** Valor monetário em BRL. */

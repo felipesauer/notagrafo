@@ -34,6 +34,9 @@ export const ptBR = {
     nf: {
         numero: 'Número', emitente: 'Emitente', destinatario: 'Destinatário', valor: 'Valor',
         status: 'Status', emissao: 'Emissão', todosStatus: 'Todos os status',
+        chave: 'Chave de acesso', acoes: 'Ações', verDetalhe: 'Ver detalhe',
+        baixarXml: 'Baixar XML', copiar: 'Copiar', copiado: 'Copiado!',
+        eventos: 'Eventos', semEventos: 'Nenhum evento registrado.',
         uploadTitulo: 'Enviar NFe', enviar: 'Enviar', uploadOk: 'NFe enfileirada.',
         dropAqui: 'Arraste um XML ou ZIP aqui, ou clique para selecionar',
         processando: 'Processando…',

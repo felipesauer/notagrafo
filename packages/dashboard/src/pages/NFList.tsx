@@ -2,7 +2,8 @@ import { type JSX, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useSearch } from '@tanstack/react-router';
 import { useNFList } from '../api/hooks.js';
-import { NFStatusBadge, CNPJText, CurrencyValue, DateDisplay, LoadingSkeleton, InlineError, EmptyState } from '../components/shared.js';
+import { downloadFile } from '../api/api.client.js';
+import { NFStatusBadge, CNPJText, CopyableKey, CurrencyValue, DateDisplay, LoadingSkeleton, InlineError, EmptyState } from '../components/shared.js';
 import { UploadModal } from '../components/UploadModal.js';
 import { FilterSidebar, type NFFiltros } from '../components/FilterSidebar.js';
 
@@ -78,21 +79,30 @@ export function NFListPage(): JSX.Element {
                     <table className="data-table">
                         <thead>
                             <tr>
+                                <th>{t('nf.chave')}</th>
                                 <th>{t('nf.numero')}</th>
                                 <th>{t('nf.emitente')}</th>
+                                <th>{t('nf.destinatario')}</th>
                                 <th>{t('nf.valor')}</th>
                                 <th>{t('nf.status')}</th>
                                 <th>{t('nf.emissao')}</th>
+                                <th>{t('nf.acoes')}</th>
                             </tr>
                         </thead>
                         <tbody>
                             {query.data.data.map((nf) => (
                                 <tr key={nf.chaveAcesso}>
+                                    <td><CopyableKey chave={nf.chaveAcesso} /></td>
                                     <td><Link to={'/nf/$chave' as string} params={{ chave: nf.chaveAcesso } as never}>{nf.numero}</Link></td>
                                     <td>{nf.emitente ? <CNPJText cnpj={nf.emitente.cnpj} /> : '—'}</td>
+                                    <td>{nf.destinatario ? <CNPJText cnpj={nf.destinatario.cnpj} /> : '—'}</td>
                                     <td><CurrencyValue value={nf.valorTotal} /></td>
                                     <td><NFStatusBadge status={nf.status} /></td>
                                     <td><DateDisplay value={nf.dataEmissao} /></td>
+                                    <td className="nf-list__acoes">
+                                        <Link to={'/nf/$chave' as string} params={{ chave: nf.chaveAcesso } as never} title={t('nf.verDetalhe')} aria-label={t('nf.verDetalhe')}>👁</Link>
+                                        <button type="button" className="link-icon" title={t('nf.baixarXml')} aria-label={t('nf.baixarXml')} onClick={() => void downloadFile(`/nf/${nf.chaveAcesso}/xml`, `${nf.chaveAcesso}.xml`)}>⬇</button>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>

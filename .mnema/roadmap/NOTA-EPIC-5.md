@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-EPIC-5
   kind: epic
-  state: OPEN
+  state: CLOSED
   title: '@nfp/api — Fastify REST'
   description: >-
     Pacote api: boot Fastify, plugins (auth JWT manual, swagger, rate-limit,
@@ -11,6 +11,6 @@ mnema:
     Testcontainers.
   metadata: {}
   created_at: '2026-06-26T00:45:40.460Z'
-  closed_at: null
+  closed_at: '2026-06-30T19:42:46.410Z'
 ---
 # @nfp/api — Fastify REST

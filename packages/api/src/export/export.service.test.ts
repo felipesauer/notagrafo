@@ -45,6 +45,21 @@ describe('ExportService — TTL/expiração', () => {
         expect(await service.get(job.exportId)).toBeNull();
     });
 
+    it('list() retorna as exportações mais recentes primeiro e omite ready expiradas', async () => {
+        const service = new ExportService(driverComRegistros([{ chaveAcesso: 'a', numero: '1' }]));
+        const j1 = service.create('json');
+        const j2 = service.create('csv');
+        await vi.waitFor(() => {
+            expect(j1.status).toBe('ready');
+            expect(j2.status).toBe('ready');
+        });
+        // uma ready expirada não deve aparecer na lista
+        Object.assign(j1, { expiresAt: Date.now() - 1000 });
+
+        const lista = service.list();
+        expect(lista.map((j) => j.exportId)).toEqual([j2.exportId]); // j1 expirada some; j2 (mais recente) fica
+    });
+
     it('contentType mapeia o formato', () => {
         const service = new ExportService(fakeDriver);
         expect(service.contentType('csv')).toContain('text/csv');
@@ -172,5 +187,31 @@ describe('ExportService — persistência em Redis (NOTA-47)', () => {
         const job = service.create('json');
         await vi.waitFor(() => expect(job.status).toBe('ready'));
         expect(await service.get(job.exportId)).not.toBeNull();
+    });
+
+    it('job processing órfão no Redis (restart no meio da geração) vira failed, não fica eterno (NOTA-79)', async () => {
+        const redis = fakeRedis();
+        // Simula o estado deixado por uma instância que morreu gerando: só o Redis
+        // tem o job, em status processing; a nova instância nunca o gerou.
+        const orfao = {
+            exportId: 'exp_orfao123',
+            formato: 'json',
+            status: 'processing',
+            progresso: 5,
+            total: 10,
+            totalRegistros: 0,
+            tamanhoBytes: 0,
+            expiresAt: Date.now() + 60_000,
+        };
+        redis.store.set('export:exp_orfao123', JSON.stringify(orfao));
+
+        const s2 = new ExportService(driverComRegistros(registros), 24, redis);
+        const recuperado = await s2.get('exp_orfao123');
+        expect(recuperado).not.toBeNull();
+        expect(recuperado).not.toBe('expired');
+        expect((recuperado as { status: string }).status).toBe('failed');
+        expect((recuperado as { erro?: string }).erro).toMatch(/reinício|restart|interromp/i);
+        // e o estado terminal foi persistido de volta no Redis
+        expect(JSON.parse(redis.store.get('export:exp_orfao123')!).status).toBe('failed');
     });
 });

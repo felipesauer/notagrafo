@@ -42,6 +42,58 @@ export async function exportRoutes(app: FastifyInstance, service: ExportService)
         },
     );
 
+    // GET /export — lista o histórico de exportações (mais recentes primeiro)
+    app.get(
+        '/export',
+        {
+            preHandler: app.authenticate,
+            schema: {
+                tags: ['export'],
+                summary: 'Lista as exportações (histórico)',
+                security: [{ bearerAuth: [] }],
+                response: {
+                    200: {
+                        type: 'object',
+                        properties: {
+                            data: {
+                                type: 'array',
+                                items: {
+                                    type: 'object',
+                                    properties: {
+                                        exportId: { type: 'string' },
+                                        status: { type: 'string', enum: ['queued', 'processing', 'ready', 'failed'] },
+                                        formato: { type: 'string', enum: ['csv', 'xlsx', 'json'] },
+                                        progresso: { type: 'number' },
+                                        total: { type: 'number' },
+                                        totalRegistros: { type: 'number' },
+                                        tamanhoBytes: { type: 'number' },
+                                        expiresAt: { type: 'string' },
+                                        erro: { type: 'string' },
+                                        downloadUrl: { type: 'string' },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        async () => ({
+            data: service.list().map((job) => ({
+                exportId: job.exportId,
+                status: job.status,
+                formato: job.formato,
+                totalRegistros: job.totalRegistros,
+                tamanhoBytes: job.tamanhoBytes,
+                expiresAt: new Date(job.expiresAt).toISOString(),
+                // progresso/total úteis para jobs em andamento (paridade com GET /export/:id).
+                ...(job.status === 'queued' || job.status === 'processing' ? { progresso: job.progresso, total: job.total } : {}),
+                ...(job.erro ? { erro: job.erro } : {}),
+                ...(job.status === 'ready' ? { downloadUrl: `/api/v1/export/${job.exportId}/download` } : {}),
+            })),
+        }),
+    );
+
     // GET /export/:exportId — status; 410 se expirado
     app.get<{ Params: { exportId: string } }>(
         '/export/:exportId',

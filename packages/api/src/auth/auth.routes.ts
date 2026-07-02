@@ -12,6 +12,9 @@ interface RefreshBody {
     token: string;
 }
 
+/** Janela de tolerância para refresh de token recém-expirado (contrato §1: 24h). */
+const REFRESH_GRACE_MS = 24 * 60 * 60 * 1000;
+
 /** Calcula a data de expiração de um token recém-assinado (a partir do exp). */
 function expiresAtFromToken(app: FastifyInstance, token: string): string {
     const decoded = app.jwt.decode<{ exp?: number }>(token);
@@ -71,11 +74,22 @@ export async function authRoutes(app: FastifyInstance, driver: Driver): Promise<
             },
         },
         async (request) => {
-            let claims: JwtClaims;
+            // Contrato §1: aceita token ainda válido OU recém-expirado dentro de
+            // uma janela de 24h. Verificamos a assinatura ignorando a expiração e
+            // aplicamos a janela manualmente sobre o claim `exp`.
+            let claims: JwtClaims & { exp?: number };
             try {
-                claims = app.jwt.verify<JwtClaims>(request.body.token);
+                claims = app.jwt.verify<JwtClaims & { exp?: number }>(request.body.token, {
+                    ignoreExpiration: true,
+                });
             } catch {
-                throw ApiError.unauthorized('Token inválido ou expirado para refresh.');
+                throw ApiError.unauthorized('Token inválido para refresh.');
+            }
+            if (claims.exp !== undefined) {
+                const expiradoHaMs = Date.now() - claims.exp * 1000;
+                if (expiradoHaMs > REFRESH_GRACE_MS) {
+                    throw ApiError.unauthorized('Token expirado há mais de 24h; faça login novamente.');
+                }
             }
             const freshToken = app.jwt.sign({ sub: claims.sub, email: claims.email, nome: claims.nome });
             return { token: freshToken, expiresAt: expiresAtFromToken(app, freshToken) };
