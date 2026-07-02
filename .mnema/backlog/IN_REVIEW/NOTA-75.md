@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-75
-  state: IN_PROGRESS
+  state: IN_REVIEW
   title: >-
     Implementar LGPD_MASK_CPF (pseudonimização de CPF em logs e UI) ou remover a
     claim
@@ -36,6 +36,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-02T16:55:14.326Z'
+  updated_at: '2026-07-02T17:51:19.819Z'
 ---
 # Implementar LGPD_MASK_CPF (pseudonimização de CPF em logs e UI) ou remover a claim

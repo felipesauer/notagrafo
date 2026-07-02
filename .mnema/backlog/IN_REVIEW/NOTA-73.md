@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-73
-  state: IN_PROGRESS
+  state: IN_REVIEW
   title: Proteção contra zip bomb no upload de NF-e
   description: >-
     extrairXmls (packages/api/src/nf/upload.utils.ts) descomprime todas as
@@ -34,6 +34,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-02T16:41:45.796Z'
+  updated_at: '2026-07-02T17:51:19.541Z'
 ---
 # Proteção contra zip bomb no upload de NF-e

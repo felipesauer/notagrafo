@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-80
-  state: IN_PROGRESS
+  state: IN_REVIEW
   title: 'Worker: mover jobs esgotados para a DLQ (NF_DLQ)'
   description: >-
     NF_DLQ é declarada em queue/config.ts:6 e prometida na doc (.plan/00
@@ -31,6 +31,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-02T16:44:58.272Z'
+  updated_at: '2026-07-02T17:51:20.947Z'
 ---
 # Worker: mover jobs esgotados para a DLQ (NF_DLQ)

@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-82
-  state: IN_PROGRESS
+  state: IN_REVIEW
   title: 'Worker: graceful shutdown (SIGTERM/SIGINT -> worker.close())'
   description: >-
     worker.ts não registra handlers de SIGTERM/SIGINT e nunca chama
@@ -28,6 +28,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-02T16:41:46.194Z'
+  updated_at: '2026-07-02T17:51:21.366Z'
 ---
 # Worker: graceful shutdown (SIGTERM/SIGINT -> worker.close())

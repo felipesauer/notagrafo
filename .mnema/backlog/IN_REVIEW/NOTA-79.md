@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-79
-  state: IN_PROGRESS
+  state: IN_REVIEW
   title: >-
     Export: job 'processing' órfão após restart deve terminar (failed), não
     ficar eterno
@@ -32,6 +32,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-02T16:44:58.074Z'
+  updated_at: '2026-07-02T17:51:20.738Z'
 ---
 # Export: job 'processing' órfão após restart deve terminar (failed), não ficar eterno
