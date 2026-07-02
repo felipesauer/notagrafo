@@ -1,3 +1,24 @@
+/* ── COMPAT preflight (NOTA-85) ──────────────────────────────
+   O preflight do Tailwind zera headings/margens/aparência de botões e inputs,
+   que as páginas ainda não migradas assumem do estilo de UA. Este bloco repõe
+   esses defaults para o CSS legado. Remover junto com o arquivo na NOTA-95. */
+h1 { font-size: 2em; font-weight: 700; margin: 0.67em 0; }
+h2 { font-size: 1.5em; font-weight: 700; margin: 0.83em 0; }
+h3 { font-size: 1.17em; font-weight: 700; margin: 1em 0; }
+h4 { font-size: 1em; font-weight: 700; margin: 1.33em 0; }
+p { margin: 1em 0; }
+ul { margin: 1em 0; padding-left: 2.5em; list-style: disc; }
+dl { margin: 1em 0; }
+dd { margin-left: 2.5em; }
+fieldset { border: 1px solid var(--muted); border-radius: 6px; padding: 0.5em 0.75em; margin: 0.5em 0; }
+a { color: var(--accent); text-decoration: underline; }
+button { border: 1px solid var(--muted); background: var(--card); color: var(--fg); padding: 0.35rem 0.75rem; border-radius: 6px; cursor: pointer; font: inherit; }
+input:not([type='checkbox']):not([type='radio']):not([type='file']), select, textarea {
+    border: 1px solid var(--muted); background: var(--bg); color: var(--fg);
+    padding: 0.35rem 0.5rem; border-radius: 6px; font: inherit;
+}
+/* ── fim COMPAT ── */
+
 /* Variáveis de tema claro/escuro, controladas por [data-theme] no <html>. */
 :root,
 [data-theme='claro'] {
@@ -22,7 +43,7 @@
 
 body {
     margin: 0;
-    font-family: system-ui, sans-serif;
+    font-family: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
     background: var(--bg);
     color: var(--fg);
 }
