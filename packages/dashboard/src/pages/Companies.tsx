@@ -11,7 +11,7 @@ function CompanyCard({ cnpj }: { cnpj: string }): JSX.Element {
     if (isLoading) return <LoadingSkeleton linhas={2} />;
     const e = data as (Record<string, unknown> & { stats?: { totalNFsEmitidas?: number; totalNFsRecebidas?: number } }) | undefined;
     return (
-        <div className="inline-card">
+        <div className="inline-card" data-testid="inline-card">
             <span>{t('empresas.nfsEmitidas')}: {e?.stats?.totalNFsEmitidas ?? 0}</span>
             <span>{t('empresas.nfsRecebidas')}: {e?.stats?.totalNFsRecebidas ?? 0}</span>
             <Link to={'/grafo' as string} search={{ cnpj } as never}>{t('empresas.verGrafo')}</Link>
@@ -31,7 +31,7 @@ export function CompaniesPage(): JSX.Element {
     return (
         <div className="empresas">
             <h2>{t('empresas.titulo')}</h2>
-            <table className="data-table">
+            <table className="data-table" data-testid="data-table">
                 <thead>
                     <tr><th>{t('empresas.razaoSocial')}</th><th>{t('empresas.cnpj')}</th><th>{t('empresas.uf')}</th><th>{t('empresas.nfsEmitidas')}</th></tr>
                 </thead>

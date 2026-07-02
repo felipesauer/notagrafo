@@ -6,7 +6,7 @@ import { CurrencyValue, LoadingSkeleton, InlineError, EmptyState } from '../comp
 
 function KpiCard({ label, valor }: { label: string; valor: number }): JSX.Element {
     return (
-        <div className="kpi-card">
+        <div className="kpi-card" data-testid="kpi-card">
             <span className="kpi-card__label">{label}</span>
             <strong className="kpi-card__valor"><CurrencyValue value={valor} /></strong>
         </div>
@@ -41,7 +41,7 @@ export function TaxesPage(): JSX.Element {
                 <KpiCard label={t('impostos.fcp')} valor={totais.vFCP} />
             </section>
 
-            <section className="chart">
+            <section className="chart" data-testid="chart">
                 <h3>{t('impostos.serieTitulo')}</h3>
                 <ResponsiveContainer width="100%" height={260}>
                     <LineChart data={serie}>
@@ -64,7 +64,7 @@ export function TaxesPage(): JSX.Element {
                         <p className="empty-hint">{t('comum.vazio')}</p>
                     ) : (
                         <div className="table-scroll">
-                            <table className="data-table">
+                            <table className="data-table" data-testid="data-table">
                                 <thead>
                                     <tr><th>{t('nf.ncm')}</th><th>{t('produtos.descricao')}</th><th>{t('impostos.totalImposto')}</th><th>{t('nf.icms')}</th></tr>
                                 </thead>
@@ -89,7 +89,7 @@ export function TaxesPage(): JSX.Element {
                         <p className="empty-hint">{t('comum.vazio')}</p>
                     ) : (
                         <div className="table-scroll">
-                            <table className="data-table">
+                            <table className="data-table" data-testid="data-table">
                                 <thead>
                                     <tr><th>{t('nf.cfop')}</th><th>{t('produtos.descricao')}</th><th>{t('nf.icms')}</th><th>{t('nf.ipi')}</th></tr>
                                 </thead>

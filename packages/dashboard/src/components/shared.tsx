@@ -12,7 +12,7 @@ export function NFStatusBadge({ status }: { status: string }): JSX.Element {
         inutilizada: '#6b7280',
     };
     return (
-        <span className="badge" style={{ background: cores[status] ?? '#6b7280' }}>
+        <span className="badge" data-testid="status-badge" style={{ background: cores[status] ?? '#6b7280' }}>
             {status}
         </span>
     );

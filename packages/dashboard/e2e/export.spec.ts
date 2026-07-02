@@ -6,11 +6,11 @@ test.describe('exportações', () => {
         await login(page);
         await page.getByRole('link', { name: /exportações|exports/i }).click();
 
-        await page.locator('.export-form select').selectOption('json');
+        await page.getByTestId('export-format').selectOption('json');
         await page.getByRole('button', { name: /gerar exportação|generate export/i }).click();
 
         // a exportação aparece na lista com um badge de status
-        await expect(page.locator('.export-list .data-table tbody tr').first()).toBeVisible({ timeout: 10_000 });
-        await expect(page.locator('.export-list .badge').first()).toBeVisible();
+        await expect(page.getByTestId('export-list').getByTestId('data-table').locator('tbody tr').first()).toBeVisible({ timeout: 10_000 });
+        await expect(page.getByTestId('export-list').getByTestId('status-badge').first()).toBeVisible();
     });
 });

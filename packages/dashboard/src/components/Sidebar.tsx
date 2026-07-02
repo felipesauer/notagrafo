@@ -27,7 +27,7 @@ export function Sidebar(): JSX.Element {
     }
 
     return (
-        <aside className="sidebar">
+        <aside className="sidebar" data-testid="app-sidebar">
             <div className="sidebar__brand">notagrafo</div>
             <nav className="sidebar__nav">
                 {ITENS.map((item) => (

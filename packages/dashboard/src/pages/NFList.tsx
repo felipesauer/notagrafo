@@ -60,7 +60,7 @@ export function NFListPage(): JSX.Element {
             <div className="nf-list__main">
             <div className="toolbar">
                 <input placeholder={t('comum.buscar')} value={q} onChange={(e) => aplicarFiltro(status, e.target.value)} />
-                <select value={status} onChange={(e) => aplicarFiltro(e.target.value, q)}>
+                <select value={status} onChange={(e) => aplicarFiltro(e.target.value, q)} data-testid="nf-status-filter">
                     <option value="">{t('nf.todosStatus')}</option>
                     <option value="ativa">ativa</option>
                     <option value="cancelada">cancelada</option>
@@ -76,7 +76,7 @@ export function NFListPage(): JSX.Element {
 
             {query.data && query.data.data.length > 0 && (
                 <>
-                    <table className="data-table">
+                    <table className="data-table" data-testid="data-table">
                         <thead>
                             <tr>
                                 <th>{t('nf.chave')}</th>

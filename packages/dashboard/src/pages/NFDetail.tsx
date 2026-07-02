@@ -121,7 +121,7 @@ export function NFDetailPage(): JSX.Element {
 
                 <h3>{t('nf.itens')}</h3>
                 <div className="table-scroll">
-                    <table className="data-table">
+                    <table className="data-table" data-testid="data-table">
                         <thead>
                             <tr>
                                 <th>#</th>

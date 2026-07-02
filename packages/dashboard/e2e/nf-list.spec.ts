@@ -5,15 +5,15 @@ test.describe('listagem de NFs', () => {
     test('filtra por status e abre o detalhe de uma NF', async ({ page }) => {
         await login(page);
         await page.getByRole('link', { name: /notas fiscais|invoices/i }).click();
-        await expect(page.locator('.data-table')).toBeVisible();
+        await expect(page.getByTestId('data-table')).toBeVisible();
 
-        // filtra por status ativa — o select de status fica na toolbar
-        // (o FilterSidebar tem outros selects, então restringimos à .toolbar)
-        await page.locator('.toolbar select').selectOption('ativa');
-        await expect(page.locator('.data-table tbody tr').first()).toBeVisible();
+        // filtra por status ativa — o select de status da toolbar tem testid
+        // próprio (o FilterSidebar tem outros selects)
+        await page.getByTestId('nf-status-filter').selectOption('ativa');
+        await expect(page.getByTestId('data-table').locator('tbody tr').first()).toBeVisible();
 
         // abre o detalhe pela primeira linha (link no número)
-        await page.locator('.data-table tbody tr a').first().click();
+        await page.getByTestId('data-table').locator('tbody tr a').first().click();
         await expect(page).toHaveURL(/\/nf\//);
         await expect(page.getByText(/itens|items/i)).toBeVisible();
     });

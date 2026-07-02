@@ -13,7 +13,7 @@ function PriceHistoryChart({ idUnico }: { idUnico: string }): JSX.Element {
     const serie = data?.historico ?? [];
     if (serie.length === 0) return <p className="empty-hint">{t('produtos.semHistorico')}</p>;
     return (
-        <div className="chart">
+        <div className="chart" data-testid="chart">
             <h4>{t('produtos.historicoPreco')}</h4>
             <ResponsiveContainer width="100%" height={200}>
                 <LineChart data={serie}>
@@ -50,7 +50,7 @@ export function ProductsPage(): JSX.Element {
     return (
         <div className="produtos">
             <h2>{t('produtos.titulo')}</h2>
-            <table className="data-table">
+            <table className="data-table" data-testid="data-table">
                 <thead>
                     <tr><th>{t('produtos.descricao')}</th><th>{t('produtos.ncm')}</th><th>{t('produtos.totalNFs')}</th><th>{t('produtos.valorTotal')}</th></tr>
                 </thead>
@@ -66,7 +66,7 @@ export function ProductsPage(): JSX.Element {
                             {expandido === p.idUnico && (
                                 <tr key={`${p.idUnico}-card`}>
                                     <td colSpan={4}>
-                                        <div className="inline-card">
+                                        <div className="inline-card" data-testid="inline-card">
                                             <span>{t('produtos.quantidade')}: {p.quantidadeTotal ?? 0}</span>
                                             <span>{t('produtos.precoMedio')}: <CurrencyValue value={p.precoMedio ?? 0} /></span>
                                         </div>

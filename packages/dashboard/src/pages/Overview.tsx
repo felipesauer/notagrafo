@@ -16,7 +16,7 @@ import { CurrencyValue, DateDisplay, LoadingSkeleton, InlineError } from '../com
 
 function KpiCard({ label, valor }: { label: string; valor: string | number }): JSX.Element {
     return (
-        <div className="kpi-card">
+        <div className="kpi-card" data-testid="kpi-card">
             <span className="kpi-card__label">{label}</span>
             <strong className="kpi-card__valor">{valor}</strong>
         </div>
@@ -76,7 +76,7 @@ export function OverviewPage(): JSX.Element {
                 <KpiCard label={t('overview.valorTotal')} valor={o.valorTotalProcessado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} />
             </section>
 
-            <section className="chart">
+            <section className="chart" data-testid="chart">
                 <h3>{t('overview.volumeTitulo')}</h3>
                 <ResponsiveContainer width="100%" height={260}>
                     <ComposedChart data={volumeSeries}>
@@ -90,7 +90,7 @@ export function OverviewPage(): JSX.Element {
                 </ResponsiveContainer>
             </section>
 
-            <section className="chart">
+            <section className="chart" data-testid="chart">
                 <h3>{t('overview.topFornecedores')}</h3>
                 <ResponsiveContainer width="100%" height={260}>
                     <BarChart data={ranking} layout="vertical">
@@ -102,7 +102,7 @@ export function OverviewPage(): JSX.Element {
                 </ResponsiveContainer>
             </section>
 
-            <section className="chart">
+            <section className="chart" data-testid="chart">
                 <h3>{t('overview.distribuicaoUf')}</h3>
                 {byUf.isLoading ? (
                     <LoadingSkeleton linhas={3} />
@@ -127,7 +127,7 @@ export function OverviewPage(): JSX.Element {
 
             <section className="table-section">
                 <h3>{t('overview.ultimasNFs')}</h3>
-                <table className="data-table">
+                <table className="data-table" data-testid="data-table">
                     <thead>
                         <tr>
                             <th>{t('overview.numero')}</th>

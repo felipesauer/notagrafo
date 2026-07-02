@@ -17,6 +17,6 @@ test.describe('autenticação', () => {
 
     test('login bem-sucedido entra na área autenticada', async ({ page }) => {
         await login(page);
-        await expect(page.locator('.sidebar')).toBeVisible();
+        await expect(page.getByTestId('app-sidebar')).toBeVisible();
     });
 });

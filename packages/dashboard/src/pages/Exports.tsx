@@ -65,7 +65,7 @@ export function ExportsPage(): JSX.Element {
                 <h2>{t('exportacoes.nova')}</h2>
                 <label>
                     {t('exportacoes.formato')}
-                    <select value={formato} onChange={(e) => setFormato(e.target.value as Formato)}>
+                    <select value={formato} onChange={(e) => setFormato(e.target.value as Formato)} data-testid="export-format">
                         <option value="csv">CSV</option>
                         <option value="xlsx">XLSX</option>
                         <option value="json">JSON</option>
@@ -83,7 +83,7 @@ export function ExportsPage(): JSX.Element {
                 <button type="button" onClick={() => void gerar()}>{t('exportacoes.gerar')}</button>
             </section>
 
-            <section className="export-list">
+            <section className="export-list" data-testid="export-list">
                 <h2>{t('exportacoes.historico')}</h2>
                 {historico.isLoading ? (
                     <LoadingSkeleton linhas={3} />
@@ -92,7 +92,7 @@ export function ExportsPage(): JSX.Element {
                 ) : registros.length === 0 ? (
                     <EmptyState mensagem={t('exportacoes.vazio')} />
                 ) : (
-                    <table className="data-table">
+                    <table className="data-table" data-testid="data-table">
                         <thead>
                             <tr><th>{t('exportacoes.formato')}</th><th>{t('nf.status')}</th><th>{t('exportacoes.acoes')}</th></tr>
                         </thead>
