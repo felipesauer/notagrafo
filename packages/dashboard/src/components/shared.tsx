@@ -1,6 +1,6 @@
 import { Component, type ErrorInfo, type JSX, type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { maskCpfIf, isCpf } from '@notagrafo/core';
+import { maskCpfIf, isCpf } from '@notagrafo/core/lgpd';
 import { isCpfMaskingEnabled } from '../lib/lgpd-config.js';
 
 /** Badge colorido do status da NF. */
