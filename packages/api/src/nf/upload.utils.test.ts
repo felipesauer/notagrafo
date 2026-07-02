@@ -34,7 +34,23 @@ describe('extrairXmls', () => {
         } catch (err) {
             expect(err).toBeInstanceOf(ApiError);
             expect((err as ApiError).statusCode).toBe(400);
-            expect((err as ApiError).message).toMatch(/XMLs demais|3 arquivos/);
+            expect((err as ApiError).message).toMatch(/entradas demais|3 arquivos/);
+        }
+    });
+
+    it('rejeita flood do diretório central: muitas entradas NÃO-xml (400)', () => {
+        // Regressão do achado da revisão: o limite deve valer sobre o TOTAL de
+        // entradas, não só as .xml — senão um ZIP com N entradas não-xml passa.
+        const limites: LimitesZip = { ...LIMITES_ZIP_PADRAO, maxEntradas: 3 };
+        const entradas: Record<string, string> = { 'nota.xml': '<a/>' };
+        for (let i = 0; i < 10; i++) entradas[`lixo${i}.bin`] = '';
+        try {
+            extrairXmls(zipCom(entradas), 'lote.zip', limites);
+            expect.unreachable('deveria ter lançado');
+        } catch (err) {
+            expect(err).toBeInstanceOf(ApiError);
+            expect((err as ApiError).statusCode).toBe(400);
+            expect((err as ApiError).message).toMatch(/entradas demais/);
         }
     });
 

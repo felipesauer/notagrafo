@@ -46,15 +46,20 @@ export function extrairXmls(
     }
 
     const zip = new AdmZip(buffer);
-    const xmlEntries = zip
-        .getEntries()
-        .filter((e) => !e.isDirectory && e.entryName.toLowerCase().endsWith('.xml'));
+    const entradas = zip.getEntries();
 
-    if (xmlEntries.length > limites.maxEntradas) {
+    // Barra flood do diretório central ANTES de filtrar por .xml: um ZIP com
+    // um número enorme de entradas (mesmo não-XML e vazias) consome CPU/memória
+    // só no parsing dos metadados. O limite vale sobre o TOTAL de entradas.
+    if (entradas.length > limites.maxEntradas) {
         throw ApiError.badRequest(
-            `ZIP com XMLs demais: ${xmlEntries.length} arquivos (máximo ${limites.maxEntradas}).`,
+            `ZIP com entradas demais: ${entradas.length} arquivos (máximo ${limites.maxEntradas}).`,
         );
     }
+
+    const xmlEntries = entradas.filter(
+        (e) => !e.isDirectory && e.entryName.toLowerCase().endsWith('.xml'),
+    );
 
     // Checagem via metadados do header (sem descomprimir) — soma o tamanho
     // descomprimido e detecta razões de compressão suspeitas por entrada.
