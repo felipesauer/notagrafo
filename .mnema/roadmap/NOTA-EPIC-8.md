@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-EPIC-8
   kind: epic
-  state: OPEN
+  state: CLOSED
   title: Hardening pós-auditoria (aderência ao contrato + UI + robustez)
   description: >-
     Corrigir os gaps/bugs reais encontrados na auditoria de integridade:
@@ -14,6 +14,6 @@ mnema:
     descartados por validação empírica.
   metadata: {}
   created_at: '2026-06-27T21:39:12.280Z'
-  closed_at: null
+  closed_at: '2026-06-30T19:42:53.948Z'
 ---
 # Hardening pós-auditoria (aderência ao contrato + UI + robustez)

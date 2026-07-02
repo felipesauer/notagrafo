@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-EPIC-10
   kind: epic
-  state: OPEN
+  state: CLOSED
   title: Padronizar identificadores de código para inglês (i18n de código)
   description: >-
     Boa parte do código-fonte usa identificadores em português (nomes de
@@ -40,6 +40,6 @@ mnema:
     os testes que referenciam os identificadores renomeados.
   metadata: {}
   created_at: '2026-06-29T02:20:46.114Z'
-  closed_at: null
+  closed_at: '2026-06-30T19:43:06.181Z'
 ---
 # Padronizar identificadores de código para inglês (i18n de código)

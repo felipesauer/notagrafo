@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-EPIC-9
   kind: epic
-  state: OPEN
+  state: CLOSED
   title: Auditoria 2 — Cobertura 90% e alinhamento de contrato
   description: >-
     Achados da 2ª auditoria (dupla-checada): elevar cobertura unit para 90%,
@@ -12,6 +12,6 @@ mnema:
     37/37, integração 66/66).
   metadata: {}
   created_at: '2026-06-28T22:03:36.608Z'
-  closed_at: null
+  closed_at: '2026-06-30T19:42:58.351Z'
 ---
 # Auditoria 2 — Cobertura 90% e alinhamento de contrato

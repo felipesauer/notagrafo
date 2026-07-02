@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "mnema_version": "^0.8.0-alpha.0",
+  "mnema_version": "^0.10.0-alpha.0",
   "project": {
     "key": "NOTA",
     "name": "notagrafo"
@@ -13,6 +13,7 @@
     "roadmap": ".mnema/roadmap",
     "memory": ".mnema/memory",
     "skills": ".mnema/skills",
+    "commands": ".mnema/commands",
     "workflows": ".mnema/workflows"
   },
   "workflow": "default",
@@ -28,10 +29,14 @@
   },
   "features": {
     "fts_search": true,
-    "attachments": true
+    "attachments": true,
+    "knowledge": true
   },
   "aging": {
-    "stale_after_days": 3
+    "stale_after_days": 3,
+    "orphan_run_after_hours": 24,
+    "sla_days": {},
+    "wip_limits": {}
   },
   "github": {
     "done_pr_policy": "off"

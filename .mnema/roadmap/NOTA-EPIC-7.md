@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-EPIC-7
   kind: epic
-  state: OPEN
+  state: CLOSED
   title: Infra, testes e CI/CD
   description: >-
     Dockerfiles multi-stage, docker-compose com profiles (app/demo),
@@ -10,6 +10,6 @@ mnema:
     open-source (README, CONTRIBUTING, LICENSE MIT, issue templates).
   metadata: {}
   created_at: '2026-06-26T00:45:40.790Z'
-  closed_at: null
+  closed_at: '2026-06-30T19:42:51.595Z'
 ---
 # Infra, testes e CI/CD
