@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-77
-  state: IN_REVIEW
+  state: DONE
   title: >-
     NFList: colunas chave de acesso (copiável), destinatário e Ações (.plan/03
     §4)
@@ -29,6 +29,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-02T17:51:20.326Z'
+  updated_at: '2026-07-02T18:41:24.988Z'
 ---
 # NFList: colunas chave de acesso (copiável), destinatário e Ações (.plan/03 §4)

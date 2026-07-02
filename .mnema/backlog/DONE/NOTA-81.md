@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-81
-  state: IN_REVIEW
+  state: DONE
   title: >-
     POST /auth/refresh: aceitar token recém-expirado (janela de 24h) conforme
     contrato
@@ -28,6 +28,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-02T17:51:21.157Z'
+  updated_at: '2026-07-02T18:41:25.775Z'
 ---
 # POST /auth/refresh: aceitar token recém-expirado (janela de 24h) conforme contrato

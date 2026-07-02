@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-78
-  state: IN_REVIEW
+  state: DONE
   title: GET /export (listagem) + hidratar histórico da página Exportações
   description: >-
     Não existe endpoint de listagem (export.routes.ts só tem POST /export, GET
@@ -32,6 +32,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-02T17:51:20.533Z'
+  updated_at: '2026-07-02T18:41:25.179Z'
 ---
 # GET /export (listagem) + hidratar histórico da página Exportações
