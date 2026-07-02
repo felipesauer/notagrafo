@@ -173,4 +173,30 @@ describe('ExportService — persistência em Redis (NOTA-47)', () => {
         await vi.waitFor(() => expect(job.status).toBe('ready'));
         expect(await service.get(job.exportId)).not.toBeNull();
     });
+
+    it('job processing órfão no Redis (restart no meio da geração) vira failed, não fica eterno (NOTA-79)', async () => {
+        const redis = fakeRedis();
+        // Simula o estado deixado por uma instância que morreu gerando: só o Redis
+        // tem o job, em status processing; a nova instância nunca o gerou.
+        const orfao = {
+            exportId: 'exp_orfao123',
+            formato: 'json',
+            status: 'processing',
+            progresso: 5,
+            total: 10,
+            totalRegistros: 0,
+            tamanhoBytes: 0,
+            expiresAt: Date.now() + 60_000,
+        };
+        redis.store.set('export:exp_orfao123', JSON.stringify(orfao));
+
+        const s2 = new ExportService(driverComRegistros(registros), 24, redis);
+        const recuperado = await s2.get('exp_orfao123');
+        expect(recuperado).not.toBeNull();
+        expect(recuperado).not.toBe('expired');
+        expect((recuperado as { status: string }).status).toBe('failed');
+        expect((recuperado as { erro?: string }).erro).toMatch(/reinício|restart|interromp/i);
+        // e o estado terminal foi persistido de volta no Redis
+        expect(JSON.parse(redis.store.get('export:exp_orfao123')!).status).toBe('failed');
+    });
 });

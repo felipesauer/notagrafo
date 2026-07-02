@@ -1,8 +1,9 @@
-import { Worker } from 'bullmq';
+import { Worker, type Queue } from 'bullmq';
 import type { Redis } from 'ioredis';
 import type { Driver } from 'neo4j-driver';
 import { getDriver, runMigrations, closeDriver } from '@notagrafo/graph';
 import { NF_QUEUE, createRedisConnection, workerConfigFromEnv } from './queue/config.js';
+import { createDLQ, moveToDeadLetter, type DeadLetterJobData } from './queue/dlq.js';
 import { processNFe, type ProcessNFeJobData } from './jobs/process-nfe.job.js';
 import { createXmlStorage } from './storage/factory.js';
 
@@ -11,6 +12,7 @@ export interface WorkerHandle {
     worker: Worker<ProcessNFeJobData>;
     connection: Redis;
     driver: Driver;
+    dlq: Queue<DeadLetterJobData>;
 }
 
 /**
@@ -22,6 +24,7 @@ export async function startWorker(): Promise<WorkerHandle> {
     const connection = createRedisConnection();
     const driver = getDriver();
     const storage = createXmlStorage();
+    const dlq = createDLQ(connection);
 
     await runMigrations(driver);
 
@@ -32,12 +35,51 @@ export async function startWorker(): Promise<WorkerHandle> {
     );
 
     worker.on('failed', (job, err) => {
-        // Logger estruturado entra na task de observabilidade (Sprint 7).
-        // eslint-disable-next-line no-console
-        console.error(`[worker] job ${job?.id} falhou (tentativa ${job?.attemptsMade}):`, err.message);
+        void handleFailedJob(dlq, config.maxRetries, job, err);
     });
 
-    return { worker, connection, driver };
+    return { worker, connection, driver, dlq };
+}
+
+/** Job BullMQ mínimo que o handler de falha precisa inspecionar/mover. */
+export interface FailedJobLike {
+    id?: string;
+    data: ProcessNFeJobData;
+    attemptsMade: number;
+    remove: () => Promise<void>;
+}
+
+/**
+ * Handler do evento `failed`: loga a falha e, quando o job ESGOTOU as tentativas
+ * (attemptsMade >= maxRetries), move-o para a dead-letter queue e o remove da
+ * fila principal — assim jobs mortos não ficam pendurados em `nf-processing`.
+ * Falhas intermediárias (ainda haverá retry) só são logadas.
+ */
+export async function handleFailedJob(
+    dlq: Queue<DeadLetterJobData>,
+    maxRetries: number,
+    job: FailedJobLike | undefined,
+    err: Error,
+): Promise<void> {
+    // eslint-disable-next-line no-console
+    console.error(`[worker] job ${job?.id} falhou (tentativa ${job?.attemptsMade}):`, err.message);
+    if (!job || job.attemptsMade < maxRetries) return;
+
+    try {
+        await moveToDeadLetter(dlq, {
+            original: job.data,
+            jobId: job.id ?? 'desconhecido',
+            erro: err.message,
+            tentativas: job.attemptsMade,
+            ...(job.data.origem ? { origem: job.data.origem } : {}),
+        });
+        await job.remove();
+        // eslint-disable-next-line no-console
+        console.error(`[worker] job ${job.id} movido para a DLQ após ${job.attemptsMade} tentativas.`);
+    } catch (dlqErr) {
+        // eslint-disable-next-line no-console
+        console.error(`[worker] falha ao mover job ${job.id} para a DLQ:`, (dlqErr as Error).message);
+    }
 }
 
 /**
@@ -48,6 +90,7 @@ export async function shutdownWorker(handle: WorkerHandle): Promise<void> {
     // eslint-disable-next-line no-console
     console.error('[worker] shutdown iniciado — aguardando job ativo…');
     await handle.worker.close();
+    await handle.dlq.close();
     await handle.connection.quit();
     await closeDriver();
     // eslint-disable-next-line no-console
