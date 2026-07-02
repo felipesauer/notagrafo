@@ -1,4 +1,4 @@
-import { Component, type ErrorInfo, type JSX, type ReactNode } from 'react';
+import { Component, type ErrorInfo, type JSX, type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { maskCpfIf, isCpf } from '@notagrafo/core';
 import { isCpfMaskingEnabled } from '../lib/lgpd-config.js';
@@ -14,6 +14,32 @@ export function NFStatusBadge({ status }: { status: string }): JSX.Element {
     return (
         <span className="badge" style={{ background: cores[status] ?? '#6b7280' }}>
             {status}
+        </span>
+    );
+}
+
+/**
+ * Chave de acesso da NF-e (44 dígitos) truncada, com botão de copiar a chave
+ * completa. Usa a Clipboard API quando disponível (feedback "copiado" por 2s).
+ */
+export function CopyableKey({ chave, truncate = true }: { chave: string; truncate?: boolean }): JSX.Element {
+    const { t } = useTranslation();
+    const [copiado, setCopiado] = useState(false);
+    const exibido = truncate && chave.length > 16 ? `${chave.slice(0, 8)}…${chave.slice(-6)}` : chave;
+
+    function copiar(): void {
+        void navigator.clipboard?.writeText(chave).then(() => {
+            setCopiado(true);
+            setTimeout(() => setCopiado(false), 2000);
+        });
+    }
+
+    return (
+        <span className="chave-acesso">
+            <code title={chave}>{exibido}</code>
+            <button type="button" className="chave-acesso__copiar" onClick={copiar} aria-label={t('nf.copiar')} title={t('nf.copiar')}>
+                {copiado ? t('nf.copiado') : '⧉'}
+            </button>
         </span>
     );
 }

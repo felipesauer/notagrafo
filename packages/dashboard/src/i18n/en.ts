@@ -45,6 +45,9 @@ export const en = {
     nf: {
         numero: 'Number', emitente: 'Issuer', destinatario: 'Recipient', valor: 'Value',
         status: 'Status', emissao: 'Issued', todosStatus: 'All statuses',
+        chave: 'Access key', acoes: 'Actions', verDetalhe: 'View detail',
+        baixarXml: 'Download XML', copiar: 'Copy', copiado: 'Copied!',
+        eventos: 'Events', semEventos: 'No events recorded.',
         uploadTitulo: 'Upload invoice', enviar: 'Upload', uploadOk: 'Invoice queued.',
         dropAqui: 'Drag an XML or ZIP here, or click to select',
         processando: 'Processing…',
