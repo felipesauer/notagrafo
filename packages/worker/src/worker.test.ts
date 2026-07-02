@@ -46,7 +46,7 @@ describe('shutdownWorker', () => {
         expect(connQuit).toHaveBeenCalledOnce();
         expect(closeDriver).toHaveBeenCalledOnce();
         // worker.close antes de quit da conexão (não corta job ativo à força).
-        expect(workerClose.mock.invocationCallOrder[0]).toBeLessThan(connQuit.mock.invocationCallOrder[0]);
+        expect(workerClose.mock.invocationCallOrder[0]!).toBeLessThan(connQuit.mock.invocationCallOrder[0]!);
     });
 });
 
@@ -64,7 +64,7 @@ describe('handleFailedJob (DLQ)', () => {
         const job = baseJob({ attemptsMade: 3 });
         await handleFailedJob(dlq, 3, job, new Error('boom'));
         expect(add).toHaveBeenCalledOnce();
-        const [nome, payload, opts] = add.mock.calls[0];
+        const [nome, payload, opts] = add.mock.calls[0]!;
         expect(nome).toBe('dead-letter');
         expect(payload).toMatchObject({ jobId: job.id, erro: 'boom', tentativas: 3, origem: 'lote.zip', original: job.data });
         expect(opts).toMatchObject({ jobId: `dlq:${job.id}` });

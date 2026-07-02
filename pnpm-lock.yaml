@@ -147,6 +147,9 @@ importers:
       '@dagrejs/dagre':
         specifier: ^3.0.0
         version: 3.0.0
+      '@notagrafo/core':
+        specifier: workspace:*
+        version: link:../core
       '@tanstack/react-query':
         specifier: ^5.101.1
         version: 5.101.1(react@19.2.7)

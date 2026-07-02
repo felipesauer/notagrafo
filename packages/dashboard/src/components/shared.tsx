@@ -1,5 +1,7 @@
 import { Component, type ErrorInfo, type JSX, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { maskCpfIf, isCpf } from '@notagrafo/core';
+import { isCpfMaskingEnabled } from '../lib/lgpd-config.js';
 
 /** Badge colorido do status da NF. */
 export function NFStatusBadge({ status }: { status: string }): JSX.Element {
@@ -16,10 +18,18 @@ export function NFStatusBadge({ status }: { status: string }): JSX.Element {
     );
 }
 
-/** CNPJ formatado (00.000.000/0000-00). */
+/**
+ * CNPJ formatado (00.000.000/0000-00). Se o valor for na verdade um CPF de MEI
+ * (11 dígitos) e o mascaramento LGPD estiver ativo, exibe-o pseudonimizado.
+ */
 export function CNPJText({ cnpj }: { cnpj: string }): JSX.Element {
-    const f = cnpj.length === 14 ? cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : cnpj;
-    return <span className="cnpj">{f}</span>;
+    if (cnpj.length === 14) {
+        const f = cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+        return <span className="cnpj">{f}</span>;
+    }
+    // Possível CPF de MEI (11 dígitos): aplica o mascaramento LGPD quando ativo.
+    const valor = isCpf(cnpj) ? maskCpfIf(isCpfMaskingEnabled(), cnpj) : cnpj;
+    return <span className="cnpj">{valor}</span>;
 }
 
 /** Valor monetário em BRL. */

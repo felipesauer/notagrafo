@@ -182,7 +182,7 @@ para `.env` e ajuste. As principais:
 | `AUTH_ENABLED` / `DEMO_AUTH_ENABLED` | `true` / `true` | Liga/desliga a auth (ver [Autenticação](#autenticação)) |
 | `AUTH_SECRET` / `AUTH_JWT_EXPIRES_IN` | — / `7d` | Assinatura e validade do JWT |
 | `EXPORT_TTL_HOURS` | `24` | Validade do arquivo de exportação |
-| `LGPD_MASK_CPF` | `false` | `true` → pseudonimiza CPFs de MEI nos logs e na UI |
+| `LGPD_MASK_CPF` / `VITE_LGPD_MASK_CPF` | `false` / `false` | `true` → pseudonimiza CPFs de MEI (11 díg. no campo `cnpj`) nos logs da API (Pino) e, com a flag `VITE_`, na UI do dashboard. CNPJs passam intactos |
 | `OTEL_EXPORTER` / `OTEL_ENDPOINT` | `none` / — | `console` \| `otlp` \| `none` |
 
 > SMTP / magic-link estão **fora do MVP** (ver `.env.example`). Em dev, o Mailpit
