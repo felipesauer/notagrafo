@@ -13,6 +13,8 @@ export interface WorkerHandle {
     connection: Redis;
     driver: Driver;
     dlq: Queue<DeadLetterJobData>;
+    /** Handlers `failed` em voo (DLQ/remove); aguardados antes de fechar conexões. */
+    pendingFailures: Set<Promise<void>>;
 }
 
 /**
@@ -34,11 +36,15 @@ export async function startWorker(): Promise<WorkerHandle> {
         { connection, concurrency: config.concurrency },
     );
 
+    // O handler roda async fora do ciclo do worker.close(); rastreamos cada
+    // promise para o shutdown poder aguardá-las antes de fechar dlq/conexões.
+    const pendingFailures = new Set<Promise<void>>();
     worker.on('failed', (job, err) => {
-        void handleFailedJob(dlq, config.maxRetries, job, err);
+        const p = handleFailedJob(dlq, config.maxRetries, job, err).finally(() => pendingFailures.delete(p));
+        pendingFailures.add(p);
     });
 
-    return { worker, connection, driver, dlq };
+    return { worker, connection, driver, dlq, pendingFailures };
 }
 
 /** Job BullMQ mínimo que o handler de falha precisa inspecionar/mover. */
@@ -65,6 +71,8 @@ export async function handleFailedJob(
     console.error(`[worker] job ${job?.id} falhou (tentativa ${job?.attemptsMade}):`, err.message);
     if (!job || job.attemptsMade < maxRetries) return;
 
+    // 1) Grava na DLQ. Se falhar aqui, NÃO removemos da fila principal — o job
+    //    fica como failed em nf-processing (removeOnFail:false), recuperável.
     try {
         await moveToDeadLetter(dlq, {
             original: job.data,
@@ -73,12 +81,21 @@ export async function handleFailedJob(
             tentativas: job.attemptsMade,
             ...(job.data.origem ? { origem: job.data.origem } : {}),
         });
+    } catch (dlqErr) {
+        // eslint-disable-next-line no-console
+        console.error(`[worker] falha ao gravar job ${job.id} na DLQ (mantido na fila principal):`, (dlqErr as Error).message);
+        return;
+    }
+
+    // 2) DLQ ok → remove da fila principal. Se o remove falhar, o job fica nas
+    //    DUAS filas; logamos como órfão para inspeção (não é perda de dado).
+    try {
         await job.remove();
         // eslint-disable-next-line no-console
         console.error(`[worker] job ${job.id} movido para a DLQ após ${job.attemptsMade} tentativas.`);
-    } catch (dlqErr) {
+    } catch (removeErr) {
         // eslint-disable-next-line no-console
-        console.error(`[worker] falha ao mover job ${job.id} para a DLQ:`, (dlqErr as Error).message);
+        console.error(`[worker] job ${job.id} gravado na DLQ mas NÃO removido da fila principal (órfão):`, (removeErr as Error).message);
     }
 }
 
@@ -90,6 +107,11 @@ export async function shutdownWorker(handle: WorkerHandle): Promise<void> {
     // eslint-disable-next-line no-console
     console.error('[worker] shutdown iniciado — aguardando job ativo…');
     await handle.worker.close();
+    // Aguarda os handlers `failed` disparados na parada (gravação na DLQ + remove)
+    // ANTES de fechar a DLQ/conexão que eles usam.
+    if (handle.pendingFailures.size > 0) {
+        await Promise.allSettled([...handle.pendingFailures]);
+    }
     await handle.dlq.close();
     await handle.connection.quit();
     await closeDriver();

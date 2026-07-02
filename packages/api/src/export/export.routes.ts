@@ -63,6 +63,8 @@ export async function exportRoutes(app: FastifyInstance, service: ExportService)
                                         exportId: { type: 'string' },
                                         status: { type: 'string', enum: ['queued', 'processing', 'ready', 'failed'] },
                                         formato: { type: 'string', enum: ['csv', 'xlsx', 'json'] },
+                                        progresso: { type: 'number' },
+                                        total: { type: 'number' },
                                         totalRegistros: { type: 'number' },
                                         tamanhoBytes: { type: 'number' },
                                         expiresAt: { type: 'string' },
@@ -84,6 +86,8 @@ export async function exportRoutes(app: FastifyInstance, service: ExportService)
                 totalRegistros: job.totalRegistros,
                 tamanhoBytes: job.tamanhoBytes,
                 expiresAt: new Date(job.expiresAt).toISOString(),
+                // progresso/total úteis para jobs em andamento (paridade com GET /export/:id).
+                ...(job.status === 'queued' || job.status === 'processing' ? { progresso: job.progresso, total: job.total } : {}),
                 ...(job.erro ? { erro: job.erro } : {}),
                 ...(job.status === 'ready' ? { downloadUrl: `/api/v1/export/${job.exportId}/download` } : {}),
             })),

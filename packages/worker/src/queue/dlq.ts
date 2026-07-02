@@ -26,10 +26,15 @@ export function createDLQ(connection: Redis): Queue<DeadLetterJobData> {
  * Move um job esgotado para a dead-letter queue: registra o payload original,
  * o erro e o número de tentativas para inspeção/reprocessamento posterior. Os
  * jobs da DLQ nunca são reprocessados automaticamente (attempts: 1).
+ *
+ * O jobId inclui o número de tentativas para que uma NFe que volte a ser
+ * enviada e falhe de novo (nova rodada de tentativas) gere um registro NOVO na
+ * DLQ, em vez de colidir com o anterior e ser ignorada silenciosamente pelo
+ * BullMQ (dedupe por jobId).
  */
 export async function moveToDeadLetter(dlq: Queue<DeadLetterJobData>, payload: DeadLetterJobData): Promise<void> {
     await dlq.add('dead-letter', payload, {
-        jobId: `dlq:${payload.jobId}`,
+        jobId: `dlq:${payload.jobId}:${payload.tentativas}`,
         attempts: 1,
         removeOnComplete: false,
         removeOnFail: false,

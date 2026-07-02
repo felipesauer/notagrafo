@@ -25,6 +25,7 @@ function fakeHandle(): {
         connection: { quit: connQuit } as unknown as Redis,
         driver: {} as Driver,
         dlq: { close: dlqClose } as unknown as Queue<DeadLetterJobData>,
+        pendingFailures: new Set(),
     };
     return { handle, workerClose, dlqClose, connQuit };
 }
@@ -48,6 +49,17 @@ describe('shutdownWorker', () => {
         // worker.close antes de quit da conexão (não corta job ativo à força).
         expect(workerClose.mock.invocationCallOrder[0]!).toBeLessThan(connQuit.mock.invocationCallOrder[0]!);
     });
+
+    it('aguarda os handlers de falha em voo ANTES de fechar a DLQ e a conexão', async () => {
+        const { handle, dlqClose } = fakeHandle();
+        let resolvido = false;
+        const emVoo = new Promise<void>((r) => setTimeout(() => { resolvido = true; r(); }, 30));
+        handle.pendingFailures.add(emVoo);
+        await shutdownWorker(handle);
+        // a DLQ só pode ter fechado depois que o handler em voo resolveu.
+        expect(resolvido).toBe(true);
+        expect(dlqClose).toHaveBeenCalledOnce();
+    });
 });
 
 describe('handleFailedJob (DLQ)', () => {
@@ -67,7 +79,8 @@ describe('handleFailedJob (DLQ)', () => {
         const [nome, payload, opts] = add.mock.calls[0]!;
         expect(nome).toBe('dead-letter');
         expect(payload).toMatchObject({ jobId: job.id, erro: 'boom', tentativas: 3, origem: 'lote.zip', original: job.data });
-        expect(opts).toMatchObject({ jobId: `dlq:${job.id}` });
+        // jobId inclui as tentativas: falhas repetidas da mesma chave não colidem.
+        expect(opts).toMatchObject({ jobId: `dlq:${job.id}:3` });
         expect(job.remove).toHaveBeenCalledOnce();
     });
 
@@ -77,6 +90,21 @@ describe('handleFailedJob (DLQ)', () => {
         await handleFailedJob(dlq, 3, job, new Error('transitório'));
         expect(add).not.toHaveBeenCalled();
         expect(job.remove).not.toHaveBeenCalled();
+    });
+
+    it('se a gravação na DLQ falha, NÃO remove da fila principal (job recuperável)', async () => {
+        const dlq = { add: vi.fn(async () => { throw new Error('redis down'); }) } as unknown as Queue<DeadLetterJobData>;
+        const job = baseJob({ attemptsMade: 3 });
+        await handleFailedJob(dlq, 3, job, new Error('boom'));
+        expect(job.remove).not.toHaveBeenCalled();
+    });
+
+    it('se a DLQ grava mas o remove falha, não relança (job fica órfão, sem perda)', async () => {
+        const { dlq, add } = fakeDLQ();
+        const job = baseJob({ attemptsMade: 3, remove: vi.fn(async () => { throw new Error('missing lock'); }) });
+        await expect(handleFailedJob(dlq, 3, job, new Error('boom'))).resolves.toBeUndefined();
+        expect(add).toHaveBeenCalledOnce();
+        expect(job.remove).toHaveBeenCalledOnce();
     });
 
     it('usa o nome de DLQ configurado', () => {
