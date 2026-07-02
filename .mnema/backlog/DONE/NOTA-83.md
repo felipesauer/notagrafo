@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-83
-  state: IN_REVIEW
+  state: DONE
   title: >-
     Ressincronizar mirror .mnema (backlog/roadmap) com o banco e versionar audit
     2026-06
@@ -32,6 +32,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-02T17:51:21.571Z'
+  updated_at: '2026-07-02T18:41:26.168Z'
 ---
 # Ressincronizar mirror .mnema (backlog/roadmap) com o banco e versionar audit 2026-06

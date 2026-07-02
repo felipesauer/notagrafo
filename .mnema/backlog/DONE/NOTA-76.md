@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-76
-  state: IN_REVIEW
+  state: DONE
   title: >-
     NFDetail: paridade com .plan/03 §5 (chave copiável, Baixar XML, timeline de
     eventos, mini-grafo React Flow)
@@ -30,6 +30,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-02T17:51:20.116Z'
+  updated_at: '2026-07-02T18:41:24.787Z'
 ---
 # NFDetail: paridade com .plan/03 §5 (chave copiável, Baixar XML, timeline de eventos, mini-grafo React Flow)

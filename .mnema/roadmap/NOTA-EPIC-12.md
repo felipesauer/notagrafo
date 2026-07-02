@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-EPIC-12
   kind: epic
-  state: OPEN
+  state: CLOSED
   title: Auditoria 3 — correções dos achados confirmados (2026-07-02)
   description: >-
     Corrigir os 10 achados confirmados na auditoria de 2026-07-02 (5 scanners +
@@ -17,6 +17,6 @@ mnema:
     unit 222/222, integração 86/86, pnpm audit limpo.
   metadata: {}
   created_at: '2026-07-02T16:29:38.268Z'
-  closed_at: null
+  closed_at: '2026-07-02T18:41:38.359Z'
 ---
 # Auditoria 3 — correções dos achados confirmados (2026-07-02)
