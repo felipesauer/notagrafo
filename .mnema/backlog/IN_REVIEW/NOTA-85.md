@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-85
-  state: DRAFT
+  state: IN_REVIEW
   title: 'Fundação: Tailwind v4 + shadcn/ui + design tokens + tipografia'
   description: >-
     Instalar tailwindcss + @tailwindcss/vite + @fontsource-variable/inter no
@@ -10,15 +10,10 @@ mnema:
     build script; fallback @tailwindcss/postcss se o plugin recusar peer do Vite
     8). Aliases @/* em tsconfig e vite.config. Criar src/styles/globals.css:
     @custom-variant dark ([data-theme='escuro']) preservando theme.store, tokens
-    shadcn + domínio (--status-ativa/cancelada/denegada/inutilizada,
-    --export-pending/processing/ready/failed, --chart-1..8) com override dark,
-    @theme inline, Inter Variable + tabular-nums. shadcn init (new-york,
-    neutral) + add: button input label badge card table dialog sheet
-    dropdown-menu tooltip separator skeleton sonner collapsible accordion
-    popover progress scroll-area sidebar breadcrumb switch checkbox avatar
-    slider. Compat block ~15 linhas no index.css legado (preflight reseta
-    headings/botões/inputs das páginas não migradas). Criar src/lib/status.ts
-    como fonte única de cores de status NF + export.
+    shadcn + domínio (--status-*, --export-*, --chart-1..8) com override dark,
+    @theme inline, Inter Variable + tabular-nums. shadcn (new-york, neutral) +
+    add de ~22 primitivos. Compat block no index.css legado. Criar
+    src/lib/status.ts como fonte única de cores de status NF + export.
   acceptance_criteria:
     - build (tsc+vite), lint e test:unit verdes
     - e2e verdes com compat block (visual legado preservado)
@@ -32,12 +27,12 @@ mnema:
     - tipo:redesign
   estimate: 5
   priority: 1
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
   epic_key: NOTA-EPIC-13
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-02T19:28:39.726Z'
+  updated_at: '2026-07-02T19:51:43.525Z'
 ---
 # Fundação: Tailwind v4 + shadcn/ui + design tokens + tipografia
