@@ -73,6 +73,20 @@ describe('POST /auth/refresh (unit)', () => {
         const res = await app.inject({ method: 'POST', url: '/auth/refresh', payload: { token: 'lixo' } });
         expect(res.statusCode).toBe(401);
     });
+    it('renova um token recém-expirado (dentro da janela de 24h)', async () => {
+        app = await build();
+        // Expirou há ~1h (exp no passado, mas dentro das últimas 24h).
+        const token = app.jwt.sign({ sub: 'u1', email: 'a', nome: 'A' }, { expiresIn: '-1h' });
+        const res = await app.inject({ method: 'POST', url: '/auth/refresh', payload: { token } });
+        expect(res.statusCode).toBe(200);
+        expect(res.json().token).toBeTruthy();
+    });
+    it('401 para token expirado há mais de 24h', async () => {
+        app = await build();
+        const token = app.jwt.sign({ sub: 'u1', email: 'a', nome: 'A' }, { expiresIn: '-25h' });
+        const res = await app.inject({ method: 'POST', url: '/auth/refresh', payload: { token } });
+        expect(res.statusCode).toBe(401);
+    });
 });
 
 describe('GET /auth/me (unit)', () => {
