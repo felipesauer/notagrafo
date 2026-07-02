@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-78
-  state: READY
+  state: IN_PROGRESS
   title: GET /export (listagem) + hidratar histórico da página Exportações
   description: >-
     Não existe endpoint de listagem (export.routes.ts só tem POST /export, GET
@@ -26,12 +26,12 @@ mnema:
     - tipo:gap
   estimate: 2
   priority: 2
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f03ba-735c-725c-b52a-22a88c9abe61
   epic_key: NOTA-EPIC-12
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-02T16:36:48.832Z'
+  updated_at: '2026-07-02T16:58:19.157Z'
 ---
 # GET /export (listagem) + hidratar histórico da página Exportações

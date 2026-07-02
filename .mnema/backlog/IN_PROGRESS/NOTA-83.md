@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-83
-  state: READY
+  state: IN_PROGRESS
   title: >-
     Ressincronizar mirror .mnema (backlog/roadmap) com o banco e versionar audit
     2026-06
@@ -26,12 +26,12 @@ mnema:
     - tipo:incoerencia
   estimate: 1
   priority: 3
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f03ba-735c-725c-b52a-22a88c9abe61
   epic_key: NOTA-EPIC-12
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-02T16:36:49.889Z'
+  updated_at: '2026-07-02T17:04:38.623Z'
 ---
 # Ressincronizar mirror .mnema (backlog/roadmap) com o banco e versionar audit 2026-06
