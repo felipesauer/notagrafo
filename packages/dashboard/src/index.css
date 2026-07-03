@@ -8,24 +8,21 @@
    Escopado às classes de página ainda NÃO migradas — Overview, Login, NFList,
    FilterSidebar e UploadModal já saíram, então não constam aqui. A NOTA-95
    remove o resto ao migrar as últimas páginas. */
-.nf-detail h2, .nf-detail h3, .empresas h2, .produtos h2, .impostos h2, .impostos h3,
+.empresas h2, .produtos h2, .impostos h2, .impostos h3,
 .exportacoes h2, .configuracoes h2, .configuracoes h3, .grafo-page h3, .graph-panel h3 { font-weight: 700; margin: 0.6em 0; }
-.nf-detail h2, .empresas h2, .produtos h2, .impostos h2, .exportacoes h2, .configuracoes h2 { font-size: 1.5em; }
-.nf-detail h3, .impostos h3, .configuracoes h3, .grafo-page h3, .graph-panel h3 { font-size: 1.1em; }
-.nf-detail p, .impostos p, .configuracoes p, .exportacoes p { margin: 0.5em 0; }
-.nf-detail dl { margin: 0.5em 0; }
-.nf-detail dd { margin: 0 0 0.5em; }
-.nf-detail dt { font-weight: 600; color: var(--muted); font-size: 0.85em; }
-.impostos ul, .configuracoes ul, .nf-detail ul.timeline { list-style: none; padding: 0; margin: 0; }
+.empresas h2, .produtos h2, .impostos h2, .exportacoes h2, .configuracoes h2 { font-size: 1.5em; }
+.impostos h3, .configuracoes h3, .grafo-page h3, .graph-panel h3 { font-size: 1.1em; }
+.impostos p, .configuracoes p, .exportacoes p { margin: 0.5em 0; }
+.impostos ul, .configuracoes ul { list-style: none; padding: 0; margin: 0; }
 .exportacoes fieldset, .configuracoes fieldset { border: 1px solid var(--muted); border-radius: 6px; padding: 0.5em 0.75em; margin: 0.5em 0; }
-.nf-detail a, .empresas a, .produtos a, .impostos a, .exportacoes a, .graph-panel a { color: var(--accent); }
+.empresas a, .produtos a, .impostos a, .exportacoes a, .graph-panel a { color: var(--accent); }
 /* Botões e inputs SÓ dentro dos wrappers legados (nunca sobre .ui do shadcn). */
-.nf-detail button, .empresas button, .produtos button, .impostos button,
+.empresas button, .produtos button, .impostos button,
 .exportacoes button, .configuracoes button, .grafo-page button, .graph-panel button {
     border: 1px solid var(--muted); background: var(--card); color: var(--fg);
     padding: 0.35rem 0.75rem; border-radius: 6px; cursor: pointer; font: inherit;
 }
-.nf-detail input, .exportacoes input:not([type='checkbox']), .exportacoes select,
+.exportacoes input:not([type='checkbox']), .exportacoes select,
 .grafo-page input, .grafo-page select, .configuracoes input {
     border: 1px solid var(--muted); background: var(--bg); color: var(--fg);
     padding: 0.35rem 0.5rem; border-radius: 6px; font: inherit;
@@ -90,9 +87,8 @@ body {
 .data-table__totais td { font-weight: 600; border-top: 2px solid var(--muted, #888); }
 .empty-hint { color: var(--muted, #888); padding: 1rem 0; }
 .badge { color: #fff; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.8rem; }
-.nf-detail { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
 .impostos__rankings { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start; }
-@media (max-width: 800px) { .impostos__rankings { grid-template-columns: 1fr; } .nf-detail { grid-template-columns: 1fr; } }
+@media (max-width: 800px) { .impostos__rankings { grid-template-columns: 1fr; } }
 .inline-card { display: flex; gap: 1.5rem; padding: 0.75rem; background: var(--card); border-radius: 6px; }
 .skeleton__row { height: 1.5rem; background: var(--card); border-radius: 4px; margin-bottom: 0.5rem; animation: pulse 1.5s infinite; }
 @keyframes pulse { 50% { opacity: 0.5; } }
