@@ -9,6 +9,7 @@ export const en = {
         vazio: 'No results.',
         buscar: 'Search',
         fechar: 'Close',
+        voltar: 'Back',
         erroFatal: 'Something went wrong. Please reload the page.',
     },
     login: {
@@ -108,6 +109,7 @@ export const en = {
         buscarEmpresa: 'Search company (Tax ID)', profundidade: 'Depth',
         ambos: 'Both', emitente: 'Issuer', destinatario: 'Recipient',
         resetar: 'Reset', exportPng: 'Export PNG',
+        tituloDrawer: 'Relationship graph', subtituloDrawer: 'This company’s trade partners', abrirCompleto: 'Open full',
         vazio: 'Search a company to start.',
         incluirProdutos: 'Include products',
         nfsComImposto: 'Invoices with ICMS', nfsDoNcm: 'Invoices of this NCM',

@@ -9,6 +9,7 @@ export const ptBR = {
         vazio: 'Nenhum resultado.',
         buscar: 'Buscar',
         fechar: 'Fechar',
+        voltar: 'Voltar',
         erroFatal: 'Algo deu errado. Recarregue a página.',
     },
     login: {
@@ -97,6 +98,7 @@ export const ptBR = {
         buscarEmpresa: 'Buscar empresa (CNPJ)', profundidade: 'Profundidade',
         ambos: 'Ambos', emitente: 'Emitente', destinatario: 'Destinatário',
         resetar: 'Resetar', exportPng: 'Exportar PNG',
+        tituloDrawer: 'Grafo de relações', subtituloDrawer: 'Parceiros comerciais desta empresa', abrirCompleto: 'Abrir completo',
         vazio: 'Busque uma empresa para começar.',
         incluirProdutos: 'Incluir produtos',
         nfsComImposto: 'NFs com ICMS', nfsDoNcm: 'NFs deste NCM',

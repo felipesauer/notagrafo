@@ -11,8 +11,14 @@ test.describe('Detalhe da NF', () => {
         await page.getByTestId('data-table').locator('tbody tr a').first().click();
         await expect(page).toHaveURL(/\/nf\//);
 
-        // seção de itens e o mini-grafo (link para /grafo)
+        // seção de itens e o botão do grafo (abre o drawer, sem trocar de página)
         await expect(page.getByRole('heading', { name: /itens|items/i })).toBeVisible();
-        await expect(page.getByRole('link', { name: /ver no grafo|view in graph/i })).toBeVisible();
+        const grafoBtn = page.getByRole('button', { name: /ver no grafo|view in graph/i });
+        await expect(grafoBtn).toBeVisible();
+
+        // o grafo abre como painel (dialog/sheet) mantendo a URL da NF
+        await grafoBtn.click();
+        await expect(page.getByRole('dialog')).toBeVisible();
+        await expect(page).toHaveURL(/\/nf\//);
     });
 });

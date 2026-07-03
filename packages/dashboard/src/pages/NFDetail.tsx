@@ -1,6 +1,6 @@
-import { type JSX } from 'react';
+import { type JSX, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams, Link } from '@tanstack/react-router';
+import { useParams, useRouter } from '@tanstack/react-router';
 import { ReactFlow, Background, type Edge, type Node } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { toast } from 'sonner';
@@ -17,8 +17,10 @@ import {
 } from 'lucide-react';
 import { useNFDetail, useNFEvents } from '../api/hooks.js';
 import { downloadFile } from '../api/api.client.js';
+import { useThemeStore } from '../stores/theme.store.js';
 import { NFStatusBadge, CopyableKey, CurrencyValue, DateDisplay, LoadingSkeleton, InlineError } from '../components/shared.js';
 import { PageHeader } from '../components/PageHeader.js';
+import { GraphDrawer } from '../graph/GraphDrawer.js';
 import { Button } from '../components/ui/button.js';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card.js';
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '../components/ui/table.js';
@@ -100,9 +102,12 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 /** Detalhe de uma NF: dados + CFOP, itens com NCM e tributos, totais, mini-grafo e eventos. */
 export function NFDetailPage(): JSX.Element {
     const { t } = useTranslation();
+    const router = useRouter();
+    const tema = useThemeStore((s) => s.tema);
     const { chave } = useParams({ strict: false }) as { chave: string };
     const { data, isLoading, isError, refetch } = useNFDetail(chave);
     const eventos = useNFEvents(chave);
+    const [grafoAberto, setGrafoAberto] = useState(false);
 
     if (isLoading) return <LoadingSkeleton variant="card" />;
     if (isError || !data) return <InlineError onRetry={() => void refetch()} />;
@@ -129,6 +134,7 @@ export function NFDetailPage(): JSX.Element {
         <div>
             <PageHeader
                 title={`${t('nf.detalheTitulo')} ${nf.numero ?? ''}`}
+                onBack={() => router.history.back()}
                 actions={
                     <Button type="button" variant="outline" onClick={baixarXml}>
                         <Download /> {t('nf.baixarXml')}
@@ -225,10 +231,8 @@ export function NFDetailPage(): JSX.Element {
                         <CardContent className="space-y-3 px-4">
                             <MiniGrafo emitente={nf.emitente} destinatario={nf.destinatario} numero={nf.numero} />
                             {nf.emitente?.cnpj && (
-                                <Button asChild variant="outline" size="sm" className="w-full">
-                                    <Link to={'/grafo' as string} search={{ cnpj: nf.emitente.cnpj } as never}>
-                                        <Network /> {t('nf.verNoGrafo')}
-                                    </Link>
+                                <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => setGrafoAberto(true)}>
+                                    <Network /> {t('nf.verNoGrafo')}
                                 </Button>
                             )}
                         </CardContent>
@@ -263,6 +267,10 @@ export function NFDetailPage(): JSX.Element {
                     </Card>
                 </aside>
             </div>
+
+            {nf.emitente?.cnpj && (
+                <GraphDrawer cnpj={nf.emitente.cnpj} open={grafoAberto} onOpenChange={setGrafoAberto} dark={tema === 'escuro'} />
+            )}
         </div>
     );
 }
