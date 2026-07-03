@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-101
-  state: DRAFT
+  state: CANCELED
   title: 'Grafo rico: lib oficial ui.reactflow.dev (nós-card, hover, arestas com peso)'
   description: >-
     Instalar a biblioteca oficial de componentes do React Flow
@@ -26,6 +26,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T02:04:19.667Z'
+  updated_at: '2026-07-03T02:44:50.281Z'
 ---
 # Grafo rico: lib oficial ui.reactflow.dev (nós-card, hover, arestas com peso)
