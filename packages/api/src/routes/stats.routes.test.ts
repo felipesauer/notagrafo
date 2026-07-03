@@ -134,3 +134,27 @@ describe('GET /stats/fluxo (unit)', () => {
         expect(res.statusCode).toBe(400);
     });
 });
+
+describe('GET /stats/rede (unit)', () => {
+    it('retorna nós e arestas da rede', async () => {
+        const responder = (_c: string, _p: Record<string, unknown>, i: number) =>
+            i === 0
+                ? [rec({ de: '111', para: '222', totalNFs: 5, valorTotal: 9000 })]
+                : [rec({ cnpj: '111', razaoSocial: 'Alpha', uf: 'SP', totalNFs: 10 }), rec({ cnpj: '222', razaoSocial: 'Beta', uf: 'MG', totalNFs: 7 })];
+        const { driver } = makeFakeDriver(responder);
+        app = await buildTestApi((a) => statsRoutes(a, driver));
+        const res = await app.inject({ method: 'GET', url: '/stats/rede?limite=100' });
+        expect(res.statusCode).toBe(200);
+        const j = res.json();
+        expect(j.arestas).toHaveLength(1);
+        expect(j.nos).toHaveLength(2);
+        expect(j.nos[0]).toMatchObject({ cnpj: '111', razaoSocial: 'Alpha', totalNFs: 10 });
+    });
+
+    it('rejeita limite acima do máximo do schema (501 → 400)', async () => {
+        const { driver } = makeFakeDriver(() => []);
+        app = await buildTestApi((a) => statsRoutes(a, driver));
+        const res = await app.inject({ method: 'GET', url: '/stats/rede?limite=501' });
+        expect(res.statusCode).toBe(400);
+    });
+});

@@ -121,6 +121,8 @@ export const en = {
         fluxoTitulo: 'Value flow between companies', fluxoAjuda: 'Each band links an issuer to a recipient; thickness represents the total value billed in the period.',
         topPares: 'Pairs shown', vazio: 'No company-to-company flow in the base yet.',
         totalNFs: 'Invoices', valor: 'Value',
+        redeTitulo: 'Full trade network', redeAjuda: 'Each node is a company (size ∝ activity); colors group by state. Click two companies to highlight the path between them.',
+        nosExibidos: 'Nodes shown', limparSelecao: 'Clear selection', porUf: 'Color by state',
     },
     exportacoes: {
         nova: 'New export', formato: 'Format', campos: 'Fields', gerar: 'Generate export',

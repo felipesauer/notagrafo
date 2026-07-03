@@ -55,3 +55,81 @@ export async function getFluxoEmpresas(driver: Driver, opts: { limite?: number }
         await session.close();
     }
 }
+
+/** Um nó da rede global: uma empresa e o seu grau de atividade. */
+export interface RedeNo {
+    cnpj: string;
+    razaoSocial: string;
+    uf: string;
+    totalNFs: number; // NFs emitidas + recebidas (dimensiona o nó)
+}
+
+/** Uma aresta da rede global: relação comercial agregada entre duas empresas. */
+export interface RedeAresta {
+    de: string;
+    para: string;
+    totalNFs: number;
+    valorTotal: number;
+}
+
+export interface RedeGlobal {
+    nos: RedeNo[];
+    arestas: RedeAresta[];
+    limite: number;
+}
+
+/**
+ * Rede comercial completa da base: empresas (nós) e as relações agregadas
+ * emitente→destinatário (arestas). Aplica um limite de segurança nas arestas
+ * (as `limite` de maior valor) e traz apenas os nós que participam delas — o
+ * suficiente para uma exploração em força/WebGL sem carregar a base inteira.
+ */
+export async function getRedeGlobal(driver: Driver, opts: { limite?: number } = {}): Promise<RedeGlobal> {
+    const limite = Math.min(Math.max(opts.limite ?? 150, 1), 500);
+    const session = driver.session();
+    try {
+        // Arestas: top-N relações por valor (mesmo padrão do fluxo, sem laços).
+        const arestasRes = await session.run(
+            `MATCH (a:Empresa)-[:EMITIU]->(nf:NotaFiscal)-[:DESTINADA_A]->(b:Empresa)
+             WHERE a.cnpj <> b.cnpj
+             WITH a, b, count(nf) AS totalNFs, sum(nf.valorTotal) AS valorTotal
+             RETURN a.cnpj AS de, b.cnpj AS para, totalNFs, valorTotal
+             ORDER BY valorTotal DESC
+             LIMIT $limite`,
+            { limite: neo4j.int(limite) },
+        );
+        const arestas: RedeAresta[] = arestasRes.records.map((r) => ({
+            de: r.get('de') as string,
+            para: r.get('para') as string,
+            totalNFs: toNum(r.get('totalNFs')),
+            valorTotal: toNum(r.get('valorTotal')),
+        }));
+
+        // Nós: só as empresas que aparecem nas arestas selecionadas, com o grau
+        // de atividade total (emitidas + recebidas) para dimensionar o nó.
+        const cnpjs = [...new Set(arestas.flatMap((a) => [a.de, a.para]))];
+        let nos: RedeNo[] = [];
+        if (cnpjs.length > 0) {
+            const nosRes = await session.run(
+                `MATCH (e:Empresa) WHERE e.cnpj IN $cnpjs
+                 OPTIONAL MATCH (e)-[:EMITIU]->(nfE:NotaFiscal)
+                 WITH e, count(nfE) AS emitidas
+                 OPTIONAL MATCH (e)<-[:DESTINADA_A]-(nfR:NotaFiscal)
+                 WITH e, emitidas, count(nfR) AS recebidas
+                 RETURN e.cnpj AS cnpj, e.razaoSocial AS razaoSocial, e.uf AS uf,
+                        (emitidas + recebidas) AS totalNFs`,
+                { cnpjs },
+            );
+            nos = nosRes.records.map((r) => ({
+                cnpj: r.get('cnpj') as string,
+                razaoSocial: (r.get('razaoSocial') as string) ?? '',
+                uf: (r.get('uf') as string) ?? '',
+                totalNFs: toNum(r.get('totalNFs')),
+            }));
+        }
+
+        return { nos, arestas, limite };
+    } finally {
+        await session.close();
+    }
+}

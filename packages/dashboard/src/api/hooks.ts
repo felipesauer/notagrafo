@@ -166,3 +166,23 @@ export function useFluxo(limite = 30) {
         queryFn: () => apiFetch<{ arestas: FluxoAresta[]; limite: number }>(`/stats/fluxo${qs({ limite })}`),
     });
 }
+
+export interface RedeNo {
+    cnpj: string;
+    razaoSocial: string;
+    uf: string;
+    totalNFs: number;
+}
+export interface RedeAresta {
+    de: string;
+    para: string;
+    totalNFs: number;
+    valorTotal: number;
+}
+
+export function useRede(limite = 150) {
+    return useQuery({
+        queryKey: ['stats', 'rede', limite],
+        queryFn: () => apiFetch<{ nos: RedeNo[]; arestas: RedeAresta[]; limite: number }>(`/stats/rede${qs({ limite })}`),
+    });
+}

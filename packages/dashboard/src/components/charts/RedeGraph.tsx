@@ -1,0 +1,105 @@
+import { type JSX, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { GraphCanvas, type GraphCanvasRef, type GraphNode, type GraphEdge, useSelection, lightTheme, darkTheme } from 'reagraph';
+import { useThemeStore } from '../../stores/theme.store.js';
+import { resolveTokenColorsRGB } from './resolveTheme.js';
+import type { RedeNo, RedeAresta } from '../../api/hooks.js';
+
+const cnpjFmt = (c: string): string =>
+    c.length === 14 ? c.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : c;
+
+/**
+ * Rede comercial completa em WebGL (Reagraph): layout de força, comunidades por
+ * UF (clusterAttribute) coloridas com os tokens --chart-*, nós dimensionados
+ * pela atividade (totalNFs) e busca de caminho — clicar em duas empresas
+ * destaca o caminho comercial entre elas. Tema claro/escuro sincronizado.
+ */
+export function RedeGraph({ nos, arestas }: { nos: RedeNo[]; arestas: RedeAresta[] }): JSX.Element {
+    const { t } = useTranslation();
+    const tema = useThemeStore((s) => s.tema);
+    const ref = useRef<GraphCanvasRef | null>(null);
+
+    const { nodes, edges, theme } = useMemo(() => {
+        const cores = resolveTokenColorsRGB();
+        // Uma cor por UF (comunidade), ciclando na paleta de tokens.
+        const ufs = [...new Set(nos.map((n) => n.uf || '—'))].sort();
+        const corDaUf = new Map(ufs.map((uf, i) => [uf, cores.chart[i % 8]!]));
+
+        const nodes: GraphNode[] = nos.map((n) => ({
+            id: n.cnpj,
+            label: n.razaoSocial || cnpjFmt(n.cnpj),
+            size: n.totalNFs,
+            fill: corDaUf.get(n.uf || '—'),
+            // clusterAttribute e sizeAttribute leem de node.data[attr] no Reagraph.
+            data: { uf: n.uf || '—', totalNFs: n.totalNFs, cnpj: n.cnpj },
+        }));
+
+        const edges: GraphEdge[] = arestas.map((a, i) => ({
+            id: `e${i}`,
+            source: a.de,
+            target: a.para,
+            size: Math.min(6, Math.max(1, Math.log10(Math.max(a.valorTotal, 10)))),
+            data: { valorTotal: a.valorTotal, totalNFs: a.totalNFs },
+        }));
+
+        const base = tema === 'escuro' ? darkTheme : lightTheme;
+        const theme = {
+            ...base,
+            canvas: { ...base.canvas, background: cores.card },
+            node: {
+                ...base.node,
+                label: { ...base.node.label, color: cores.foreground, stroke: cores.card, activeColor: cores.foreground },
+            },
+            edge: {
+                ...base.edge,
+                fill: cores.mutedForeground,
+                activeFill: cores.foreground,
+                label: { ...base.edge.label, color: cores.mutedForeground, stroke: cores.card, activeColor: cores.foreground },
+            },
+            cluster: base.cluster
+                ? { ...base.cluster, stroke: cores.border, label: { ...base.cluster.label, color: cores.mutedForeground, stroke: cores.card } }
+                : base.cluster,
+        };
+
+        return { nodes, edges, theme };
+    }, [nos, arestas, tema]);
+
+    const { selections, actives, onNodeClick, onCanvasClick, clearSelections } = useSelection({
+        ref,
+        nodes,
+        pathSelectionType: 'all', // clicar em 2 nós destaca o caminho entre eles
+    });
+
+    return (
+        <div className="relative size-full">
+            <GraphCanvas
+                ref={ref}
+                nodes={nodes}
+                edges={edges}
+                theme={theme}
+                layoutType="forceDirected2d"
+                sizingType="attribute"
+                sizingAttribute="totalNFs"
+                minNodeSize={7}
+                maxNodeSize={22}
+                clusterAttribute="uf"
+                labelType="nodes"
+                edgeArrowPosition="end"
+                draggable
+                selections={selections}
+                actives={actives}
+                onNodeClick={onNodeClick}
+                onCanvasClick={onCanvasClick}
+            />
+            {selections.length > 0 && (
+                <button
+                    type="button"
+                    onClick={() => clearSelections()}
+                    className="absolute right-3 top-3 rounded-md border bg-background/90 px-2.5 py-1 text-xs font-medium shadow-sm backdrop-blur hover:bg-accent"
+                >
+                    {t('rede.limparSelecao')}
+                </button>
+            )}
+        </div>
+    );
+}

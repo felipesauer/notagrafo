@@ -1,7 +1,7 @@
-import { type JSX, type ReactNode, useState } from 'react';
+import { type JSX, type ReactNode, lazy, Suspense, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { GitCompareArrows, Network as NetworkIcon } from 'lucide-react';
-import { useFluxo } from '../api/hooks.js';
+import { useFluxo, useRede } from '../api/hooks.js';
 import { LoadingSkeleton, InlineError, EmptyState } from '../components/shared.js';
 import { PageHeader } from '../components/PageHeader.js';
 import { FadeIn } from '../components/Motion.js';
@@ -9,6 +9,10 @@ import { FluxoSankey } from '../components/charts/FluxoSankey.js';
 import { Card, CardContent, CardHeader } from '../components/ui/card.js';
 import { Slider } from '../components/ui/slider.js';
 import { cn } from '../lib/utils.js';
+
+// Reagraph traz o three.js (WebGL, ~1,5 MB): carrega só quando a aba de rede
+// completa é aberta, mantendo a aba de fluxo (Nivo) leve.
+const RedeGraph = lazy(() => import('../components/charts/RedeGraph.js').then((m) => ({ default: m.RedeGraph })));
 
 type Aba = 'fluxo' | 'rede';
 
@@ -100,14 +104,45 @@ function FluxoTab(): JSX.Element {
     );
 }
 
-/** Aba da rede completa — implementada na NOTA-108 (Reagraph/WebGL). */
+/** Aba da rede completa: grafo WebGL em força com comunidades e busca de caminho (Reagraph). */
 function RedeTab(): JSX.Element {
     const { t } = useTranslation();
+    const [limite, setLimite] = useState(150);
+    const query = useRede(limite);
+    const nos = query.data?.nos ?? [];
+    const arestas = query.data?.arestas ?? [];
+
     return (
-        <Card>
-            <CardContent className="py-16">
-                <EmptyState mensagem={t('rede.abaRede')} />
-            </CardContent>
-        </Card>
+        <FadeIn>
+            <Card className="gap-4">
+                <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="space-y-1">
+                        <h3 className="text-base leading-none font-semibold">{t('rede.redeTitulo')}</h3>
+                        <p className="max-w-xl text-xs text-muted-foreground">{t('rede.redeAjuda')}</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <span className="whitespace-nowrap text-xs text-muted-foreground">
+                            {t('rede.nosExibidos')}: <span className="font-medium tabular-nums text-foreground">{nos.length}</span>
+                        </span>
+                        <Slider className="w-40" min={20} max={300} step={10} value={[limite]} onValueChange={(v) => setLimite(v[0] ?? 150)} />
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    {query.isLoading ? (
+                        <LoadingSkeleton variant="card" />
+                    ) : query.isError ? (
+                        <InlineError onRetry={() => void query.refetch()} />
+                    ) : nos.length === 0 ? (
+                        <EmptyState mensagem={t('rede.vazio')} />
+                    ) : (
+                        <div className="relative h-[560px] w-full overflow-hidden rounded-lg border bg-muted/20">
+                            <Suspense fallback={<LoadingSkeleton variant="card" />}>
+                                <RedeGraph nos={nos} arestas={arestas} />
+                            </Suspense>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+        </FadeIn>
     );
 }

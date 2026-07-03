@@ -8,6 +8,7 @@ import {
     taxByNcm,
     taxByCfop,
     getFluxoEmpresas,
+    getRedeGlobal,
     type MetricaProduto,
     type TaxFilters,
 } from '@notagrafo/graph';
@@ -335,6 +336,28 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
         },
         async (request) => {
             return getFluxoEmpresas(driver, {
+                ...(request.query.limite ? { limite: Number(request.query.limite) } : {}),
+            });
+        },
+    );
+
+    // GET /stats/rede — rede comercial completa (nós + arestas) para exploração WebGL
+    app.get<{ Querystring: { limite?: number } }>(
+        '/stats/rede',
+        {
+            preHandler: app.authenticate,
+            schema: {
+                tags: ['stats'],
+                summary: 'Rede comercial: empresas (nós) e relações agregadas (arestas), top-N por valor',
+                querystring: {
+                    type: 'object',
+                    properties: { limite: { type: 'integer', minimum: 1, maximum: 500 } },
+                },
+                security: [{ bearerAuth: [] }],
+            },
+        },
+        async (request) => {
+            return getRedeGlobal(driver, {
                 ...(request.query.limite ? { limite: Number(request.query.limite) } : {}),
             });
         },

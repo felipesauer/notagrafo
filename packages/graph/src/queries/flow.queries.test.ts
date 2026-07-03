@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { makeFakeDriver, fakeRecord } from '../__test-helpers__/fake-driver.js';
-import { getFluxoEmpresas } from './flow.queries.js';
+import { getFluxoEmpresas, getRedeGlobal } from './flow.queries.js';
 
 describe('getFluxoEmpresas (unit)', () => {
     it('mapeia os pares emitente→destinatário com nome e valores', async () => {
@@ -41,5 +41,50 @@ describe('getFluxoEmpresas (unit)', () => {
         const fluxo = await getFluxoEmpresas(driver);
         expect(fluxo.arestas[0]!.deNome).toBe('');
         expect(fluxo.arestas[0]!.paraNome).toBe('');
+    });
+});
+
+describe('getRedeGlobal (unit)', () => {
+    // 1ª chamada = arestas; 2ª chamada = nós das empresas que aparecem nas arestas.
+    const responder = (_c: string, _p: Record<string, unknown>, i: number) =>
+        i === 0
+            ? [
+                  fakeRecord({ de: '111', para: '222', totalNFs: 5, valorTotal: 9000 }),
+                  fakeRecord({ de: '222', para: '333', totalNFs: 2, valorTotal: 1500 }),
+              ]
+            : [
+                  fakeRecord({ cnpj: '111', razaoSocial: 'Alpha', uf: 'SP', totalNFs: 10 }),
+                  fakeRecord({ cnpj: '222', razaoSocial: 'Beta', uf: 'MG', totalNFs: 7 }),
+                  fakeRecord({ cnpj: '333', razaoSocial: 'Gama', uf: 'RS', totalNFs: 2 }),
+              ];
+
+    it('retorna arestas (top por valor, sem laços) e os nós participantes', async () => {
+        const { driver, runs } = makeFakeDriver(responder);
+        const rede = await getRedeGlobal(driver, { limite: 50 });
+        expect(rede.arestas).toHaveLength(2);
+        expect(rede.nos).toHaveLength(3);
+        expect(rede.nos[0]).toMatchObject({ cnpj: '111', razaoSocial: 'Alpha', uf: 'SP', totalNFs: 10 });
+        expect(runs[0]!.cypher).toContain('a.cnpj <> b.cnpj');
+        // a query de nós recebe os cnpjs deduplicados das arestas
+        expect(runs[1]!.params.cnpjs).toEqual(['111', '222', '333']);
+        // a soma emitidas+recebidas agrega em WITHs separados (Cypher não permite
+        // misturar uma variável já agregada com uma nova agregação no RETURN).
+        expect(runs[1]!.cypher).toContain('count(nfR) AS recebidas');
+        expect(runs[1]!.cypher).toContain('(emitidas + recebidas)');
+    });
+
+    it('sem arestas → não consulta nós e devolve listas vazias', async () => {
+        const { driver, runs } = makeFakeDriver(() => []);
+        const rede = await getRedeGlobal(driver);
+        expect(rede.arestas).toEqual([]);
+        expect(rede.nos).toEqual([]);
+        expect(runs).toHaveLength(1); // só a query de arestas rodou
+    });
+
+    it('faz clamp do limite em [1,500]', async () => {
+        const { driver: d1 } = makeFakeDriver(() => []);
+        expect((await getRedeGlobal(d1, { limite: 9999 })).limite).toBe(500);
+        const { driver: d2 } = makeFakeDriver(() => []);
+        expect((await getRedeGlobal(d2, { limite: 0 })).limite).toBe(1);
     });
 });

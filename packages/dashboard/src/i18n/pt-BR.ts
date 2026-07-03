@@ -109,6 +109,8 @@ export const ptBR = {
         fluxoTitulo: 'Fluxo de valor entre empresas', fluxoAjuda: 'Cada faixa liga um emitente ao destinatário; a espessura representa o valor total faturado no período.',
         topPares: 'Pares exibidos', vazio: 'Sem fluxo entre empresas na base ainda.',
         totalNFs: 'NFs', valor: 'Valor',
+        redeTitulo: 'Rede comercial completa', redeAjuda: 'Cada nó é uma empresa (tamanho ∝ atividade); as cores agrupam por UF. Clique em duas empresas para destacar o caminho entre elas.',
+        nosExibidos: 'Nós exibidos', limparSelecao: 'Limpar seleção', porUf: 'Cor por UF',
     },
     exportacoes: {
         nova: 'Nova exportação', formato: 'Formato', campos: 'Campos', gerar: 'Gerar exportação',
