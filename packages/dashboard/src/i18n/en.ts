@@ -8,6 +8,7 @@ export const en = {
         cancelar: 'Cancel',
         vazio: 'No results.',
         buscar: 'Search',
+        fechar: 'Close',
         erroFatal: 'Something went wrong. Please reload the page.',
     },
     login: {
@@ -46,6 +47,7 @@ export const en = {
     nf: {
         numero: 'Number', emitente: 'Issuer', destinatario: 'Recipient', valor: 'Value',
         status: 'Status', emissao: 'Issued', todosStatus: 'All statuses',
+        statusAtiva: 'Active', statusCancelada: 'Cancelled', statusDenegada: 'Denied', statusInutilizada: 'Voided',
         chave: 'Access key', acoes: 'Actions', verDetalhe: 'View detail',
         baixarXml: 'Download XML', copiar: 'Copy', copiado: 'Copied!',
         eventos: 'Events', semEventos: 'No events recorded.',
@@ -61,6 +63,9 @@ export const en = {
         totais: 'Totals', valorNF: 'Invoice total',
         filtros: {
             titulo: 'Filters',
+            grupoIdent: 'Identification', grupoDatas: 'Dates', grupoValores: 'Values',
+            grupoPartes: 'Parties', grupoFiscais: 'Tax items',
+            ativos: '{{count}} active filter(s):', remover: 'Remove filter', comImposto: 'With ICMS',
             numero: 'Number', serie: 'Series',
             emissaoInicio: 'Issued (from)', emissaoFim: 'Issued (to)',
             valorMin: 'Min. value', valorMax: 'Max. value',

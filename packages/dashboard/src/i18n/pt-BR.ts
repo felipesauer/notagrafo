@@ -8,6 +8,7 @@ export const ptBR = {
         cancelar: 'Cancelar',
         vazio: 'Nenhum resultado.',
         buscar: 'Buscar',
+        fechar: 'Fechar',
         erroFatal: 'Algo deu errado. Recarregue a página.',
     },
     login: {
@@ -35,6 +36,7 @@ export const ptBR = {
     nf: {
         numero: 'Número', emitente: 'Emitente', destinatario: 'Destinatário', valor: 'Valor',
         status: 'Status', emissao: 'Emissão', todosStatus: 'Todos os status',
+        statusAtiva: 'Ativa', statusCancelada: 'Cancelada', statusDenegada: 'Denegada', statusInutilizada: 'Inutilizada',
         chave: 'Chave de acesso', acoes: 'Ações', verDetalhe: 'Ver detalhe',
         baixarXml: 'Baixar XML', copiar: 'Copiar', copiado: 'Copiado!',
         eventos: 'Eventos', semEventos: 'Nenhum evento registrado.',
@@ -50,6 +52,9 @@ export const ptBR = {
         totais: 'Totais', valorNF: 'Valor da NF',
         filtros: {
             titulo: 'Filtros',
+            grupoIdent: 'Identificação', grupoDatas: 'Datas', grupoValores: 'Valores',
+            grupoPartes: 'Partes', grupoFiscais: 'Itens fiscais',
+            ativos: '{{count}} filtro(s) ativo(s):', remover: 'Remover filtro', comImposto: 'Com ICMS',
             numero: 'Número', serie: 'Série',
             emissaoInicio: 'Emissão (de)', emissaoFim: 'Emissão (até)',
             valorMin: 'Valor mín.', valorMax: 'Valor máx.',

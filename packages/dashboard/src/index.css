@@ -5,34 +5,28 @@
    BEM de página), para não vazar sobre os componentes shadcn (data-slot).
    Remover junto com o arquivo na NOTA-95.
 
-   `.legacy` cobre os wrappers de página que ainda usam markup antigo. As
-   páginas já migradas (Overview, Login) não têm esses wrappers, então não
-   herdam nada daqui. */
-.nf-list, .nf-detail, .empresas, .produtos, .impostos, .exportacoes, .configuracoes,
-.filter-sidebar, .modal, .grafo-page, .graph-panel {
-    /* headings e texto */
-}
+   Escopado às classes de página ainda NÃO migradas — Overview, Login, NFList,
+   FilterSidebar e UploadModal já saíram, então não constam aqui. A NOTA-95
+   remove o resto ao migrar as últimas páginas. */
 .nf-detail h2, .nf-detail h3, .empresas h2, .produtos h2, .impostos h2, .impostos h3,
-.exportacoes h2, .configuracoes h2, .configuracoes h3, .grafo-page h3, .graph-panel h3,
-.filter-sidebar h3, .modal h3 { font-weight: 700; margin: 0.6em 0; }
+.exportacoes h2, .configuracoes h2, .configuracoes h3, .grafo-page h3, .graph-panel h3 { font-weight: 700; margin: 0.6em 0; }
 .nf-detail h2, .empresas h2, .produtos h2, .impostos h2, .exportacoes h2, .configuracoes h2 { font-size: 1.5em; }
-.nf-detail h3, .impostos h3, .configuracoes h3, .grafo-page h3, .graph-panel h3, .filter-sidebar h3, .modal h3 { font-size: 1.1em; }
+.nf-detail h3, .impostos h3, .configuracoes h3, .grafo-page h3, .graph-panel h3 { font-size: 1.1em; }
 .nf-detail p, .impostos p, .configuracoes p, .exportacoes p { margin: 0.5em 0; }
 .nf-detail dl { margin: 0.5em 0; }
 .nf-detail dd { margin: 0 0 0.5em; }
 .nf-detail dt { font-weight: 600; color: var(--muted); font-size: 0.85em; }
 .impostos ul, .configuracoes ul, .nf-detail ul.timeline { list-style: none; padding: 0; margin: 0; }
 .exportacoes fieldset, .configuracoes fieldset { border: 1px solid var(--muted); border-radius: 6px; padding: 0.5em 0.75em; margin: 0.5em 0; }
-.nf-list a, .nf-detail a, .empresas a, .produtos a, .impostos a, .exportacoes a, .graph-panel a { color: var(--accent); }
+.nf-detail a, .empresas a, .produtos a, .impostos a, .exportacoes a, .graph-panel a { color: var(--accent); }
 /* Botões e inputs SÓ dentro dos wrappers legados (nunca sobre .ui do shadcn). */
-.nf-list button, .nf-detail button, .empresas button, .produtos button, .impostos button,
-.exportacoes button, .configuracoes button, .filter-sidebar button, .modal button, .grafo-page button, .graph-panel button {
+.nf-detail button, .empresas button, .produtos button, .impostos button,
+.exportacoes button, .configuracoes button, .grafo-page button, .graph-panel button {
     border: 1px solid var(--muted); background: var(--card); color: var(--fg);
     padding: 0.35rem 0.75rem; border-radius: 6px; cursor: pointer; font: inherit;
 }
-.nf-list input:not([type='checkbox']):not([type='radio']):not([type='file']), .nf-list select,
 .nf-detail input, .exportacoes input:not([type='checkbox']), .exportacoes select,
-.filter-sidebar input, .filter-sidebar select, .grafo-page input, .grafo-page select, .configuracoes input {
+.grafo-page input, .grafo-page select, .configuracoes input {
     border: 1px solid var(--muted); background: var(--bg); color: var(--fg);
     padding: 0.35rem 0.5rem; border-radius: 6px; font: inherit;
 }
@@ -67,120 +61,11 @@ body {
     color: var(--fg);
 }
 
-.kpis {
-    list-style: none;
-    padding: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 1rem;
-}
-
-.kpis li {
-    background: var(--card);
-    padding: 1rem;
-    border-radius: 8px;
-}
-
-/* ── Layout global ─────────────────────────────────────────── */
-.app-layout {
-    display: flex;
-    min-height: 100vh;
-}
-.sidebar {
-    width: 240px;
-    flex-shrink: 0;
-    background: var(--card);
-    display: flex;
-    flex-direction: column;
-    padding: 1rem;
-}
-.sidebar__brand {
-    font-weight: 700;
-    font-size: 1.25rem;
-    margin-bottom: 1.5rem;
-    color: var(--accent);
-}
-.sidebar__nav {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    flex: 1;
-}
-.sidebar__item {
-    padding: 0.5rem 0.75rem;
-    border-radius: 6px;
-    color: var(--fg);
-    text-decoration: none;
-}
-.sidebar__item--active {
-    background: var(--accent);
-    color: #fff;
-}
-.sidebar__footer {
-    border-top: 1px solid var(--muted);
-    padding-top: 0.75rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-.app-layout__main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-.header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 1.5rem;
-    border-bottom: 1px solid var(--card);
-}
-.header__actions {
-    display: flex;
-    gap: 0.5rem;
-}
-.app-layout__content {
-    padding: 1.5rem;
-    flex: 1;
-}
-.export-banner {
-    background: #16a34a;
-    color: #fff;
-    padding: 0.75rem 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-.export-banner a {
-    color: #fff;
-    font-weight: 600;
-}
-.login {
-    display: grid;
-    place-items: center;
-    min-height: 100vh;
-}
-.login__card {
-    background: var(--card);
-    padding: 2rem;
-    border-radius: 12px;
-    width: 320px;
-}
-.login__brand {
-    text-align: center;
-    color: var(--accent);
-}
-.login form {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-.login__erro {
-    color: #dc2626;
-    margin: 0;
-}
-
-/* ── Páginas de dados (NOTA-24) ────────────────────────────── */
+/* ── Páginas de dados legadas (removidas incrementalmente por página) ──
+   Overview (NOTA-88), NFList/FilterSidebar/UploadModal (NOTA-89), shell antigo
+   e Login (NOTA-86) já migrados — suas classes saíram. O que resta aqui é usado
+   por NFDetail, Empresas, Produtos, Impostos, Exportações e Grafo até suas
+   respectivas tasks; a NOTA-95 deleta o arquivo inteiro. */
 .kpis-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -203,29 +88,12 @@ body {
 .data-table__row--clickable { cursor: pointer; }
 .table-scroll { overflow-x: auto; }
 .data-table__totais td { font-weight: 600; border-top: 2px solid var(--muted, #888); }
-.toolbar { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
-.pagination { display: flex; gap: 0.5rem; margin-top: 1rem; }
 .empty-hint { color: var(--muted, #888); padding: 1rem 0; }
-.nf-list--with-sidebar { display: grid; grid-template-columns: 240px 1fr; gap: 1.5rem; align-items: start; }
-.nf-list__main { min-width: 0; }
-.filter-sidebar { display: flex; flex-direction: column; gap: 0.6rem; padding: 1rem; background: var(--card); border-radius: 8px; }
-.filter-sidebar h3 { margin: 0 0 0.25rem; }
-.filter-sidebar label { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.8rem; }
-.filter-sidebar input, .filter-sidebar select { padding: 0.3rem; }
-.filter-sidebar__actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
-.filter-sidebar__actions .secondary { background: transparent; }
-@media (max-width: 800px) { .nf-list--with-sidebar { grid-template-columns: 1fr; } }
 .badge { color: #fff; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.8rem; }
 .nf-detail { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
 .impostos__rankings { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start; }
-@media (max-width: 800px) { .impostos__rankings { grid-template-columns: 1fr; } }
+@media (max-width: 800px) { .impostos__rankings { grid-template-columns: 1fr; } .nf-detail { grid-template-columns: 1fr; } }
 .inline-card { display: flex; gap: 1.5rem; padding: 0.75rem; background: var(--card); border-radius: 6px; }
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: grid; place-items: center; }
-.modal { background: var(--bg); padding: 1.5rem; border-radius: 12px; width: 360px; }
-.modal__actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
-.dropzone { border: 2px dashed var(--card); border-radius: 8px; padding: 1.5rem; text-align: center; cursor: pointer; color: var(--muted, #888); margin: 0.5rem 0; }
-.dropzone--over { border-color: #2563eb; background: rgba(37,99,235,0.06); }
-.upload-resumo { font-weight: 600; }
 .skeleton__row { height: 1.5rem; background: var(--card); border-radius: 4px; margin-bottom: 0.5rem; animation: pulse 1.5s infinite; }
 @keyframes pulse { 50% { opacity: 0.5; } }
 .inline-error { color: #dc2626; display: flex; gap: 1rem; align-items: center; }
