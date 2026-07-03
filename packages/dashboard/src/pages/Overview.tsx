@@ -1,30 +1,43 @@
-import { type JSX } from 'react';
+import { type JSX, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from '@tanstack/react-router';
 import {
-    ResponsiveContainer,
-    ComposedChart,
     Bar,
+    BarChart,
+    ComposedChart,
     Line,
+    Tooltip,
+    Treemap,
     XAxis,
     YAxis,
-    Tooltip,
-    BarChart,
-    Treemap,
 } from 'recharts';
+import { Building2, FileText, Package, Wallet } from 'lucide-react';
 import { useOverview, useVolume, useTopCompanies, useByUf } from '../api/hooks.js';
-import { CurrencyValue, DateDisplay, LoadingSkeleton, InlineError } from '../components/shared.js';
+import { CurrencyValue, DateDisplay, LoadingSkeleton, InlineError, EmptyState } from '../components/shared.js';
+import { PageHeader } from '../components/PageHeader.js';
+import { ChartCard } from '../components/charts/ChartCard.js';
+import { ChartTooltip } from '../components/charts/ChartTooltip.js';
+import { chartColor } from '../components/charts/palette.js';
+import { Card, CardContent } from '../components/ui/card.js';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table.js';
 
-function KpiCard({ label, valor }: { label: string; valor: string | number }): JSX.Element {
+const brl = (v: number): string => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+function KpiCard({ label, value, icon }: { label: string; value: ReactNode; icon: ReactNode }): JSX.Element {
     return (
-        <div className="kpi-card" data-testid="kpi-card">
-            <span className="kpi-card__label">{label}</span>
-            <strong className="kpi-card__valor">{valor}</strong>
-        </div>
+        <Card data-testid="kpi-card" className="gap-0 py-4">
+            <CardContent className="flex items-center gap-3 px-4">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary [&>svg]:size-4.5">
+                    {icon}
+                </div>
+                <div className="min-w-0">
+                    <p className="truncate text-xs text-muted-foreground">{label}</p>
+                    <p className="text-xl font-semibold tabular-nums">{value}</p>
+                </div>
+            </CardContent>
+        </Card>
     );
 }
-
-// Paleta estável para as células do Treemap por UF.
-const UF_CORES = ['#2563eb', '#16a34a', '#d97706', '#dc2626', '#7c3aed', '#0891b2', '#db2777', '#65a30d'];
 
 interface TreemapCellProps {
     x?: number;
@@ -33,16 +46,15 @@ interface TreemapCellProps {
     height?: number;
     index?: number;
     uf?: string;
-    size?: number;
 }
 
-/** Célula do Treemap: cor por índice e rótulo da UF quando há espaço. */
+/** Célula do Treemap: cor tokenizada por índice; borda na cor de fundo. */
 function UfCell({ x = 0, y = 0, width = 0, height = 0, index = 0, uf }: TreemapCellProps): JSX.Element {
     return (
         <g>
-            <rect x={x} y={y} width={width} height={height} fill={UF_CORES[index % UF_CORES.length]} stroke="#fff" />
+            <rect x={x} y={y} width={width} height={height} fill={chartColor(index)} stroke="var(--background)" strokeWidth={2} rx={2} />
             {width > 40 && height > 20 && uf ? (
-                <text x={x + width / 2} y={y + height / 2} textAnchor="middle" dominantBaseline="middle" fill="#fff" fontSize={12}>
+                <text x={x + width / 2} y={y + height / 2} textAnchor="middle" dominantBaseline="middle" fill="#fff" fontSize={12} fontWeight={600}>
                     {uf}
                 </text>
             ) : null}
@@ -50,7 +62,7 @@ function UfCell({ x = 0, y = 0, width = 0, height = 0, index = 0, uf }: TreemapC
     );
 }
 
-/** Página de visão geral: KPIs, gráficos Recharts e últimas NFs (seção 3). */
+/** Página de visão geral: KPIs, gráficos Recharts e últimas NFs. */
 export function OverviewPage(): JSX.Element {
     const { t } = useTranslation();
     const overview = useOverview();
@@ -58,94 +70,132 @@ export function OverviewPage(): JSX.Element {
     const topCompanies = useTopCompanies();
     const byUf = useByUf('emitente');
 
-    if (overview.isLoading) return <LoadingSkeleton linhas={4} />;
-    if (overview.isError || !overview.data) return <InlineError onRetry={() => void overview.refetch()} />;
+    return (
+        <div>
+            <PageHeader title={t('overview.titulo')} />
 
-    const o = overview.data;
-    const volumeSeries = volume.data?.serie ?? [];
-    const ranking = topCompanies.data?.ranking ?? [];
-    // Treemap espera { name, size, ... } — área proporcional ao nº de NFs por UF.
+            {overview.isLoading ? (
+                <LoadingSkeleton variant="kpis" linhas={4} />
+            ) : overview.isError || !overview.data ? (
+                <InlineError onRetry={() => void overview.refetch()} />
+            ) : (
+                <OverviewContent
+                    o={overview.data}
+                    volumeSeries={volume.data?.serie ?? []}
+                    ranking={topCompanies.data?.ranking ?? []}
+                    byUf={byUf}
+                />
+            )}
+        </div>
+    );
+}
+
+type OverviewData = ReturnType<typeof useOverview>['data'];
+type ByUfQuery = ReturnType<typeof useByUf>;
+
+function OverviewContent({
+    o,
+    volumeSeries,
+    ranking,
+    byUf,
+}: {
+    o: NonNullable<OverviewData>;
+    volumeSeries: { periodo: string; totalNFs: number; valorTotal: number }[];
+    ranking: { razaoSocial: string; valorTotal: number }[];
+    byUf: ByUfQuery;
+}): JSX.Element {
+    const { t } = useTranslation();
     const treemapUf = (byUf.data?.porUf ?? []).map((u) => ({ name: u.uf, uf: u.uf, size: u.totalNFs, valorTotal: u.valorTotal }));
 
     return (
-        <div className="overview">
-            <section className="kpis-grid">
-                <KpiCard label={t('overview.totalNFs')} valor={o.totalNFs} />
-                <KpiCard label={t('overview.totalEmpresas')} valor={o.totalEmpresas} />
-                <KpiCard label={t('overview.totalProdutos')} valor={o.totalProdutos} />
-                <KpiCard label={t('overview.valorTotal')} valor={o.valorTotalProcessado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} />
+        <div className="space-y-6">
+            <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <KpiCard label={t('overview.totalNFs')} value={o.totalNFs.toLocaleString('pt-BR')} icon={<FileText />} />
+                <KpiCard label={t('overview.totalEmpresas')} value={o.totalEmpresas.toLocaleString('pt-BR')} icon={<Building2 />} />
+                <KpiCard label={t('overview.totalProdutos')} value={o.totalProdutos.toLocaleString('pt-BR')} icon={<Package />} />
+                <KpiCard label={t('overview.valorTotal')} value={brl(o.valorTotalProcessado)} icon={<Wallet />} />
             </section>
 
-            <section className="chart" data-testid="chart">
-                <h3>{t('overview.volumeTitulo')}</h3>
-                <ResponsiveContainer width="100%" height={260}>
-                    <ComposedChart data={volumeSeries}>
-                        <XAxis dataKey="periodo" />
-                        <YAxis yAxisId="left" />
-                        <YAxis yAxisId="right" orientation="right" />
-                        <Tooltip />
-                        <Bar yAxisId="left" dataKey="totalNFs" fill="#2563eb" name={t('overview.totalNFs')} />
-                        <Line yAxisId="right" dataKey="valorTotal" stroke="#16a34a" name={t('overview.valorTotal')} />
-                    </ComposedChart>
-                </ResponsiveContainer>
-            </section>
+            <div className="grid gap-6 lg:grid-cols-2">
+                <div className="lg:col-span-2">
+                    <ChartCard title={t('overview.volumeTitulo')}>
+                        <ComposedChart data={volumeSeries}>
+                            <XAxis dataKey="periodo" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} />
+                            <YAxis yAxisId="left" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
+                            <YAxis yAxisId="right" orientation="right" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
+                            <Tooltip content={<ChartTooltip formatValue={(v, name) => (name === t('overview.valorTotal') ? brl(Number(v)) : String(v))} />} />
+                            <Bar yAxisId="left" dataKey="totalNFs" fill="var(--chart-1)" name={t('overview.totalNFs')} radius={[3, 3, 0, 0]} />
+                            <Line yAxisId="right" dataKey="valorTotal" stroke="var(--chart-2)" strokeWidth={2} dot={false} name={t('overview.valorTotal')} />
+                        </ComposedChart>
+                    </ChartCard>
+                </div>
 
-            <section className="chart" data-testid="chart">
-                <h3>{t('overview.topFornecedores')}</h3>
-                <ResponsiveContainer width="100%" height={260}>
-                    <BarChart data={ranking} layout="vertical">
-                        <XAxis type="number" />
-                        <YAxis type="category" dataKey="razaoSocial" width={160} />
-                        <Tooltip />
-                        <Bar dataKey="valorTotal" fill="#2563eb" />
+                <ChartCard title={t('overview.topFornecedores')}>
+                    <BarChart data={ranking} layout="vertical" margin={{ left: 12 }}>
+                        <XAxis type="number" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
+                        <YAxis type="category" dataKey="razaoSocial" width={150} stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
+                        <Tooltip cursor={{ fill: 'var(--muted)' }} content={<ChartTooltip formatValue={(v) => brl(Number(v))} />} />
+                        <Bar dataKey="valorTotal" fill="var(--chart-1)" radius={[0, 3, 3, 0]} name={t('overview.valorTotal')} />
                     </BarChart>
-                </ResponsiveContainer>
-            </section>
+                </ChartCard>
 
-            <section className="chart" data-testid="chart">
-                <h3>{t('overview.distribuicaoUf')}</h3>
-                {byUf.isLoading ? (
-                    <LoadingSkeleton linhas={3} />
-                ) : byUf.isError ? (
-                    <InlineError onRetry={() => void byUf.refetch()} />
-                ) : treemapUf.length === 0 ? (
-                    <p className="empty-hint">{t('overview.distribuicaoUfVazio')}</p>
-                ) : (
-                    <ResponsiveContainer width="100%" height={260}>
+                <ChartCard title={t('overview.distribuicaoUf')}>
+                    {byUf.isLoading ? (
+                        <LoadingSkeleton variant="card" />
+                    ) : byUf.isError ? (
+                        <InlineError onRetry={() => void byUf.refetch()} />
+                    ) : treemapUf.length === 0 ? (
+                        <EmptyState mensagem={t('overview.distribuicaoUfVazio')} />
+                    ) : (
                         <Treemap data={treemapUf} dataKey="size" nameKey="name" content={<UfCell />}>
                             <Tooltip
-                                formatter={(value, _name, item) => {
-                                    const p = item?.payload as { valorTotal?: number; uf?: string } | undefined;
-                                    const valor = (p?.valorTotal ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-                                    return [`${String(value)} NFs · ${valor}`, p?.uf ?? ''];
-                                }}
+                                content={
+                                    <ChartTooltip
+                                        formatValue={(value, _name) => `${String(value)} NFs`}
+                                        formatLabel={(l) => String(l)}
+                                    />
+                                }
                             />
                         </Treemap>
-                    </ResponsiveContainer>
-                )}
-            </section>
+                    )}
+                </ChartCard>
+            </div>
 
-            <section className="table-section">
-                <h3>{t('overview.ultimasNFs')}</h3>
-                <table className="data-table" data-testid="data-table">
-                    <thead>
-                        <tr>
-                            <th>{t('overview.numero')}</th>
-                            <th>{t('overview.valor')}</th>
-                            <th>{t('overview.processadaEm')}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {o.ultimasProcessadas.map((nf) => (
-                            <tr key={nf.chaveAcesso}>
-                                <td>{nf.numero}</td>
-                                <td><CurrencyValue value={nf.valorTotal} /></td>
-                                <td><DateDisplay value={nf.processadaEm} /></td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </section>
+            <Card className="py-4">
+                <CardContent className="px-4">
+                    <h3 className="mb-3 text-base font-semibold">{t('overview.ultimasNFs')}</h3>
+                    {o.ultimasProcessadas.length === 0 ? (
+                        <EmptyState />
+                    ) : (
+                        <Table data-testid="data-table">
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>{t('overview.numero')}</TableHead>
+                                    <TableHead className="text-right">{t('overview.valor')}</TableHead>
+                                    <TableHead>{t('overview.processadaEm')}</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {o.ultimasProcessadas.map((nf) => (
+                                    <TableRow key={nf.chaveAcesso}>
+                                        <TableCell>
+                                            <Link
+                                                className="font-medium text-primary hover:underline"
+                                                to={'/nf/$chave' as string}
+                                                params={{ chave: nf.chaveAcesso } as never}
+                                            >
+                                                {nf.numero}
+                                            </Link>
+                                        </TableCell>
+                                        <TableCell className="text-right"><CurrencyValue value={nf.valorTotal} /></TableCell>
+                                        <TableCell><DateDisplay value={nf.processadaEm} /></TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    )}
+                </CardContent>
+            </Card>
         </div>
     );
 }

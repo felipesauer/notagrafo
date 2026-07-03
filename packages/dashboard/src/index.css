@@ -1,19 +1,38 @@
 /* ── COMPAT preflight (NOTA-85) ──────────────────────────────
    O preflight do Tailwind zera headings/margens/aparência de botões e inputs,
-   que as páginas ainda não migradas assumem do estilo de UA. Este bloco repõe
-   esses defaults para o CSS legado. Remover junto com o arquivo na NOTA-95. */
-h1 { font-size: 2em; font-weight: 700; margin: 0.67em 0; }
-h2 { font-size: 1.5em; font-weight: 700; margin: 0.83em 0; }
-h3 { font-size: 1.17em; font-weight: 700; margin: 1em 0; }
-h4 { font-size: 1em; font-weight: 700; margin: 1.33em 0; }
-p { margin: 1em 0; }
-ul { margin: 1em 0; padding-left: 2.5em; list-style: disc; }
-dl { margin: 1em 0; }
-dd { margin-left: 2.5em; }
-fieldset { border: 1px solid var(--muted); border-radius: 6px; padding: 0.5em 0.75em; margin: 0.5em 0; }
-a { color: var(--accent); text-decoration: underline; }
-button { border: 1px solid var(--muted); background: var(--card); color: var(--fg); padding: 0.35rem 0.75rem; border-radius: 6px; cursor: pointer; font: inherit; }
-input:not([type='checkbox']):not([type='radio']):not([type='file']), select, textarea {
+   que as PÁGINAS ainda não migradas assumem do estilo de UA. Este bloco repõe
+   esses defaults APENAS dentro de contêineres legados (marcados pelas classes
+   BEM de página), para não vazar sobre os componentes shadcn (data-slot).
+   Remover junto com o arquivo na NOTA-95.
+
+   `.legacy` cobre os wrappers de página que ainda usam markup antigo. As
+   páginas já migradas (Overview, Login) não têm esses wrappers, então não
+   herdam nada daqui. */
+.nf-list, .nf-detail, .empresas, .produtos, .impostos, .exportacoes, .configuracoes,
+.filter-sidebar, .modal, .grafo-page, .graph-panel {
+    /* headings e texto */
+}
+.nf-detail h2, .nf-detail h3, .empresas h2, .produtos h2, .impostos h2, .impostos h3,
+.exportacoes h2, .configuracoes h2, .configuracoes h3, .grafo-page h3, .graph-panel h3,
+.filter-sidebar h3, .modal h3 { font-weight: 700; margin: 0.6em 0; }
+.nf-detail h2, .empresas h2, .produtos h2, .impostos h2, .exportacoes h2, .configuracoes h2 { font-size: 1.5em; }
+.nf-detail h3, .impostos h3, .configuracoes h3, .grafo-page h3, .graph-panel h3, .filter-sidebar h3, .modal h3 { font-size: 1.1em; }
+.nf-detail p, .impostos p, .configuracoes p, .exportacoes p { margin: 0.5em 0; }
+.nf-detail dl { margin: 0.5em 0; }
+.nf-detail dd { margin: 0 0 0.5em; }
+.nf-detail dt { font-weight: 600; color: var(--muted); font-size: 0.85em; }
+.impostos ul, .configuracoes ul, .nf-detail ul.timeline { list-style: none; padding: 0; margin: 0; }
+.exportacoes fieldset, .configuracoes fieldset { border: 1px solid var(--muted); border-radius: 6px; padding: 0.5em 0.75em; margin: 0.5em 0; }
+.nf-list a, .nf-detail a, .empresas a, .produtos a, .impostos a, .exportacoes a, .graph-panel a { color: var(--accent); }
+/* Botões e inputs SÓ dentro dos wrappers legados (nunca sobre .ui do shadcn). */
+.nf-list button, .nf-detail button, .empresas button, .produtos button, .impostos button,
+.exportacoes button, .configuracoes button, .filter-sidebar button, .modal button, .grafo-page button, .graph-panel button {
+    border: 1px solid var(--muted); background: var(--card); color: var(--fg);
+    padding: 0.35rem 0.75rem; border-radius: 6px; cursor: pointer; font: inherit;
+}
+.nf-list input:not([type='checkbox']):not([type='radio']):not([type='file']), .nf-list select,
+.nf-detail input, .exportacoes input:not([type='checkbox']), .exportacoes select,
+.filter-sidebar input, .filter-sidebar select, .grafo-page input, .grafo-page select, .configuracoes input {
     border: 1px solid var(--muted); background: var(--bg); color: var(--fg);
     padding: 0.35rem 0.5rem; border-radius: 6px; font: inherit;
 }

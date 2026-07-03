@@ -1,6 +1,6 @@
 import { type JSX, type ReactNode } from 'react';
 import { ResponsiveContainer } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardContent, CardHeader } from '../ui/card';
 
 /**
  * Moldura padrão de gráfico: Card com título e um ResponsiveContainer de altura
@@ -22,7 +22,8 @@ export function ChartCard({
     return (
         <Card data-testid="chart" className="gap-4">
             <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                <CardTitle className="text-base">{title}</CardTitle>
+                {/* h3: título de seção do gráfico (alguns e2e localizam por heading). */}
+                <h3 className="text-base leading-none font-semibold">{title}</h3>
                 {action}
             </CardHeader>
             <CardContent>
