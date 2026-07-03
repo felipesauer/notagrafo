@@ -1,21 +1,21 @@
 ---
 mnema:
   key: NOTA-110
-  state: DRAFT
+  state: IN_REVIEW
   title: Migrar Empresas/Produtos/Impostos para o Explorador (troca de entidade)
   description: >-
     Fundir as listas separadas de Empresas, Produtos e Impostos no Explorador
-    único: o seletor de entidade na sidebar troca a tabela/conteúdo sem trocar
-    de página. Cada entidade com suas colunas próprias (mono em
-    CNPJ/NCM/valores) e peek adequado (empresa: parceiros + CTA 'ver na rede';
-    produto: histórico). Impostos como modo resumo. Reaproveitar as páginas
-    atuais (Companies/Products/Taxes) como conteúdo dentro da casca. Deep-links
-    preservados.
+    único: o seletor de entidade troca a tabela/conteúdo sem trocar de página.
+    Cada entidade com colunas próprias (mono em CNPJ/NCM/valores) e peek
+    adequado. Reaproveitar hooks das páginas atuais. Deep-links preservados;
+    mobile em cards.
   acceptance_criteria:
     - >-
       Empresas, Produtos e Impostos acessíveis via troca de entidade no
       Explorador
-    - colunas e peek por entidade; densidade consistente (mono nos dados)
+    - >-
+      colunas e peek por entidade; densidade consistente (mono nos dados);
+      mobile em cards
     - deep-links das entidades preservados
     - build/lint/test:unit/e2e verdes
   labels: []
@@ -27,6 +27,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T21:55:57.676Z'
+  updated_at: '2026-07-03T22:26:21.110Z'
 ---
 # Migrar Empresas/Produtos/Impostos para o Explorador (troca de entidade)

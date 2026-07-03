@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-109
-  state: IN_PROGRESS
+  state: IN_REVIEW
   title: Nova casca (L invertido) + Explorador de Notas com peek
   description: >-
     Construir a nova casca de navegação: AppShell v2 com sidebar em L invertido
@@ -31,6 +31,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T21:56:33.689Z'
+  updated_at: '2026-07-03T22:12:36.485Z'
 ---
 # Nova casca (L invertido) + Explorador de Notas com peek

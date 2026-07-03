@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-108
-  state: IN_REVIEW
+  state: DONE
   title: 'Rede completa com Reagraph: query + rota GET /rede + tela WebGL'
   description: >-
     Full-stack. (1) graph: query redeGlobal — todos os nós (empresas, opcional
@@ -30,6 +30,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T16:43:59.584Z'
+  updated_at: '2026-07-03T21:59:53.432Z'
 ---
 # Rede completa com Reagraph: query + rota GET /rede + tela WebGL

@@ -1,15 +1,15 @@
 ---
 mnema:
   key: NOTA-111
-  state: DRAFT
+  state: IN_REVIEW
   title: Análise (Rede & fluxo, Eventos) dentro da nova casca
   description: >-
-    Integrar a área de Análise à nova casca: 'Rede & fluxo' (o grafo Reagraph +
-    Sankey Nivo já existentes, agora sob a casca com header/modos Grafo|Fluxo) e
-    'Eventos' (o feed global já existente). Sem regressão nas features de
-    análise; apenas reenquadradas na navegação nova.
+    Integrar Rede & fluxo (Network: Sankey Nivo + Reagraph WebGL) e Eventos
+    (feed global) à nova casca do explorador, reaproveitando os componentes
+    existentes sem o PageHeader próprio (que duplicaria o header do explorador).
+    Sem regressão.
   acceptance_criteria:
-    - Rede & fluxo e Eventos acessíveis na nova casca com header/modos coerentes
+    - Rede & fluxo e Eventos acessíveis via troca de entidade no explorador
     - grafo WebGL + Sankey + feed de eventos sem regressão
     - build/lint/test:unit/e2e verdes
   labels: []
@@ -21,6 +21,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T21:56:06.144Z'
+  updated_at: '2026-07-03T22:32:38.003Z'
 ---
 # Análise (Rede & fluxo, Eventos) dentro da nova casca
