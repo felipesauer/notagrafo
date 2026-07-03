@@ -43,6 +43,7 @@ export const ptBR = {
         status: 'Status', emissao: 'Emissão', todosStatus: 'Todos os status',
         statusAtiva: 'Ativa', statusCancelada: 'Cancelada', statusDenegada: 'Denegada', statusInutilizada: 'Inutilizada',
         chave: 'Chave de acesso', acoes: 'Ações', verDetalhe: 'Ver detalhe',
+        abrirGrafo: 'Abrir no grafo', copiarChave: 'Copiar chave', filtrarEmitente: 'Filtrar por este emitente',
         baixarXml: 'Baixar XML', copiar: 'Copiar', copiado: 'Copiado!',
         eventos: 'Eventos', semEventos: 'Nenhum evento registrado.',
         uploadTitulo: 'Enviar NFe', enviar: 'Enviar', uploadOk: 'NFe enfileirada.',

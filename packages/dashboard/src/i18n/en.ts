@@ -54,6 +54,7 @@ export const en = {
         status: 'Status', emissao: 'Issued', todosStatus: 'All statuses',
         statusAtiva: 'Active', statusCancelada: 'Cancelled', statusDenegada: 'Denied', statusInutilizada: 'Voided',
         chave: 'Access key', acoes: 'Actions', verDetalhe: 'View detail',
+        abrirGrafo: 'Open in graph', copiarChave: 'Copy key', filtrarEmitente: 'Filter by this issuer',
         baixarXml: 'Download XML', copiar: 'Copy', copiado: 'Copied!',
         eventos: 'Events', semEventos: 'No events recorded.',
         uploadTitulo: 'Upload invoice', enviar: 'Upload', uploadOk: 'Invoice queued.',
