@@ -1,12 +1,14 @@
 ---
 mnema:
   key: NOTA-92
-  state: DRAFT
+  state: IN_REVIEW
   title: Página Impostos
   description: >-
-    6 KPI cards por tributo (reuso do padrão da Visão Geral), LineChart 4 séries
-    com --chart-1..4 + legenda, 2 tabelas de ranking (Top NCM, Top CFOP)
-    ordenáveis com deep-links para /nf.
+    6 KPI cards por tributo (KpiCard compartilhado com ícone), LineChart 4
+    séries com --chart-1..4 + legenda (ChartCard/ChartTooltip), 2 tabelas de
+    ranking (Top NCM, Top CFOP) ordenáveis (SortableHead/useTableSort) com
+    deep-links para /nf. PageHeader. Remove .impostos__rankings do index.css e o
+    compat de .impostos.
   acceptance_criteria:
     - KPIs, chart e rankings tokenizados em claro/escuro
     - Rankings ordenáveis com aria-sort
@@ -16,12 +18,12 @@ mnema:
     - tipo:redesign
   estimate: 2
   priority: 3
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
   epic_key: NOTA-EPIC-13
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-02T19:28:55.904Z'
+  updated_at: '2026-07-03T00:54:11.055Z'
 ---
 # Página Impostos
