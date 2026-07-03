@@ -120,6 +120,7 @@ export const en = {
     },
     explorer: {
         minhasViews: 'My views', emBreve: '{{entidade}} is coming to the explorer soon.',
+        salvarView: 'Save view', semViews: 'Save a filter as a view.',
     },
     rede: {
         titulo: 'Network', subtitulo: 'Analysis of trade relationships between companies',

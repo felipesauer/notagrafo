@@ -106,6 +106,7 @@ export const ptBR = {
     },
     explorer: {
         minhasViews: 'Minhas views', emBreve: '{{entidade}} chega ao explorador em breve.',
+        salvarView: 'Salvar view', semViews: 'Salve um filtro como view.',
     },
     rede: {
         titulo: 'Rede', subtitulo: 'Análise das relações comerciais entre empresas',

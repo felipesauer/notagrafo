@@ -2,7 +2,7 @@ import { type JSX, type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import {
-    Activity, Building2, FileText, type LucideIcon, Network, Package, ReceiptText, Search, Upload,
+    Activity, Bookmark, Building2, FileText, type LucideIcon, Network, Package, ReceiptText, Search, Star, Upload, X,
 } from 'lucide-react';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue.js';
 import { Button } from '../../components/ui/button.js';
@@ -14,6 +14,7 @@ import { ExplorerProdutos } from './ExplorerProdutos.js';
 import { ExplorerImpostos } from './ExplorerImpostos.js';
 import { NetworkContent } from '../Network.js';
 import { EventsContent } from '../Events.js';
+import { useSavedViews } from './useSavedViews.js';
 
 type EntityKey = 'notas' | 'empresas' | 'produtos' | 'impostos' | 'rede' | 'eventos';
 
@@ -31,12 +32,6 @@ const ENTITIES: EntityDef[] = [
     { key: 'impostos', icon: ReceiptText, labelKey: 'sidebar.impostos', group: 'explorar' },
     { key: 'rede', icon: Network, labelKey: 'sidebar.rede', group: 'analise' },
     { key: 'eventos', icon: Activity, labelKey: 'sidebar.eventos', group: 'analise' },
-];
-
-/** Views salvas de exemplo (persistência real vem na NOTA-112). */
-const VIEWS = [
-    { nome: 'Rejeitadas do mês', entity: 'notas' as EntityKey, cor: 'var(--status-cancelada, #f87171)', status: 'cancelada' },
-    { nome: 'ICMS-ST alto', entity: 'notas' as EntityKey, cor: 'var(--chart-3)', status: '' },
 ];
 
 /**
@@ -58,6 +53,7 @@ export function ExplorerPage(): JSX.Element {
     const status = search.status ?? '';
     const [qInput, setQInput] = useState(search.q ?? '');
     const q = useDebouncedValue(qInput, 300);
+    const { views, add: addView, remove: removeView } = useSavedViews();
 
     const explorar = ENTITIES.filter((e) => e.group === 'explorar');
     const analise = ENTITIES.filter((e) => e.group === 'analise');
@@ -73,6 +69,16 @@ export function ExplorerPage(): JSX.Element {
     function setPeek(chave: string | undefined): void {
         void navigate({ to: '/explorar' as string, search: { ...search, peek: chave } as never });
     }
+    function aplicarView(v: { entity: string; q?: string; status?: string }): void {
+        setQInput(v.q ?? '');
+        void navigate({ to: '/explorar' as string, search: { entity: v.entity, q: v.q || undefined, status: v.status || undefined } as never });
+    }
+    function salvarView(): void {
+        // nomeia pela entidade + filtro atual; só faz sentido salvar com algum filtro
+        const partes = [t(meta.labelKey), qInput.trim(), status].filter(Boolean);
+        addView({ nome: partes.join(' · '), entity, ...(qInput.trim() ? { q: qInput.trim() } : {}), ...(status ? { status } : {}) });
+    }
+    const podeSalvar = entity === 'notas' && (!!qInput.trim() || !!status);
 
     return (
         // rail de entidades (esquerda, dentro do conteúdo) + área principal — o "L"
@@ -86,12 +92,20 @@ export function ExplorerPage(): JSX.Element {
                     {analise.map((e) => <RailItem key={e.key} e={e} active={entity === e.key} onClick={() => trocar(e.key)} t={t} />)}
                 </RailGroup>
                 <RailGroup label={t('explorer.minhasViews')}>
-                    {VIEWS.map((v) => (
-                        <button key={v.nome} type="button" onClick={() => { trocar(v.entity); if (v.status) setStatus(v.status); }}
-                            className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-[13px] text-muted-foreground hover:bg-sidebar-accent hover:text-foreground">
-                            <span className="size-1.5 shrink-0 rounded-[2px]" style={{ background: v.cor }} />
-                            <span className="truncate">{v.nome}</span>
-                        </button>
+                    {views.length === 0 ? (
+                        <p className="px-2 py-1 text-[12px] text-muted-foreground/60">{t('explorer.semViews')}</p>
+                    ) : views.map((v) => (
+                        <div key={v.id} className="group flex items-center rounded-md hover:bg-sidebar-accent">
+                            <button type="button" onClick={() => aplicarView(v)}
+                                className="flex min-w-0 flex-1 items-center gap-2.5 px-2 py-1.5 text-left text-[13px] text-muted-foreground hover:text-foreground">
+                                <Star className="size-3.5 shrink-0 text-muted-foreground/60" />
+                                <span className="truncate">{v.nome}</span>
+                            </button>
+                            <button type="button" onClick={() => removeView(v.id)} aria-label={t('nf.filtros.remover')}
+                                className="mr-1 shrink-0 rounded p-1 text-muted-foreground opacity-0 hover:bg-foreground/10 group-hover:opacity-100">
+                                <X className="size-3" />
+                            </button>
+                        </div>
                     ))}
                 </RailGroup>
             </div>
@@ -126,6 +140,9 @@ export function ExplorerPage(): JSX.Element {
                                     <option value="cancelada">{t('nf.statusCancelada')}</option>
                                     <option value="denegada">{t('nf.statusDenegada')}</option>
                                 </NativeSelect>
+                                {podeSalvar && (
+                                    <Button type="button" variant="outline" size="sm" onClick={salvarView}><Bookmark /> {t('explorer.salvarView')}</Button>
+                                )}
                                 <Button type="button" size="sm"><Upload /> {t('nf.uploadTitulo')}</Button>
                             </>
                         )}
