@@ -1,18 +1,23 @@
 import { type JSX } from 'react';
-import { createRootRoute, createRoute, createRouter, Outlet, redirect } from '@tanstack/react-router';
+import { createRootRoute, createRoute, createRouter, lazyRouteComponent, Outlet, redirect } from '@tanstack/react-router';
 import { useAuthStore } from './stores/auth.store.js';
 import { isAuthRequired } from './lib/auth-config.js';
 import { AppShell } from './components/layout/AppShell.js';
 import { LoginPage } from './pages/Login.js';
-import { OverviewPage } from './pages/Overview.js';
-import { NFListPage } from './pages/NFList.js';
-import { NFDetailPage } from './pages/NFDetail.js';
-import { CompaniesPage } from './pages/Companies.js';
-import { ProductsPage } from './pages/Products.js';
-import { TaxesPage } from './pages/Taxes.js';
-import { GraphPage } from './pages/Graph.js';
-import { ExportsPage } from './pages/Exports.js';
-import { SettingsPage } from './pages/Settings.js';
+
+// Páginas internas via lazy: cada uma vira um chunk próprio (route-based
+// code-splitting), então libs pesadas — Recharts (Overview/Impostos/Produtos),
+// @xyflow/react + dagre + html-to-image (Grafo/Detalhe) — saem do bundle
+// inicial e só carregam ao navegar. Login e o shell ficam no chunk inicial.
+const OverviewPage = lazyRouteComponent(() => import('./pages/Overview.js'), 'OverviewPage');
+const NFListPage = lazyRouteComponent(() => import('./pages/NFList.js'), 'NFListPage');
+const NFDetailPage = lazyRouteComponent(() => import('./pages/NFDetail.js'), 'NFDetailPage');
+const CompaniesPage = lazyRouteComponent(() => import('./pages/Companies.js'), 'CompaniesPage');
+const ProductsPage = lazyRouteComponent(() => import('./pages/Products.js'), 'ProductsPage');
+const TaxesPage = lazyRouteComponent(() => import('./pages/Taxes.js'), 'TaxesPage');
+const GraphPage = lazyRouteComponent(() => import('./pages/Graph.js'), 'GraphPage');
+const ExportsPage = lazyRouteComponent(() => import('./pages/Exports.js'), 'ExportsPage');
+const SettingsPage = lazyRouteComponent(() => import('./pages/Settings.js'), 'SettingsPage');
 
 const rootRoute = createRootRoute({ component: Outlet });
 
@@ -41,7 +46,9 @@ const protectedLayout = createRoute({
     component: AppShell,
 });
 
-const childRoute = (path: string, component: () => JSX.Element) =>
+// Aceita tanto componentes eager (() => JSX) quanto os lazy (AsyncRouteComponent).
+type RouteComponent = ReturnType<typeof lazyRouteComponent> | (() => JSX.Element);
+const childRoute = (path: string, component: RouteComponent) =>
     createRoute({ getParentRoute: () => protectedLayout, path, component });
 
 const overviewRoute = childRoute('/', OverviewPage);
