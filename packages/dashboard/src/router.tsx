@@ -81,7 +81,18 @@ const grafoRoute = createRoute({
 });
 const redeRoute = childRoute('/rede', NetworkPage);
 const eventosRoute = childRoute('/eventos', EventsPage);
-const explorarRoute = childRoute('/explorar', ExplorerPage);
+/** /explorar: entidade ativa + peek (chave da NF) + busca/status como search params (linkáveis). */
+const explorarRoute = createRoute({
+    getParentRoute: () => protectedLayout,
+    path: '/explorar',
+    validateSearch: (search: Record<string, unknown>): { entity?: string; peek?: string; q?: string; status?: string } => ({
+        entity: typeof search.entity === 'string' ? search.entity : undefined,
+        peek: typeof search.peek === 'string' ? search.peek : undefined,
+        q: typeof search.q === 'string' ? search.q : undefined,
+        status: typeof search.status === 'string' ? search.status : undefined,
+    }),
+    component: ExplorerPage,
+});
 const exportacoesRoute = childRoute('/exportacoes', ExportsPage);
 const configuracoesRoute = childRoute('/configuracoes', SettingsPage);
 

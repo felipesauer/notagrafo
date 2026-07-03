@@ -1,4 +1,4 @@
-import { type JSX, useState } from 'react';
+import { type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNFList, type NFListItem } from '../../api/hooks.js';
 import { NFStatusBadge, CurrencyValue, DateDisplay, LoadingSkeleton, InlineError, EmptyState } from '../../components/shared.js';
@@ -24,17 +24,19 @@ function Parte({ p }: { p?: { cnpj: string; razaoSocial: string; uf: string } })
  * onde clicar numa linha abre o Peek lateral, navegável por ↑/↓ sem perder o
  * lugar. Peek é o drill-down primário; Enter/botão leva ao detalhe completo.
  */
-export function ExplorerNotas({ q, status }: { q?: string; status?: string }): JSX.Element {
+export function ExplorerNotas({ q, status, peek, onPeek }: { q?: string; status?: string; peek?: string; onPeek: (chave: string | undefined) => void }): JSX.Element {
     const { t } = useTranslation();
     const query = useNFList({ limit: 50, orderBy: 'dataEmissao', order: 'desc', ...(q ? { q } : {}), ...(status ? { status } : {}) });
     const rows = query.data?.data ?? [];
-    const [sel, setSel] = useState<number | null>(null);
 
     if (query.isLoading) return <LoadingSkeleton variant="table" linhas={10} colunas={6} />;
     if (query.isError) return <InlineError onRetry={() => void query.refetch()} />;
     if (rows.length === 0) return <EmptyState />;
 
-    const selNf: NFListItem | null = sel != null ? (rows[sel] ?? null) : null;
+    // seleção derivada da URL (peek = chave) → o peek é linkável e o voltar funciona
+    const sel = peek ? rows.findIndex((r) => r.chaveAcesso === peek) : -1;
+    const selNf: NFListItem | null = sel >= 0 ? (rows[sel] ?? null) : null;
+    const goTo = (i: number): void => { const r = rows[i]; if (r) onPeek(r.chaveAcesso); };
 
     return (
         <>
@@ -57,7 +59,7 @@ export function ExplorerNotas({ q, status }: { q?: string; status?: string }): J
                                 key={nf.chaveAcesso}
                                 data-i={i}
                                 className={`cursor-pointer ${sel === i ? 'bg-primary/10 shadow-[inset_2px_0_0_var(--primary)]' : ''}`}
-                                onClick={() => setSel(i)}
+                                onClick={() => onPeek(nf.chaveAcesso)}
                             >
                                 <TableCell className="font-mono font-medium tabular-nums">{nf.numero}</TableCell>
                                 <TableCell className="font-mono text-[11px] text-muted-foreground">…{nf.chaveAcesso.slice(-8)}</TableCell>
@@ -74,12 +76,12 @@ export function ExplorerNotas({ q, status }: { q?: string; status?: string }): J
 
             <NFPeek
                 nf={selNf}
-                open={sel != null}
-                onOpenChange={(o) => !o && setSel(null)}
-                onPrev={() => setSel((s) => (s != null && s > 0 ? s - 1 : s))}
-                onNext={() => setSel((s) => (s != null && s < rows.length - 1 ? s + 1 : s))}
-                hasPrev={sel != null && sel > 0}
-                hasNext={sel != null && sel < rows.length - 1}
+                open={sel >= 0}
+                onOpenChange={(o) => !o && onPeek(undefined)}
+                onPrev={() => sel > 0 && goTo(sel - 1)}
+                onNext={() => sel >= 0 && sel < rows.length - 1 && goTo(sel + 1)}
+                hasPrev={sel > 0}
+                hasNext={sel >= 0 && sel < rows.length - 1}
             />
         </>
     );

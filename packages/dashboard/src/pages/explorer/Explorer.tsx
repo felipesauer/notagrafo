@@ -1,5 +1,6 @@
 import { type JSX, type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import {
     Activity, Building2, FileText, type LucideIcon, Network, Package, ReceiptText, Search, Upload, Waypoints,
 } from 'lucide-react';
@@ -40,11 +41,18 @@ const VIEWS = [
  * Uma casca em "L invertido" (rail de entidades + header contextual) troca o
  * conteúdo sem trocar de página. Passo 1: só a entidade Notas tem conteúdo real.
  */
+const ENTITY_KEYS = new Set<string>(ENTITIES.map((e) => e.key));
+
 export function ExplorerPage(): JSX.Element {
     const { t } = useTranslation();
-    const [entity, setEntity] = useState<EntityKey>('notas');
-    const [qInput, setQInput] = useState('');
-    const [status, setStatus] = useState('');
+    const navigate = useNavigate();
+    const search = useSearch({ strict: false }) as { entity?: string; peek?: string; q?: string; status?: string };
+
+    // A entidade ativa e os filtros vivem na URL (linkáveis). A busca tem um
+    // espelho local para digitação fluida, com debounce antes de ir pra query.
+    const entity: EntityKey = (search.entity && ENTITY_KEYS.has(search.entity) ? search.entity : 'notas') as EntityKey;
+    const status = search.status ?? '';
+    const [qInput, setQInput] = useState(search.q ?? '');
     const q = useDebouncedValue(qInput, 300);
 
     const explorar = ENTITIES.filter((e) => e.group === 'explorar');
@@ -52,9 +60,14 @@ export function ExplorerPage(): JSX.Element {
     const meta = ENTITIES.find((e) => e.key === entity)!;
 
     function trocar(e: EntityKey): void {
-        setEntity(e);
         setQInput('');
-        setStatus('');
+        void navigate({ to: '/explorar' as string, search: { entity: e } as never });
+    }
+    function setStatus(s: string): void {
+        void navigate({ to: '/explorar' as string, search: { ...search, status: s || undefined } as never });
+    }
+    function setPeek(chave: string | undefined): void {
+        void navigate({ to: '/explorar' as string, search: { ...search, peek: chave } as never });
     }
 
     return (
@@ -108,7 +121,7 @@ export function ExplorerPage(): JSX.Element {
                 {/* Conteúdo da entidade */}
                 <div className="flex-1 overflow-auto">
                     {entity === 'notas' ? (
-                        <ExplorerNotas q={q} status={status} />
+                        <ExplorerNotas q={q} status={status} peek={search.peek} onPeek={setPeek} />
                     ) : (
                         <div className="grid h-full place-items-center p-8 text-center">
                             <div className="max-w-sm">
