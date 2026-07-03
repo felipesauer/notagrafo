@@ -1,15 +1,14 @@
 ---
 mnema:
   key: NOTA-94
-  state: DRAFT
+  state: IN_REVIEW
   title: 'Página Grafo: nós tokenizados, legenda, loading, MiniMap, colorMode'
   description: >-
     CustomNode com tokens (--chart-*/--primary) + ring de seleção; legenda de
-    tipos (chips empresa/NF/produto); estado de loading durante fetch (hoje
-    inexistente); toolbar restylada (Input + Button, select nativo de direção,
-    Slider shadcn de profundidade, Switch de produtos); GraphPanel → Card
-    lateral; MiniMap; ReactFlow colorMode ligado ao theme.store (v12); export
-    PNG mantido (.react-flow da lib).
+    tipos; loading durante fetch; toolbar restylada (Input + Button, select
+    nativo de direção, Slider de profundidade, Switch de produtos); GraphPanel →
+    Card; MiniMap; ReactFlow colorMode ligado ao theme.store; export PNG
+    mantido. Remove .grafo-*/.graph-panel do index.css e do compat.
   acceptance_criteria:
     - Nós e arestas com tokens corretos em claro/escuro (colorMode)
     - Legenda e loading presentes
@@ -20,12 +19,12 @@ mnema:
     - tipo:redesign
   estimate: 3
   priority: 3
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
   epic_key: NOTA-EPIC-13
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-02T19:29:00.697Z'
+  updated_at: '2026-07-03T01:04:33.666Z'
 ---
 # Página Grafo: nós tokenizados, legenda, loading, MiniMap, colorMode
