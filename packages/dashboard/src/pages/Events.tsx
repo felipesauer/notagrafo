@@ -23,7 +23,8 @@ const EVENTO_ICONE: Record<string, LucideIcon> = {
 const PAGE = 50;
 
 /** Feed global de eventos de auditoria de todas as NFs, agrupado por dia. */
-export function EventsPage(): JSX.Element {
+/** Conteúdo do feed de eventos sem PageHeader — reutilizado na página standalone e no explorador. */
+export function EventsContent(): JSX.Element {
     const { t } = useTranslation();
     const [tipo, setTipo] = useState('');
     const [pagina, setPagina] = useState(0);
@@ -40,8 +41,6 @@ export function EventsPage(): JSX.Element {
 
     return (
         <div>
-            <PageHeader title={t('eventos.titulo')} description={t('eventos.subtitulo')} />
-
             <div className="mb-4 flex flex-wrap items-center gap-2">
                 <NativeSelect value={tipo} onChange={(e) => mudarTipo(e.target.value)} wrapperClassName="w-52">
                     <option value="">{t('eventos.todosTipos')}</option>
@@ -102,6 +101,16 @@ export function EventsPage(): JSX.Element {
                     </div>
                 </FadeIn>
             )}
+        </div>
+    );
+}
+
+export function EventsPage(): JSX.Element {
+    const { t } = useTranslation();
+    return (
+        <div>
+            <PageHeader title={t('eventos.titulo')} description={t('eventos.subtitulo')} />
+            <EventsContent />
         </div>
     );
 }

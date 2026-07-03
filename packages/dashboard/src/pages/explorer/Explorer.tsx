@@ -2,10 +2,9 @@ import { type JSX, type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import {
-    Activity, Building2, FileText, type LucideIcon, Network, Package, ReceiptText, Search, Upload, Waypoints,
+    Activity, Building2, FileText, type LucideIcon, Network, Package, ReceiptText, Search, Upload,
 } from 'lucide-react';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue.js';
-import { EmptyState } from '../../components/shared.js';
 import { Button } from '../../components/ui/button.js';
 import { Input } from '../../components/ui/input.js';
 import { NativeSelect } from '../../components/ui/native-select.js';
@@ -13,6 +12,8 @@ import { ExplorerNotas } from './ExplorerNotas.js';
 import { ExplorerEmpresas } from './ExplorerEmpresas.js';
 import { ExplorerProdutos } from './ExplorerProdutos.js';
 import { ExplorerImpostos } from './ExplorerImpostos.js';
+import { NetworkContent } from '../Network.js';
+import { EventsContent } from '../Events.js';
 
 type EntityKey = 'notas' | 'empresas' | 'produtos' | 'impostos' | 'rede' | 'eventos';
 
@@ -141,13 +142,10 @@ export function ExplorerPage(): JSX.Element {
                         <ExplorerProdutos />
                     ) : entity === 'impostos' ? (
                         <ExplorerImpostos />
+                    ) : entity === 'rede' ? (
+                        <div className="p-4 md:p-6"><NetworkContent /></div>
                     ) : (
-                        <div className="grid h-full place-items-center p-8 text-center">
-                            <div className="max-w-sm">
-                                <Waypoints className="mx-auto mb-3 size-8 text-muted-foreground/50" />
-                                <EmptyState mensagem={t('explorer.emBreve', { entidade: t(meta.labelKey) })} />
-                            </div>
-                        </div>
+                        <div className="p-4 md:p-6"><EventsContent /></div>
                     )}
                 </div>
             </div>
