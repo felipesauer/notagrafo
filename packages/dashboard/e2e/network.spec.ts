@@ -4,10 +4,10 @@ import { login } from './helpers.js';
 test.describe('Rede', () => {
     test('abre a página, mostra o Sankey de fluxo e alterna para a rede completa', async ({ page }) => {
         await login(page);
-        await page.goto('/rede');
+        // Rede é uma entidade do explorador (aba de análise)
+        await page.goto('/?entity=rede');
 
-        // título da página e as duas abas de análise
-        await expect(page.getByRole('heading', { name: /^rede$|^network$/i })).toBeVisible();
+        // as duas abas de análise
         const abaFluxo = page.getByRole('tab', { name: /fluxo de valor|value flow/i });
         const abaRede = page.getByRole('tab', { name: /rede completa|full network/i });
         await expect(abaFluxo).toBeVisible();

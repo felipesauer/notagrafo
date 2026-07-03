@@ -39,12 +39,12 @@ interface NavItem {
 /** Navegação primária pelo explorador (entidade via search) + telas de sistema. */
 const ROTAS: NavItem[] = [
     { to: '/', icon: Home, key: 'sidebar.overview' },
-    { to: '/explorar', search: { entity: 'notas' }, icon: FileText, key: 'sidebar.nfs' },
-    { to: '/explorar', search: { entity: 'empresas' }, icon: Building2, key: 'sidebar.empresas' },
-    { to: '/explorar', search: { entity: 'produtos' }, icon: Package, key: 'sidebar.produtos' },
-    { to: '/explorar', search: { entity: 'impostos' }, icon: ReceiptText, key: 'sidebar.impostos' },
-    { to: '/explorar', search: { entity: 'rede' }, icon: Network, key: 'sidebar.rede' },
-    { to: '/explorar', search: { entity: 'eventos' }, icon: Activity, key: 'sidebar.eventos' },
+    { to: '/', search: { entity: 'notas' }, icon: FileText, key: 'sidebar.nfs' },
+    { to: '/', search: { entity: 'empresas' }, icon: Building2, key: 'sidebar.empresas' },
+    { to: '/', search: { entity: 'produtos' }, icon: Package, key: 'sidebar.produtos' },
+    { to: '/', search: { entity: 'impostos' }, icon: ReceiptText, key: 'sidebar.impostos' },
+    { to: '/', search: { entity: 'rede' }, icon: Network, key: 'sidebar.rede' },
+    { to: '/', search: { entity: 'eventos' }, icon: Activity, key: 'sidebar.eventos' },
     { to: '/exportacoes', icon: Download, key: 'sidebar.exportacoes' },
     { to: '/configuracoes', icon: Settings, key: 'sidebar.configuracoes' },
 ];
@@ -130,7 +130,7 @@ export function CommandPalette(): JSX.Element {
                                 <CommandItem
                                     key={e.cnpj}
                                     value={`empresa-${e.cnpj}-${e.razaoSocial}`}
-                                    onSelect={() => run(() => void navigate({ to: '/explorar' as string, search: { entity: 'empresas', peek: e.cnpj } as never }))}
+                                    onSelect={() => run(() => void navigate({ to: '/' as string, search: { entity: 'empresas', peek: e.cnpj } as never }))}
                                 >
                                     <Building2 />
                                     {e.razaoSocial}

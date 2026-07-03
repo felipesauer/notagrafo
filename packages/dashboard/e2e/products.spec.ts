@@ -1,18 +1,13 @@
 import { test, expect } from '@playwright/test';
 import { login } from './helpers.js';
 
-test.describe('Produtos', () => {
-    test('lista produtos e expande quantidade/preço médio', async ({ page }) => {
+test.describe('Produtos (explorador)', () => {
+    test('troca para Produtos e lista com NCM linkável', async ({ page }) => {
         await login(page);
-        await page.getByRole('link', { name: /produtos|products/i }).click();
-        // level:2 — o título da página é <h2>; sem isso o seletor também casaria
-        // o <h1> de breadcrumb (mesmo texto da rota) → strict mode violation.
-        await expect(page.getByRole('heading', { level: 2, name: /produtos|products/i })).toBeVisible();
+        await page.getByRole('button', { name: /^produtos$|^products$/i }).first().click();
         await expect(page.getByTestId('data-table')).toBeVisible();
-
-        const primeira = page.getByTestId('data-table').locator('tbody tr').first();
-        await expect(primeira).toBeVisible();
-        await primeira.click();
-        await expect(page.getByText(/preço médio|average price/i).first()).toBeVisible();
+        await expect(page.getByTestId('data-table').locator('tbody tr').first()).toBeVisible();
+        // o NCM é um deep-link para as NFs daquele NCM
+        await expect(page.getByTestId('data-table').getByRole('link').first()).toBeVisible();
     });
 });

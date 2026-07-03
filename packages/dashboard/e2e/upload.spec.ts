@@ -8,7 +8,7 @@ const FIXTURE = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'core'
 test.describe('upload de NFe', () => {
     test('envia um XML pelo modal e acompanha o status até o resumo', async ({ page }) => {
         await login(page);
-        await page.getByRole('link', { name: /notas fiscais|invoices/i }).click();
+        // a home é o explorador (Notas); o botão de envio está no header
         await page.getByRole('button', { name: /enviar nfe|upload invoice/i }).click();
 
         await expect(page.getByRole('dialog')).toBeVisible();

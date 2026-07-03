@@ -9,16 +9,10 @@ import { LoginPage } from './pages/Login.js';
 // code-splitting), então libs pesadas — Recharts (Overview/Impostos/Produtos),
 // @xyflow/react + dagre + html-to-image (Grafo/Detalhe) — saem do bundle
 // inicial e só carregam ao navegar. Login e o shell ficam no chunk inicial.
-const OverviewPage = lazyRouteComponent(() => import('./pages/Overview.js'), 'OverviewPage');
-const NFListPage = lazyRouteComponent(() => import('./pages/NFList.js'), 'NFListPage');
-const NFDetailPage = lazyRouteComponent(() => import('./pages/NFDetail.js'), 'NFDetailPage');
-const CompaniesPage = lazyRouteComponent(() => import('./pages/Companies.js'), 'CompaniesPage');
-const ProductsPage = lazyRouteComponent(() => import('./pages/Products.js'), 'ProductsPage');
-const TaxesPage = lazyRouteComponent(() => import('./pages/Taxes.js'), 'TaxesPage');
-const GraphPage = lazyRouteComponent(() => import('./pages/Graph.js'), 'GraphPage');
-const NetworkPage = lazyRouteComponent(() => import('./pages/Network.js'), 'NetworkPage');
-const EventsPage = lazyRouteComponent(() => import('./pages/Events.js'), 'EventsPage');
 const ExplorerPage = lazyRouteComponent(() => import('./pages/explorer/Explorer.js'), 'ExplorerPage');
+const OverviewPage = lazyRouteComponent(() => import('./pages/Overview.js'), 'OverviewPage');
+const NFDetailPage = lazyRouteComponent(() => import('./pages/NFDetail.js'), 'NFDetailPage');
+const GraphPage = lazyRouteComponent(() => import('./pages/Graph.js'), 'GraphPage');
 const ExportsPage = lazyRouteComponent(() => import('./pages/Exports.js'), 'ExportsPage');
 const SettingsPage = lazyRouteComponent(() => import('./pages/Settings.js'), 'SettingsPage');
 
@@ -54,37 +48,10 @@ type RouteComponent = ReturnType<typeof lazyRouteComponent> | (() => JSX.Element
 const childRoute = (path: string, component: RouteComponent) =>
     createRoute({ getParentRoute: () => protectedLayout, path, component });
 
-const overviewRoute = childRoute('/', OverviewPage);
-/** /nf aceita filtros via search (deep-link de Empresas/Grafo): cnpjEmitente, ncm, comImposto, status. */
-const nfRoute = createRoute({
-    getParentRoute: () => protectedLayout,
-    path: '/nf',
-    validateSearch: (search: Record<string, unknown>): { cnpjEmitente?: string; ncm?: string; comImposto?: boolean; status?: string } => ({
-        cnpjEmitente: typeof search.cnpjEmitente === 'string' ? search.cnpjEmitente : undefined,
-        ncm: typeof search.ncm === 'string' ? search.ncm : undefined,
-        comImposto: search.comImposto === true || search.comImposto === 'true' ? true : undefined,
-        status: typeof search.status === 'string' ? search.status : undefined,
-    }),
-    component: NFListPage,
-});
-const nfDetailRoute = childRoute('/nf/$chave', NFDetailPage);
-const empresasRoute = childRoute('/empresas', CompaniesPage);
-const produtosRoute = childRoute('/produtos', ProductsPage);
-const impostosRoute = childRoute('/impostos', TaxesPage);
-const grafoRoute = createRoute({
-    getParentRoute: () => protectedLayout,
-    path: '/grafo',
-    validateSearch: (search: Record<string, unknown>): { cnpj?: string } => ({
-        cnpj: typeof search.cnpj === 'string' ? search.cnpj : undefined,
-    }),
-    component: GraphPage,
-});
-const redeRoute = childRoute('/rede', NetworkPage);
-const eventosRoute = childRoute('/eventos', EventsPage);
-/** /explorar: entidade ativa + peek (chave da NF) + busca/status como search params (linkáveis). */
+/** Home: o explorador é a experiência principal. entity/peek/q/status como search (linkáveis). */
 const explorarRoute = createRoute({
     getParentRoute: () => protectedLayout,
-    path: '/explorar',
+    path: '/',
     validateSearch: (search: Record<string, unknown>): { entity?: string; peek?: string; q?: string; status?: string } => ({
         entity: typeof search.entity === 'string' ? search.entity : undefined,
         peek: typeof search.peek === 'string' ? search.peek : undefined,
@@ -93,22 +60,26 @@ const explorarRoute = createRoute({
     }),
     component: ExplorerPage,
 });
+const overviewRoute = childRoute('/visao-geral', OverviewPage);
+const nfDetailRoute = childRoute('/nf/$chave', NFDetailPage);
+const grafoRoute = createRoute({
+    getParentRoute: () => protectedLayout,
+    path: '/grafo',
+    validateSearch: (search: Record<string, unknown>): { cnpj?: string } => ({
+        cnpj: typeof search.cnpj === 'string' ? search.cnpj : undefined,
+    }),
+    component: GraphPage,
+});
 const exportacoesRoute = childRoute('/exportacoes', ExportsPage);
 const configuracoesRoute = childRoute('/configuracoes', SettingsPage);
 
 const routeTree = rootRoute.addChildren([
     loginRoute,
     protectedLayout.addChildren([
-        overviewRoute,
-        nfRoute,
-        nfDetailRoute,
-        empresasRoute,
-        produtosRoute,
-        impostosRoute,
-        grafoRoute,
-        redeRoute,
-        eventosRoute,
         explorarRoute,
+        overviewRoute,
+        nfDetailRoute,
+        grafoRoute,
         exportacoesRoute,
         configuracoesRoute,
     ]),
