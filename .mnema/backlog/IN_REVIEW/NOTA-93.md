@@ -1,14 +1,14 @@
 ---
 mnema:
   key: NOTA-93
-  state: DRAFT
+  state: IN_REVIEW
   title: Página Exportações
   description: >-
     Form em Card (select nativo de formato estilizado — testid export-format
-    preservado; datas nativas estiladas; checkboxes shadcn), histórico com
-    badges tokenizados por status de export (pending/processing/ready/failed —
-    hoje caem no cinza), download com toast, empty state com ação. Polling 10s
-    mantido.
+    preservado; checkboxes shadcn), histórico (export-list) com badges
+    tokenizados por status de export (queued/processing/ready/failed via
+    lib/status.ts), download com toast, empty state. Polling 10s mantido.
+    PageHeader. Remove resíduos de .exportacoes do compat block.
   acceptance_criteria:
     - Badges de status de export com cores próprias por estado
     - Download com toast
@@ -18,12 +18,12 @@ mnema:
     - tipo:redesign
   estimate: 3
   priority: 3
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
   epic_key: NOTA-EPIC-13
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-02T19:28:58.552Z'
+  updated_at: '2026-07-03T00:57:49.075Z'
 ---
 # Página Exportações
