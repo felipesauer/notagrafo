@@ -18,6 +18,7 @@ import { useOverview, useVolume, useTopCompanies, useByUf, useTaxStats } from '.
 import { CurrencyValue, DateDisplay, LoadingSkeleton, InlineError, EmptyState } from '../components/shared.js';
 import { PageHeader } from '../components/PageHeader.js';
 import { KpiCard } from '../components/KpiCard.js';
+import { FadeIn } from '../components/Motion.js';
 import { ChartCard } from '../components/charts/ChartCard.js';
 import { chartColor } from '../components/charts/palette.js';
 import { Card, CardContent, CardHeader } from '../components/ui/card.js';
@@ -116,8 +117,8 @@ function OverviewContent({
 
     return (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-            {/* ── KPIs headline (topo, zona F) ── */}
-            <div className="lg:col-span-3">
+            {/* ── KPIs headline (topo, zona F) — entram em stagger sutil ── */}
+            <FadeIn className="lg:col-span-3" delay={0}>
                 <KpiCard
                     label={t('overview.totalNFs')}
                     value={o.totalNFs.toLocaleString('pt-BR')}
@@ -127,8 +128,8 @@ function OverviewContent({
                     spark={nfSpark}
                     sparkColor="var(--chart-1)"
                 />
-            </div>
-            <div className="lg:col-span-3">
+            </FadeIn>
+            <FadeIn className="lg:col-span-3" delay={0.05}>
                 <KpiCard
                     label={t('overview.valorTotal')}
                     value={brlCompact(o.valorTotalProcessado)}
@@ -138,26 +139,26 @@ function OverviewContent({
                     spark={valSpark}
                     sparkColor="var(--chart-3)"
                 />
-            </div>
-            <div className="lg:col-span-3">
+            </FadeIn>
+            <FadeIn className="lg:col-span-3" delay={0.1}>
                 <KpiCard
                     label={t('overview.totalEmpresas')}
                     value={o.totalEmpresas.toLocaleString('pt-BR')}
                     icon={<Building2 />}
                     hint={t('overview.empresasHint', { count: o.totalEmpresas })}
                 />
-            </div>
-            <div className="lg:col-span-3">
+            </FadeIn>
+            <FadeIn className="lg:col-span-3" delay={0.15}>
                 <KpiCard
                     label={t('overview.totalProdutos')}
                     value={o.totalProdutos.toLocaleString('pt-BR')}
                     icon={<Package />}
                     hint={cargaTotal > 0 ? t('overview.cargaHint', { valor: brlCompact(cargaTotal) }) : undefined}
                 />
-            </div>
+            </FadeIn>
 
             {/* ── Área grande: volume + valor (8 col) ── */}
-            <div className="lg:col-span-8">
+            <FadeIn className="lg:col-span-8" delay={0.2}>
                 <ChartCard title={t('overview.volumeTitulo')} config={volumeConfig} className="h-[280px] w-full">
                     <ComposedChart data={volumeSeries} margin={{ left: 4, right: 8, top: 8 }}>
                         <defs>
@@ -175,10 +176,10 @@ function OverviewContent({
                         <Line yAxisId="r" dataKey="valorTotal" type="monotone" stroke="var(--color-valorTotal)" strokeWidth={2} dot={false} />
                     </ComposedChart>
                 </ChartCard>
-            </div>
+            </FadeIn>
 
             {/* ── Donut composição tributária (4 col) ── */}
-            <div className="lg:col-span-4">
+            <FadeIn className="lg:col-span-4" delay={0.25}>
                 <Card data-testid="chart" className="gap-4">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0">
                         <h3 className="text-base leading-none font-semibold">{t('overview.composicaoTributaria')}</h3>
@@ -210,10 +211,10 @@ function OverviewContent({
                         )}
                     </CardContent>
                 </Card>
-            </div>
+            </FadeIn>
 
             {/* ── Ranking fornecedores (5 col) ── */}
-            <div className="lg:col-span-5">
+            <FadeIn className="lg:col-span-5" delay={0.3}>
                 <ChartCard title={t('overview.topFornecedores')} config={rankConfig} className="h-[240px] w-full">
                     <BarChart data={rankTop} layout="vertical" margin={{ left: 8, right: 12 }}>
                         <XAxis type="number" hide />
@@ -222,10 +223,10 @@ function OverviewContent({
                         <Bar dataKey="valorTotal" fill="var(--color-valorTotal)" radius={[0, 4, 4, 0]} maxBarSize={22} />
                     </BarChart>
                 </ChartCard>
-            </div>
+            </FadeIn>
 
             {/* ── Distribuição por UF — treemap denso (7 col) ── */}
-            <div className="lg:col-span-7">
+            <FadeIn className="lg:col-span-7" delay={0.35}>
                 <Card data-testid="chart" className="gap-4">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0">
                         <h3 className="text-base leading-none font-semibold">{t('overview.distribuicaoUf')}</h3>
@@ -243,10 +244,10 @@ function OverviewContent({
                         )}
                     </CardContent>
                 </Card>
-            </div>
+            </FadeIn>
 
             {/* ── Últimas NFs (largura total) ── */}
-            <div className="lg:col-span-12">
+            <FadeIn className="lg:col-span-12" delay={0.4}>
                 <Card className="py-4">
                     <CardContent className="px-4">
                         <h3 className="mb-3 text-base font-semibold">{t('overview.ultimasNFs')}</h3>
@@ -276,7 +277,7 @@ function OverviewContent({
                         )}
                     </CardContent>
                 </Card>
-            </div>
+            </FadeIn>
         </div>
     );
 }
