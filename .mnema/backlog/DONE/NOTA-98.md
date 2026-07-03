@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-98
-  state: IN_REVIEW
+  state: DONE
   title: 'Fundação de dataviz: chart block shadcn + Sparkline + tokens de série'
   description: >-
     Reverter NOTA-ADR-8: adotar o chart block do shadcn. Refatorar
@@ -25,6 +25,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T02:10:04.569Z'
+  updated_at: '2026-07-03T21:59:15.438Z'
 ---
 # Fundação de dataviz: chart block shadcn + Sparkline + tokens de série

@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-94
-  state: IN_REVIEW
+  state: DONE
   title: 'Página Grafo: nós tokenizados, legenda, loading, MiniMap, colorMode'
   description: >-
     CustomNode com tokens (--chart-*/--primary) + ring de seleção; legenda de
@@ -25,6 +25,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T01:04:33.666Z'
+  updated_at: '2026-07-03T21:59:05.848Z'
 ---
 # Página Grafo: nós tokenizados, legenda, loading, MiniMap, colorMode

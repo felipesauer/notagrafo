@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-102
-  state: IN_REVIEW
+  state: DONE
   title: 'Polish com Framer Motion: microinterações, transições, reveal do drawer'
   description: >-
     Instalar framer-motion (motion). Microanimações COM PARCIMÔNIA (respeitando
@@ -25,6 +25,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T16:04:47.837Z'
+  updated_at: '2026-07-03T21:59:26.882Z'
 ---
 # Polish transversal: motion sutil, empty/hover states, tipografia

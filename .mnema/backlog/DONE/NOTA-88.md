@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-88
-  state: IN_REVIEW
+  state: DONE
   title: Página Visão Geral
   description: >-
     Redesign da Overview: 4 KPI cards com ícone lucide e números tabulares; 3
@@ -28,6 +28,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T00:31:12.588Z'
+  updated_at: '2026-07-03T21:58:46.678Z'
 ---
 # Página Visão Geral

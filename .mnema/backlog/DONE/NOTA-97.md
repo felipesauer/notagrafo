@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-97
-  state: IN_REVIEW
+  state: DONE
   title: Code-splitting do bundle do dashboard (lazy routes + manualChunks)
   description: >-
     Resolver o aviso do Vite de chunk único >500kB (1.286 kB). Converter os
@@ -25,6 +25,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T01:30:38.423Z'
+  updated_at: '2026-07-03T21:59:13.205Z'
 ---
 # Code-splitting do bundle do dashboard (lazy routes + manualChunks)

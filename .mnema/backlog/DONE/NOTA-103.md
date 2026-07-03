@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-103
-  state: IN_REVIEW
+  state: DONE
   title: 'NFList: filtros da coluna esquerda para barra no topo + busca única + chips'
   description: >-
     Mover o FilterSidebar (coluna 240px) para uma BARRA horizontal no topo,
@@ -25,6 +25,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T02:50:29.149Z'
+  updated_at: '2026-07-03T21:59:30.505Z'
 ---
 # NFList: filtros da coluna esquerda para barra no topo + busca única + chips

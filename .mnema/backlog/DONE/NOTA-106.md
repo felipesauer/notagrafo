@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-106
-  state: IN_REVIEW
+  state: DONE
   title: >-
     Grafo repensado: nós-card, arestas com peso/direção, hover-isola, layout,
     minimap
@@ -30,6 +30,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T14:50:19.039Z'
+  updated_at: '2026-07-03T21:59:37.020Z'
 ---
 # Grafo repensado: nós-card, arestas com peso/direção, hover-isola, layout, minimap

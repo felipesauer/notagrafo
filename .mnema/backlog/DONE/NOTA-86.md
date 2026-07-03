@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-86
-  state: IN_REVIEW
+  state: DONE
   title: >-
     Shell: AppShell, sidebar colapsável + drawer mobile, breadcrumb, user menu,
     sonner, login
@@ -34,6 +34,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T00:07:05.508Z'
+  updated_at: '2026-07-03T21:58:42.477Z'
 ---
 # Shell: AppShell, sidebar colapsável + drawer mobile, breadcrumb, user menu, sonner, login

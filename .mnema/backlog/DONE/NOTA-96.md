@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-96
-  state: IN_REVIEW
+  state: DONE
   title: Command palette Ctrl+K
   description: >-
     shadcn command (cmdk) + Dialog com atalho Ctrl/Cmd+K: navegação entre as 9
@@ -22,6 +22,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T01:16:55.365Z'
+  updated_at: '2026-07-03T21:59:10.856Z'
 ---
 # (Opcional) Command palette Ctrl+K

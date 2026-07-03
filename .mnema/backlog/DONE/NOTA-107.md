@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-107
-  state: IN_REVIEW
+  state: DONE
   title: 'Fluxo fiscal com Nivo: query + rota GET /stats/fluxo + sankey/heatmap'
   description: >-
     Full-stack. (1) graph: query fluxoEmpresas — todos os pares
@@ -31,6 +31,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T16:18:19.140Z'
+  updated_at: '2026-07-03T21:59:45.145Z'
 ---
 # Fluxo fiscal com Nivo: query + rota GET /stats/fluxo + sankey/heatmap

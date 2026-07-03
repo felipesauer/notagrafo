@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-91
-  state: IN_REVIEW
+  state: DONE
   title: 'Páginas Empresas e Produtos: expansão acessível + ordenação'
   description: >-
     Expansão de linha acessível: botão chevron com aria-expanded na primeira
@@ -27,6 +27,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T00:49:45.665Z'
+  updated_at: '2026-07-03T21:58:53.074Z'
 ---
 # Páginas Empresas e Produtos: expansão acessível + ordenação

@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-93
-  state: IN_REVIEW
+  state: DONE
   title: Página Exportações
   description: >-
     Form em Card (select nativo de formato estilizado — testid export-format
@@ -24,6 +24,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T00:57:49.075Z'
+  updated_at: '2026-07-03T21:59:03.924Z'
 ---
 # Página Exportações

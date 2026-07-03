@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-95
-  state: IN_REVIEW
+  state: DONE
   title: Configurações, remoção do CSS legado e varredura final
   description: >-
     Settings real em Cards: Aparência (tema via Switch + idioma), Perfil,
@@ -27,6 +27,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T01:10:34.044Z'
+  updated_at: '2026-07-03T21:59:07.650Z'
 ---
 # Configurações, remoção do CSS legado e varredura final

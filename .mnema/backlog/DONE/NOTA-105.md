@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-105
-  state: IN_REVIEW
+  state: DONE
   title: 'Continuidade de navegação: voltar contextual + grafo como drawer do detalhe'
   description: >-
     Botão 'voltar' contextual (history do router) nas telas de destino.
@@ -27,6 +27,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T15:03:34.000Z'
+  updated_at: '2026-07-03T21:59:35.094Z'
 ---
 # Continuidade de navegação: voltar contextual + grafo como drawer do detalhe

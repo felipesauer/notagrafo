@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-104
-  state: IN_REVIEW
+  state: DONE
   title: >-
     NFList: listagem legível (razão social) + menu de ações por linha +
     ordenação
@@ -27,6 +27,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T02:54:55.040Z'
+  updated_at: '2026-07-03T21:59:32.790Z'
 ---
 # NFList: listagem legível (razão social) + menu de ações por linha + ordenação

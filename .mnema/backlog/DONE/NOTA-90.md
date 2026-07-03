@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-90
-  state: IN_REVIEW
+  state: DONE
   title: Página Detalhe da NF
   description: >-
     Grid de Cards (Identificação com chave copiável + badge;
@@ -27,6 +27,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T00:44:48.867Z'
+  updated_at: '2026-07-03T21:58:51.124Z'
 ---
 # Página Detalhe da NF

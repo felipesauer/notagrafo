@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-99
-  state: IN_REVIEW
+  state: DONE
   title: KPIs com sparkline + delta e bento grid na Visão Geral
   description: >-
     KpiCard ganha sparkline (série do período) + DeltaBadge (% vs período
@@ -27,6 +27,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T02:15:11.077Z'
+  updated_at: '2026-07-03T21:59:17.840Z'
 ---
 # KPIs com sparkline + delta e bento grid na Visão Geral

@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-84
-  state: IN_REVIEW
+  state: DONE
   title: 'e2e: seletores estáveis com data-testid'
   description: >-
     Desacoplar os 9 specs de packages/dashboard/e2e das classes CSS que serão
@@ -27,6 +27,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-02T19:39:32.080Z'
+  updated_at: '2026-07-03T21:58:36.504Z'
 ---
 # e2e: seletores estáveis com data-testid

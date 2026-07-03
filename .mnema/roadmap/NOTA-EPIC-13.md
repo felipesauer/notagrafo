@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-EPIC-13
   kind: epic
-  state: OPEN
+  state: CLOSED
   title: Redesign UX/UI do dashboard (Tailwind v4 + shadcn/ui)
   description: >-
     Reestruturação completa da camada de apresentação do @notagrafo/dashboard:
@@ -16,6 +16,6 @@ mnema:
     verdes a cada task (data-testid introduzidos antes do restyle).
   metadata: {}
   created_at: '2026-07-02T19:26:09.054Z'
-  closed_at: null
+  closed_at: '2026-07-03T22:00:13.936Z'
 ---
 # Redesign UX/UI do dashboard (Tailwind v4 + shadcn/ui)

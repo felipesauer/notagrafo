@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-EPIC-14
   kind: epic
-  state: OPEN
+  state: CLOSED
   title: Polish visual BI — dataviz rica, KPIs com tendência, grafo rico
   description: >-
     Fase 2 do redesign (após NOTA-EPIC-13, que fez a migração estrutural para
@@ -18,6 +18,6 @@ mnema:
     intacta.
   metadata: {}
   created_at: '2026-07-03T02:02:51.692Z'
-  closed_at: null
+  closed_at: '2026-07-03T22:00:16.005Z'
 ---
 # Polish visual BI — dataviz rica, KPIs com tendência, grafo rico

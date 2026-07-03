@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-92
-  state: IN_REVIEW
+  state: DONE
   title: Página Impostos
   description: >-
     6 KPI cards por tributo (KpiCard compartilhado com ícone), LineChart 4
@@ -24,6 +24,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T00:54:11.055Z'
+  updated_at: '2026-07-03T21:58:55.785Z'
 ---
 # Página Impostos

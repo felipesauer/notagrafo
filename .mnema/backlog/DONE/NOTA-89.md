@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-89
-  state: IN_REVIEW
+  state: DONE
   title: >-
     Página Notas Fiscais: lista, filtros (acordeão+chips) e upload
     (Dialog+Progress)
@@ -32,6 +32,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T00:40:12.112Z'
+  updated_at: '2026-07-03T21:58:49.109Z'
 ---
 # Página Notas Fiscais: lista, filtros (acordeão+chips) e upload (Dialog+Progress)

@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-85
-  state: IN_REVIEW
+  state: DONE
   title: 'Fundação: Tailwind v4 + shadcn/ui + design tokens + tipografia'
   description: >-
     Instalar tailwindcss + @tailwindcss/vite + @fontsource-variable/inter no
@@ -33,6 +33,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-02T19:51:43.525Z'
+  updated_at: '2026-07-03T21:58:40.581Z'
 ---
 # Fundação: Tailwind v4 + shadcn/ui + design tokens + tipografia

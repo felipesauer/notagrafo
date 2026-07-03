@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-87
-  state: IN_REVIEW
+  state: DONE
   title: 'Primitivos de página: shared components, ChartCard e hooks (debounce, sort)'
   description: >-
     Refatorar src/components/shared.tsx: NFStatusBadge via lib/status.ts +
@@ -28,6 +28,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-02T23:58:55.670Z'
+  updated_at: '2026-07-03T21:58:44.324Z'
 ---
 # Primitivos de página: shared components, ChartCard e hooks (debounce, sort)
