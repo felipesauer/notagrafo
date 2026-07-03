@@ -9,6 +9,7 @@ import {
     taxByCfop,
     getFluxoEmpresas,
     getRedeGlobal,
+    listEventos,
     type MetricaProduto,
     type TaxFilters,
 } from '@notagrafo/graph';
@@ -359,6 +360,34 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
         async (request) => {
             return getRedeGlobal(driver, {
                 ...(request.query.limite ? { limite: Number(request.query.limite) } : {}),
+            });
+        },
+    );
+
+    // GET /stats/eventos — feed global de eventos de auditoria (todas as NFs)
+    app.get<{ Querystring: { limit?: number; offset?: number; tipo?: string } }>(
+        '/stats/eventos',
+        {
+            preHandler: app.authenticate,
+            schema: {
+                tags: ['stats'],
+                summary: 'Feed de eventos de auditoria de todas as NFs, mais recentes primeiro',
+                querystring: {
+                    type: 'object',
+                    properties: {
+                        limit: { type: 'integer', minimum: 1, maximum: 200 },
+                        offset: { type: 'integer', minimum: 0 },
+                        tipo: { type: 'string' },
+                    },
+                },
+                security: [{ bearerAuth: [] }],
+            },
+        },
+        async (request) => {
+            return listEventos(driver, {
+                ...(request.query.limit ? { limit: Number(request.query.limit) } : {}),
+                ...(request.query.offset ? { offset: Number(request.query.offset) } : {}),
+                ...(request.query.tipo ? { tipo: request.query.tipo } : {}),
             });
         },
     );

@@ -1,21 +1,9 @@
 import { type JSX, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useRouter } from '@tanstack/react-router';
-import { ReactFlow, Background, type Edge, type Node } from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
 import { toast } from 'sonner';
-import {
-    ArrowUpFromLine,
-    Ban,
-    Check,
-    CircleAlert,
-    Download,
-    Eye,
-    Network,
-    Upload,
-    type LucideIcon,
-} from 'lucide-react';
-import { useNFDetail, useNFEvents } from '../api/hooks.js';
+import { Building2, Download, FileText, Network } from 'lucide-react';
+import { useNFDetail } from '../api/hooks.js';
 import { downloadFile } from '../api/api.client.js';
 import { useThemeStore } from '../stores/theme.store.js';
 import { NFStatusBadge, CopyableKey, CurrencyValue, DateDisplay, LoadingSkeleton, InlineError } from '../components/shared.js';
@@ -25,32 +13,36 @@ import { Button } from '../components/ui/button.js';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card.js';
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '../components/ui/table.js';
 
-/** Ícone lucide da timeline por tipo de evento (fallback genérico). */
-const EVENTO_ICONE: Record<string, LucideIcon> = {
-    importada: Upload,
-    processada: Check,
-    cancelada: Ban,
-    consultada: Eye,
-    exportada: Download,
-    erro: CircleAlert,
-};
-
 /** Mini-grafo fixo Emitente → NotaFiscal → Destinatário (React Flow). */
-function MiniGrafo({ emitente, destinatario, numero }: { emitente?: { razaoSocial?: string; cnpj?: string }; destinatario?: { razaoSocial?: string; cnpj?: string }; numero?: string }): JSX.Element {
-    const nodes: Node[] = [
-        { id: 'emit', position: { x: 0, y: 0 }, data: { label: emitente?.razaoSocial ?? '—' }, sourcePosition: 'right' as never, type: 'input' },
-        { id: 'nf', position: { x: 180, y: 0 }, data: { label: `NF ${numero ?? ''}` }, sourcePosition: 'right' as never, targetPosition: 'left' as never },
-        { id: 'dest', position: { x: 360, y: 0 }, data: { label: destinatario?.razaoSocial ?? '—' }, targetPosition: 'left' as never, type: 'output' },
-    ];
-    const edges: Edge[] = [
-        { id: 'e1', source: 'emit', target: 'nf', label: 'emitiu' },
-        { id: 'e2', source: 'nf', target: 'dest', label: 'destinada a' },
-    ];
+/** Um passo do fluxo (emitente / NF / destinatário) no mini-grafo. */
+function FluxoNo({ icon, papel, nome, color }: { icon: JSX.Element; papel: string; nome: string; color: string }): JSX.Element {
     return (
-        <div className="h-40 overflow-hidden rounded-md border bg-muted/20">
-            <ReactFlow nodes={nodes} edges={edges} fitView nodesDraggable={false} nodesConnectable={false} elementsSelectable={false} proOptions={{ hideAttribution: true }}>
-                <Background />
-            </ReactFlow>
+        <div className="flex items-center gap-2.5 rounded-md border bg-card px-3 py-2">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-md text-white [&>svg]:size-4" style={{ background: color }}>
+                {icon}
+            </span>
+            <div className="min-w-0">
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{papel}</p>
+                <p className="truncate text-sm font-medium" title={nome}>{nome}</p>
+            </div>
+        </div>
+    );
+}
+
+/**
+ * Mini-grafo do fluxo desta NF: emitente → nota → destinatário, como cards
+ * legíveis conectados verticalmente (o React Flow miniatura ficava espremido e
+ * ilegível na coluna estreita). O grafo interativo completo abre no drawer.
+ */
+function MiniGrafo({ emitente, destinatario, numero }: { emitente?: { razaoSocial?: string; cnpj?: string }; destinatario?: { razaoSocial?: string; cnpj?: string }; numero?: string }): JSX.Element {
+    const { t } = useTranslation();
+    return (
+        <div className="space-y-0">
+            <FluxoNo icon={<Building2 />} papel={t('nf.emitente')} nome={emitente?.razaoSocial ?? '—'} color="var(--chart-1)" />
+            <div className="ml-[15px] h-3 w-px bg-border" />
+            <FluxoNo icon={<FileText />} papel={t('nf.numero')} nome={`NF ${numero ?? ''}`} color="var(--chart-2)" />
+            <div className="ml-[15px] h-3 w-px bg-border" />
+            <FluxoNo icon={<Building2 />} papel={t('nf.destinatario')} nome={destinatario?.razaoSocial ?? '—'} color="var(--chart-3)" />
         </div>
     );
 }
@@ -106,7 +98,6 @@ export function NFDetailPage(): JSX.Element {
     const tema = useThemeStore((s) => s.tema);
     const { chave } = useParams({ strict: false }) as { chave: string };
     const { data, isLoading, isError, refetch } = useNFDetail(chave);
-    const eventos = useNFEvents(chave);
     const [grafoAberto, setGrafoAberto] = useState(false);
 
     if (isLoading) return <LoadingSkeleton variant="card" />;
@@ -224,7 +215,7 @@ export function NFDetailPage(): JSX.Element {
                     </Card>
                 </div>
 
-                {/* Coluna lateral: grafo + eventos */}
+                {/* Coluna lateral: grafo (os eventos foram para a tela /eventos) */}
                 <aside className="space-y-6">
                     <Card className="py-4">
                         <CardHeader className="px-4 pb-0"><CardTitle className="text-sm">{t('nf.miniGrafo')}</CardTitle></CardHeader>
@@ -234,34 +225,6 @@ export function NFDetailPage(): JSX.Element {
                                 <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => setGrafoAberto(true)}>
                                     <Network /> {t('nf.verNoGrafo')}
                                 </Button>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    <Card className="py-4">
-                        <CardHeader className="px-4 pb-0"><CardTitle className="text-sm">{t('nf.eventos')}</CardTitle></CardHeader>
-                        <CardContent className="px-4">
-                            {eventos.isLoading ? (
-                                <LoadingSkeleton linhas={2} />
-                            ) : eventos.isError ? (
-                                <InlineError onRetry={() => void eventos.refetch()} />
-                            ) : (eventos.data?.eventos.length ?? 0) === 0 ? (
-                                <p className="text-sm text-muted-foreground">{t('nf.semEventos')}</p>
-                            ) : (
-                                <ol className="relative ml-2 space-y-4 border-l border-border pl-5">
-                                    {eventos.data!.eventos.map((ev, i) => {
-                                        const Icon = EVENTO_ICONE[ev.tipo] ?? ArrowUpFromLine;
-                                        return (
-                                            <li key={i} className="relative">
-                                                <span className="absolute -left-[27px] flex size-5 items-center justify-center rounded-full bg-primary/10 text-primary [&>svg]:size-3">
-                                                    <Icon />
-                                                </span>
-                                                <p className="text-sm font-medium capitalize">{ev.tipo}</p>
-                                                <p className="text-xs text-muted-foreground"><DateDisplay value={ev.timestamp} /></p>
-                                            </li>
-                                        );
-                                    })}
-                                </ol>
                             )}
                         </CardContent>
                     </Card>

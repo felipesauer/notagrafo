@@ -28,6 +28,7 @@ export const en = {
         impostos: 'Taxes',
         grafo: 'Graph',
         rede: 'Network',
+        eventos: 'Events',
         exportacoes: 'Exports',
         configuracoes: 'Settings',
         sair: 'Sign out',
@@ -124,6 +125,12 @@ export const en = {
         totalNFs: 'Invoices', valor: 'Value',
         redeTitulo: 'Full trade network', redeAjuda: 'Each node is a company (size ∝ activity); colors group by state. Click two companies to highlight the path between them.',
         nosExibidos: 'Nodes shown', limparSelecao: 'Clear selection', porUf: 'Color by state',
+    },
+    eventos: {
+        titulo: 'Events', subtitulo: 'Audit trail across all invoices, most recent first',
+        todosTipos: 'All types', naNota: 'on', vazio: 'No events recorded.',
+        contagem: '{{total}} events', paginaDe: 'Page {{page}} of {{total}}',
+        tipo: { importada: 'Imported', processada: 'Processed', consultada: 'Viewed', exportada: 'Exported', cancelada: 'Canceled', erro: 'Error' },
     },
     exportacoes: {
         nova: 'New export', formato: 'Format', campos: 'Fields', gerar: 'Generate export',

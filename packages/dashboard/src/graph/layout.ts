@@ -45,9 +45,12 @@ export function applyLayout(nodes: GraphNode[], edges: Edge[]): GraphNode[] {
 
     Dagre.layout(g);
 
+    // width/height explícitos: o React Flow os usa para o MiniMap e para o
+    // fitView sem depender da medição assíncrona do DOM dos nós-card (senão o
+    // MiniMap fica vazio e o fit corta os vizinhos no primeiro render).
     return nodes.map((n) => {
         const pos = g.node(n.id);
-        return { ...n, position: { x: pos.x - W / 2, y: pos.y - H / 2 } };
+        return { ...n, position: { x: pos.x - W / 2, y: pos.y - H / 2 }, width: W, height: H };
     });
 }
 

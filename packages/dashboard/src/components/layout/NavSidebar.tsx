@@ -2,6 +2,7 @@ import { type JSX } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import {
+    Activity,
     Building2,
     ChevronsUpDown,
     Download,
@@ -74,6 +75,7 @@ const GRUPOS: NavGroup[] = [
     {
         labelKey: 'sidebar.grupoSistema',
         itens: [
+            { to: '/eventos', icon: Activity, key: 'sidebar.eventos' },
             { to: '/exportacoes', icon: Download, key: 'sidebar.exportacoes' },
             { to: '/configuracoes', icon: Settings, key: 'sidebar.configuracoes' },
         ],

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { makeFakeDriver, fakeRecord, fakeNode } from '../__test-helpers__/fake-driver.js';
-import { listInvoices, countInvoices, activeFilters, getInvoice } from './nf.queries.js';
+import { listInvoices, countInvoices, activeFilters, getInvoice, listEventos } from './nf.queries.js';
 
 const nfNode = (over: Record<string, unknown> = {}) =>
     fakeNode({
@@ -178,5 +178,40 @@ describe('getInvoice (unit)', () => {
     it('chave inexistente → null', async () => {
         const { driver } = makeFakeDriver(() => []);
         expect(await getInvoice(driver, 'nope')).toBeNull();
+    });
+});
+
+describe('listEventos (unit)', () => {
+    // 1ª chamada = total; 2ª = página de eventos com a NF associada.
+    const responder = (_c: string, _p: Record<string, unknown>, i: number) =>
+        i === 0
+            ? [fakeRecord({ total: 3 })]
+            : [
+                  fakeRecord({ tipo: 'consultada', timestamp: '2026-06-01T10:00:00Z', autor: 'u1', chaveAcesso: '351', numero: '7' }),
+                  fakeRecord({ tipo: 'importada', timestamp: '2026-05-30T09:00:00Z', autor: null, chaveAcesso: '352', numero: '8' }),
+              ];
+
+    it('retorna total + eventos com a NF associada, ordenados por timestamp desc', async () => {
+        const { driver, runs } = makeFakeDriver(responder);
+        const page = await listEventos(driver, { limit: 20 });
+        expect(page.total).toBe(3);
+        expect(page.eventos).toHaveLength(2);
+        expect(page.eventos[0]).toMatchObject({ tipo: 'consultada', chaveAcesso: '351', numero: '7' });
+        expect(page.eventos[1]!.autor).toBeNull();
+        expect(runs[1]!.cypher).toContain('ORDER BY ev.timestamp DESC');
+    });
+
+    it('filtra por tipo quando informado', async () => {
+        const { driver, runs } = makeFakeDriver(responder);
+        await listEventos(driver, { tipo: 'consultada' });
+        expect(runs[1]!.cypher).toContain('WHERE ev.tipo = $tipo');
+        expect(runs[1]!.params.tipo).toBe('consultada');
+    });
+
+    it('faz clamp do limit em [1,200] e offset >= 0', async () => {
+        const { driver, runs } = makeFakeDriver(responder);
+        await listEventos(driver, { limit: 9999, offset: -5 });
+        expect((runs[1]!.params.limit as { toNumber: () => number }).toNumber()).toBe(200);
+        expect((runs[1]!.params.offset as { toNumber: () => number }).toNumber()).toBe(0);
     });
 });

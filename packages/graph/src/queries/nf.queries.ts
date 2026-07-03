@@ -284,3 +284,60 @@ export async function getInvoice(driver: Driver, chaveAcesso: string): Promise<R
         await session.close();
     }
 }
+
+/** Um evento de auditoria no feed global, com a NF a que pertence. */
+export interface EventoGlobal {
+    tipo: string;
+    timestamp: string;
+    autor: string | null;
+    chaveAcesso: string;
+    numero: string;
+}
+
+export interface EventosPage {
+    eventos: EventoGlobal[];
+    total: number;
+}
+
+/**
+ * Feed global de eventos de auditoria (todas as NFs), mais recentes primeiro.
+ * Alimenta a tela unificada de eventos. `tipo` filtra opcionalmente por tipo.
+ */
+export async function listEventos(
+    driver: Driver,
+    opts: { limit?: number; offset?: number; tipo?: string } = {},
+): Promise<EventosPage> {
+    const limit = Math.min(Math.max(opts.limit ?? 50, 1), 200);
+    const offset = Math.max(opts.offset ?? 0, 0);
+    const filtroTipo = opts.tipo ? 'WHERE ev.tipo = $tipo' : '';
+    const session = driver.session();
+    try {
+        const totalRes = await session.run(
+            `MATCH (:NotaFiscal)-[:TEM_EVENTO]->(ev:Evento) ${filtroTipo}
+             RETURN count(ev) AS total`,
+            { ...(opts.tipo ? { tipo: opts.tipo } : {}) },
+        );
+        const res = await session.run(
+            `MATCH (nf:NotaFiscal)-[:TEM_EVENTO]->(ev:Evento) ${filtroTipo}
+             RETURN ev.tipo AS tipo, toString(ev.timestamp) AS timestamp, ev.autor AS autor,
+                    nf.chaveAcesso AS chaveAcesso, nf.numero AS numero
+             ORDER BY ev.timestamp DESC
+             SKIP $offset LIMIT $limit`,
+            { offset: neo4j.int(offset), limit: neo4j.int(limit), ...(opts.tipo ? { tipo: opts.tipo } : {}) },
+        );
+        const toNum = (v: unknown): number =>
+            typeof v === 'number' ? v : v && typeof (v as { toNumber?: () => number }).toNumber === 'function' ? (v as { toNumber: () => number }).toNumber() : Number(v ?? 0);
+        return {
+            total: toNum(totalRes.records[0]?.get('total')),
+            eventos: res.records.map((r) => ({
+                tipo: r.get('tipo') as string,
+                timestamp: new Date(r.get('timestamp') as string).toISOString(),
+                autor: (r.get('autor') as string | null) ?? null,
+                chaveAcesso: r.get('chaveAcesso') as string,
+                numero: (r.get('numero') as string) ?? '',
+            })),
+        };
+    } finally {
+        await session.close();
+    }
+}

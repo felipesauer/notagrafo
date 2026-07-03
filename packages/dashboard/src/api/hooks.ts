@@ -186,3 +186,18 @@ export function useRede(limite = 150) {
         queryFn: () => apiFetch<{ nos: RedeNo[]; arestas: RedeAresta[]; limite: number }>(`/stats/rede${qs({ limite })}`),
     });
 }
+
+export interface EventoGlobal {
+    tipo: string;
+    timestamp: string;
+    autor: string | null;
+    chaveAcesso: string;
+    numero: string;
+}
+
+export function useEventos(params: { limit?: number; offset?: number; tipo?: string } = {}) {
+    return useQuery({
+        queryKey: ['stats', 'eventos', params],
+        queryFn: () => apiFetch<{ eventos: EventoGlobal[]; total: number }>(`/stats/eventos${qs(params)}`),
+    });
+}

@@ -103,9 +103,16 @@ function GraphInner(): JSX.Element {
         if (search.cnpj) void load(search.cnpj, depth, direction, false, includeProdutos);
     }, [search.cnpj, depth, direction, includeProdutos, load]);
 
+    // Re-enquadra sempre que o CONJUNTO de nós muda (busca, merge, expansão),
+    // não só quando a contagem muda. O timeout dá ao React Flow tempo de medir
+    // os nós-card antes do fit (senão enquadra em posições ainda não aplicadas
+    // e corta os vizinhos). padding folgado para os cards não colarem na borda.
+    const nodesKey = useMemo(() => nodes.map((n) => n.id).sort().join('|'), [nodes]);
     useEffect(() => {
-        if (nodes.length) queueMicrotask(() => fitView({ duration: 300 }));
-    }, [nodes.length, fitView]);
+        if (!nodesKey) return;
+        const id = setTimeout(() => void fitView({ padding: 0.25, duration: 400, maxZoom: 1.2 }), 80);
+        return () => clearTimeout(id);
+    }, [nodesKey, fitView]);
 
     const onNodeClick = useCallback(
         (_e: unknown, node: Node) => {

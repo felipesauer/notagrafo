@@ -158,3 +158,26 @@ describe('GET /stats/rede (unit)', () => {
         expect(res.statusCode).toBe(400);
     });
 });
+
+describe('GET /stats/eventos (unit)', () => {
+    it('retorna o feed de eventos com total e a NF associada', async () => {
+        const responder = (_c: string, _p: Record<string, unknown>, i: number) =>
+            i === 0
+                ? [rec({ total: 2 })]
+                : [rec({ tipo: 'consultada', timestamp: '2026-06-01T10:00:00Z', autor: 'u1', chaveAcesso: '351', numero: '7' })];
+        const { driver } = makeFakeDriver(responder);
+        app = await buildTestApi((a) => statsRoutes(a, driver));
+        const res = await app.inject({ method: 'GET', url: '/stats/eventos?limit=20' });
+        expect(res.statusCode).toBe(200);
+        const j = res.json();
+        expect(j.total).toBe(2);
+        expect(j.eventos[0]).toMatchObject({ tipo: 'consultada', chaveAcesso: '351', numero: '7' });
+    });
+
+    it('rejeita limit acima do máximo (201 → 400)', async () => {
+        const { driver } = makeFakeDriver(() => []);
+        app = await buildTestApi((a) => statsRoutes(a, driver));
+        const res = await app.inject({ method: 'GET', url: '/stats/eventos?limit=201' });
+        expect(res.statusCode).toBe(400);
+    });
+});

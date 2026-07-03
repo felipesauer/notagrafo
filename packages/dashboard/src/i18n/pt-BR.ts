@@ -112,6 +112,12 @@ export const ptBR = {
         redeTitulo: 'Rede comercial completa', redeAjuda: 'Cada nó é uma empresa (tamanho ∝ atividade); as cores agrupam por UF. Clique em duas empresas para destacar o caminho entre elas.',
         nosExibidos: 'Nós exibidos', limparSelecao: 'Limpar seleção', porUf: 'Cor por UF',
     },
+    eventos: {
+        titulo: 'Eventos', subtitulo: 'Auditoria de todas as notas fiscais, mais recentes primeiro',
+        todosTipos: 'Todos os tipos', naNota: 'na', vazio: 'Nenhum evento registrado.',
+        contagem: '{{total}} eventos', paginaDe: 'Página {{page}} de {{total}}',
+        tipo: { importada: 'Importada', processada: 'Processada', consultada: 'Consultada', exportada: 'Exportada', cancelada: 'Cancelada', erro: 'Erro' },
+    },
     exportacoes: {
         nova: 'Nova exportação', formato: 'Formato', campos: 'Campos', gerar: 'Gerar exportação',
         historico: 'Histórico', acoes: 'Ações', baixar: 'Baixar', vazio: 'Nenhuma exportação ainda.',
@@ -140,6 +146,7 @@ export const ptBR = {
         impostos: 'Impostos',
         grafo: 'Grafo',
         rede: 'Rede',
+        eventos: 'Eventos',
         exportacoes: 'Exportações',
         configuracoes: 'Configurações',
         sair: 'Sair',
