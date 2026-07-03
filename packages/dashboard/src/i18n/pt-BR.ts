@@ -55,6 +55,7 @@ export const ptBR = {
         falhou: 'Falha no processamento.',
         anterior: 'Anterior', proxima: 'Próxima', pagina: 'Página {{page}}', paginaDe: 'Página {{page}} · {{total}} NF-e', detalheTitulo: 'NF', itens: 'Itens',
         produto: 'Produto', qtd: 'Qtd', miniGrafo: 'Grafo', verNoGrafo: 'Ver no grafo',
+        notaN: 'Nota fiscal {{n}}', fluxo: 'Fluxo', abrirDetalhe: 'Abrir detalhe',
         ncm: 'NCM', cfop: 'CFOP', icms: 'ICMS', ipi: 'IPI', pis: 'PIS', cofins: 'COFINS',
         totais: 'Totais', valorNF: 'Valor da NF',
         filtros: {
@@ -103,6 +104,9 @@ export const ptBR = {
         incluirProdutos: 'Incluir produtos',
         nfsComImposto: 'NFs com ICMS', nfsDoNcm: 'NFs deste NCM',
     },
+    explorer: {
+        minhasViews: 'Minhas views', emBreve: '{{entidade}} chega ao explorador em breve.',
+    },
     rede: {
         titulo: 'Rede', subtitulo: 'Análise das relações comerciais entre empresas',
         abaFluxo: 'Fluxo de valor', abaRede: 'Rede completa',
@@ -139,7 +143,7 @@ export const ptBR = {
     },
     sidebar: {
         grupoGeral: 'Geral', grupoDados: 'Dados', grupoAnalise: 'Análise', grupoSistema: 'Sistema',
-        overview: 'Visão geral',
+        overview: 'Visão geral', explorar: 'Explorador',
         nfs: 'Notas Fiscais',
         empresas: 'Empresas',
         produtos: 'Produtos',

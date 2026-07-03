@@ -5,6 +5,7 @@ import {
     Activity,
     Building2,
     ChevronsUpDown,
+    Compass,
     Download,
     FileText,
     Home,
@@ -54,7 +55,10 @@ interface NavGroup {
 const GRUPOS: NavGroup[] = [
     {
         labelKey: 'sidebar.grupoGeral',
-        itens: [{ to: '/', icon: Home, key: 'sidebar.overview' }],
+        itens: [
+            { to: '/', icon: Home, key: 'sidebar.overview' },
+            { to: '/explorar', icon: Compass, key: 'sidebar.explorar' },
+        ],
     },
     {
         labelKey: 'sidebar.grupoDados',

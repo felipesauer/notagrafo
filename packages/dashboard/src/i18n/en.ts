@@ -21,7 +21,7 @@ export const en = {
     },
     sidebar: {
         grupoGeral: 'General', grupoDados: 'Data', grupoAnalise: 'Analysis', grupoSistema: 'System',
-        overview: 'Overview',
+        overview: 'Overview', explorar: 'Explorer',
         nfs: 'Invoices',
         empresas: 'Companies',
         produtos: 'Products',
@@ -69,6 +69,7 @@ export const en = {
         falhou: 'Processing failed.',
         anterior: 'Previous', proxima: 'Next', pagina: 'Page {{page}}', paginaDe: 'Page {{page}} · {{total}} invoices', detalheTitulo: 'Invoice', itens: 'Items',
         produto: 'Product', qtd: 'Qty', miniGrafo: 'Graph', verNoGrafo: 'View in graph',
+        notaN: 'Invoice {{n}}', fluxo: 'Flow', abrirDetalhe: 'Open detail',
         ncm: 'NCM', cfop: 'CFOP', icms: 'ICMS', ipi: 'IPI', pis: 'PIS', cofins: 'COFINS',
         totais: 'Totals', valorNF: 'Invoice total',
         filtros: {
@@ -116,6 +117,9 @@ export const en = {
         vazio: 'Search a company to start.',
         incluirProdutos: 'Include products',
         nfsComImposto: 'Invoices with ICMS', nfsDoNcm: 'Invoices of this NCM',
+    },
+    explorer: {
+        minhasViews: 'My views', emBreve: '{{entidade}} is coming to the explorer soon.',
     },
     rede: {
         titulo: 'Network', subtitulo: 'Analysis of trade relationships between companies',
