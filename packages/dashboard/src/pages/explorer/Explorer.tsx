@@ -10,6 +10,9 @@ import { Button } from '../../components/ui/button.js';
 import { Input } from '../../components/ui/input.js';
 import { NativeSelect } from '../../components/ui/native-select.js';
 import { ExplorerNotas } from './ExplorerNotas.js';
+import { ExplorerEmpresas } from './ExplorerEmpresas.js';
+import { ExplorerProdutos } from './ExplorerProdutos.js';
+import { ExplorerImpostos } from './ExplorerImpostos.js';
 
 type EntityKey = 'notas' | 'empresas' | 'produtos' | 'impostos' | 'rede' | 'eventos';
 
@@ -132,6 +135,12 @@ export function ExplorerPage(): JSX.Element {
                 <div className="flex-1 overflow-auto">
                     {entity === 'notas' ? (
                         <ExplorerNotas q={q} status={status} peek={search.peek} onPeek={setPeek} />
+                    ) : entity === 'empresas' ? (
+                        <ExplorerEmpresas peek={search.peek} onPeek={setPeek} />
+                    ) : entity === 'produtos' ? (
+                        <ExplorerProdutos />
+                    ) : entity === 'impostos' ? (
+                        <ExplorerImpostos />
                     ) : (
                         <div className="grid h-full place-items-center p-8 text-center">
                             <div className="max-w-sm">

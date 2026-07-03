@@ -1,0 +1,115 @@
+import { type JSX } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Link } from '@tanstack/react-router';
+import { Network, X } from 'lucide-react';
+import { useTopCompanies, useCompany, type TopEmpresa } from '../../api/hooks.js';
+import { LoadingSkeleton, InlineError, EmptyState } from '../../components/shared.js';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table.js';
+import { Card } from '../../components/ui/card.js';
+import { Sheet, SheetContent } from '../../components/ui/sheet.js';
+import { Button } from '../../components/ui/button.js';
+
+const brlK = (n: number): string => (n >= 1000 ? `R$ ${(n / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mil` : `R$ ${n.toFixed(2)}`);
+const cnpjFmt = (c: string): string => (c.length === 14 ? c.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : c);
+
+/** Peek de empresa: stats (emitidas/recebidas) + atalhos para NF-e e rede. */
+function EmpresaPeek({ cnpj, empresa, onClose, onOpenChange }: { cnpj: string | undefined; empresa?: TopEmpresa; onClose: () => void; onOpenChange: (o: boolean) => void }): JSX.Element {
+    const { t } = useTranslation();
+    const { data } = useCompany(cnpj ?? '');
+    const stats = (data as { stats?: { totalNFsEmitidas?: number; totalNFsRecebidas?: number } } | undefined)?.stats;
+
+    return (
+        <Sheet open={!!cnpj} onOpenChange={onOpenChange}>
+            <SheetContent side="right" className="flex w-[420px] max-w-[92vw] flex-col gap-0 p-0" data-testid="empresa-peek">
+                {empresa && (
+                    <>
+                        <div className="flex items-center gap-2 border-b px-4 py-3">
+                            <span className="rounded border bg-muted px-1.5 py-0.5 font-mono text-[11px]">{empresa.uf}</span>
+                            <span className="text-xs text-muted-foreground">{t('empresas.titulo')}</span>
+                            <Button type="button" variant="ghost" size="icon-sm" className="ml-auto" onClick={onClose} aria-label={t('comum.fechar')}><X /></Button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-4">
+                            <h2 className="text-lg font-semibold leading-tight tracking-tight">{empresa.razaoSocial}</h2>
+                            <p className="mt-0.5 font-mono text-[12px] text-muted-foreground">{cnpjFmt(empresa.cnpj)}</p>
+                            <dl className="mt-4 grid grid-cols-[130px_1fr] gap-x-3 gap-y-2 text-[13px]">
+                                <dt className="text-muted-foreground">{t('empresas.nfsEmitidas')}</dt><dd className="font-mono tabular-nums">{stats?.totalNFsEmitidas ?? empresa.totalNFs}</dd>
+                                <dt className="text-muted-foreground">{t('empresas.nfsRecebidas')}</dt><dd className="font-mono tabular-nums">{stats?.totalNFsRecebidas ?? '—'}</dd>
+                                <dt className="text-muted-foreground">{t('overview.valorTotal')}</dt><dd className="font-mono font-medium tabular-nums">{brlK(empresa.valorTotal)}</dd>
+                            </dl>
+                        </div>
+                        <div className="flex gap-2 border-t p-3">
+                            <Button asChild type="button" variant="outline" size="sm" className="flex-1 justify-center">
+                                <Link to={'/nf' as string} search={{ cnpjEmitente: empresa.cnpj } as never}>{t('empresas.verNFs', { defaultValue: 'Ver NF-e' })}</Link>
+                            </Button>
+                            <Button asChild type="button" size="sm" className="flex-1 justify-center">
+                                <Link to={'/grafo' as string} search={{ cnpj: empresa.cnpj } as never}><Network /> {t('empresas.verGrafo')}</Link>
+                            </Button>
+                        </div>
+                    </>
+                )}
+            </SheetContent>
+        </Sheet>
+    );
+}
+
+/** Explorador da entidade Empresas: ranking por volume, com peek de parceiros. */
+export function ExplorerEmpresas({ peek, onPeek }: { peek?: string; onPeek: (cnpj: string | undefined) => void }): JSX.Element {
+    const { t } = useTranslation();
+    const { data, isLoading, isError, refetch } = useTopCompanies();
+    const rows = data?.ranking ?? [];
+
+    if (isLoading) return <LoadingSkeleton variant="table" linhas={8} colunas={5} />;
+    if (isError) return <InlineError onRetry={() => void refetch()} />;
+    if (rows.length === 0) return <EmptyState />;
+
+    const sel = peek ? rows.find((r) => r.cnpj === peek) : undefined;
+
+    return (
+        <>
+            <div className="hidden overflow-x-auto md:block">
+                <Table data-testid="data-table">
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className="w-10 text-right">#</TableHead>
+                            <TableHead>{t('empresas.razaoSocial')}</TableHead>
+                            <TableHead>{t('empresas.cnpj')}</TableHead>
+                            <TableHead>{t('empresas.uf')}</TableHead>
+                            <TableHead className="text-right">{t('empresas.nfsEmitidas')}</TableHead>
+                            <TableHead className="text-right">{t('overview.valorTotal')}</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {rows.map((e) => (
+                            <TableRow key={e.cnpj} className={`cursor-pointer ${sel?.cnpj === e.cnpj ? 'bg-primary/10 shadow-[inset_2px_0_0_var(--primary)]' : ''}`} onClick={() => onPeek(e.cnpj)}>
+                                <TableCell className="text-right font-mono tabular-nums text-muted-foreground">{e.posicao}</TableCell>
+                                <TableCell className="font-medium">{e.razaoSocial}</TableCell>
+                                <TableCell className="font-mono text-[11px] text-muted-foreground">{cnpjFmt(e.cnpj)}</TableCell>
+                                <TableCell><span className="rounded border bg-muted px-1.5 py-0.5 font-mono text-[11px]">{e.uf}</span></TableCell>
+                                <TableCell className="text-right font-mono tabular-nums">{e.totalNFs}</TableCell>
+                                <TableCell className="text-right font-mono font-medium tabular-nums">{brlK(e.valorTotal)}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
+
+            <div className="grid gap-2.5 p-3 md:hidden">
+                {rows.map((e) => (
+                    <Card key={e.cnpj} className="cursor-pointer gap-0 p-3.5" onClick={() => onPeek(e.cnpj)}>
+                        <div className="flex items-start justify-between gap-2">
+                            <p className="min-w-0 font-medium leading-tight">{e.razaoSocial}</p>
+                            <span className="rounded border bg-muted px-1.5 py-0.5 font-mono text-[11px]">{e.uf}</span>
+                        </div>
+                        <p className="mt-1 font-mono text-[11px] text-muted-foreground">{cnpjFmt(e.cnpj)}</p>
+                        <div className="mt-2 flex justify-between border-t pt-2 text-xs">
+                            <span className="text-muted-foreground">{e.totalNFs} NF-e</span>
+                            <span className="font-mono font-medium tabular-nums">{brlK(e.valorTotal)}</span>
+                        </div>
+                    </Card>
+                ))}
+            </div>
+
+            <EmpresaPeek cnpj={peek} empresa={sel} onClose={() => onPeek(undefined)} onOpenChange={(o) => !o && onPeek(undefined)} />
+        </>
+    );
+}
