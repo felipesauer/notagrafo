@@ -1,4 +1,4 @@
-import { type JSX, useMemo } from 'react';
+import { type JSX, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from '@tanstack/react-router';
 import {
@@ -16,7 +16,6 @@ import {
 import { Building2, FileText, Package, Receipt } from 'lucide-react';
 import { useOverview, useVolume, useTopCompanies, useByUf, useTaxStats } from '../api/hooks.js';
 import { CurrencyValue, DateDisplay, LoadingSkeleton, InlineError, EmptyState } from '../components/shared.js';
-import { PageHeader } from '../components/PageHeader.js';
 import { KpiCard } from '../components/KpiCard.js';
 import { FadeIn } from '../components/Motion.js';
 import { ChartCard } from '../components/charts/ChartCard.js';
@@ -46,18 +45,45 @@ const volumeConfig = {
 
 const rankConfig = { valorTotal: { label: 'Valor', color: 'var(--chart-3)' } } satisfies ChartConfig;
 
-/** Página de visão geral: KPIs com tendência, bento grid de charts e últimas NFs. */
-export function OverviewPage(): JSX.Element {
+type Gran = 'dia' | 'semana' | 'mes';
+
+/** Barra de report (estilo Power BI): título + seletor de granularidade que
+ *  controla a série temporal do canvas. */
+function ReportBar({ gran, onGran }: { gran: Gran; onGran: (g: Gran) => void }): JSX.Element {
     const { t } = useTranslation();
+    const opts: Gran[] = ['dia', 'semana', 'mes'];
+    return (
+        <div className="mb-4 flex flex-wrap items-center gap-3">
+            <div>
+                <h2 className="text-lg font-semibold leading-none tracking-tight">{t('overview.titulo')}</h2>
+                <p className="mt-1 text-xs text-muted-foreground">{t('overview.subtitulo')}</p>
+            </div>
+            <div className="ml-auto inline-flex rounded-lg border bg-muted/40 p-0.5">
+                {opts.map((g) => (
+                    <button key={g} type="button" onClick={() => onGran(g)}
+                        className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${gran === g ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+                        {t(`overview.gran.${g}`)}
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+/** Página de visão geral: report BI (estilo Power BI) com KPIs, canvas de charts
+ *  em bento grid e filtro de período que controla a série temporal. */
+export function OverviewPage(): JSX.Element {
+    const [gran, setGran] = useState<Gran>('dia');
     const overview = useOverview();
-    const volume = useVolume('dia');
+    const volume = useVolume(gran);
     const topCompanies = useTopCompanies();
     const byUf = useByUf('emitente');
     const taxes = useTaxStats();
 
     return (
-        <div>
-            <PageHeader title={t('overview.titulo')} />
+        // canvas: fundo levemente distinto dos cartões (moldura de report Power BI)
+        <div className="-m-4 min-h-[calc(100svh-3rem)] bg-muted/20 p-4 md:-m-6 md:p-6">
+            <ReportBar gran={gran} onGran={setGran} />
             {overview.isLoading ? (
                 <LoadingSkeleton variant="kpis" linhas={4} />
             ) : overview.isError || !overview.data ? (

@@ -21,6 +21,8 @@ export const ptBR = {
     },
     overview: {
         titulo: 'Visão geral',
+        subtitulo: 'Panorama do processamento de notas fiscais',
+        gran: { dia: 'Dia', semana: 'Semana', mes: 'Mês' },
         totalNFs: 'Total de NFs',
         totalEmpresas: 'Empresas',
         totalProdutos: 'Produtos',

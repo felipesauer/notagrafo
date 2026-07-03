@@ -35,6 +35,8 @@ export const en = {
     },
     overview: {
         titulo: 'Overview',
+        subtitulo: 'Invoice processing at a glance',
+        gran: { dia: 'Day', semana: 'Week', mes: 'Month' },
         totalNFs: 'Total invoices',
         totalEmpresas: 'Companies',
         totalProdutos: 'Products',
