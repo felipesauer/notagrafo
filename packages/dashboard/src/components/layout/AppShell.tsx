@@ -2,6 +2,7 @@ import { type JSX } from 'react';
 import { Outlet, useRouterState } from '@tanstack/react-router';
 import { useThemeStore } from '../../stores/theme.store.js';
 import { Toaster } from '../ui/sonner.js';
+import { TooltipProvider } from '../ui/tooltip.js';
 import { ExportWatcher } from './ExportWatcher.js';
 import { CommandPalette } from './CommandPalette.js';
 import { SecondaryHeader } from './SecondaryHeader.js';
@@ -19,21 +20,23 @@ export function AppShell(): JSX.Element {
     const isExplorer = pathname === '/';
 
     return (
-        <div className="min-h-svh bg-background">
-            {isExplorer ? (
-                <Outlet />
-            ) : (
-                <div className="mx-auto flex min-h-svh max-w-6xl flex-col">
-                    <SecondaryHeader />
-                    <div className="flex-1 p-4 md:p-6">
-                        <Outlet />
+        <TooltipProvider delayDuration={300}>
+            <div className="min-h-svh bg-background">
+                {isExplorer ? (
+                    <Outlet />
+                ) : (
+                    <div className="mx-auto flex min-h-svh max-w-6xl flex-col">
+                        <SecondaryHeader />
+                        <div className="flex-1 p-4 md:p-6">
+                            <Outlet />
+                        </div>
                     </div>
-                </div>
-            )}
-            {/* theme explícito: nosso tema vem do theme.store, não do next-themes. */}
-            <Toaster theme={tema === 'escuro' ? 'dark' : 'light'} richColors position="bottom-right" />
-            <ExportWatcher />
-            <CommandPalette />
-        </div>
+                )}
+                {/* theme explícito: nosso tema vem do theme.store, não do next-themes. */}
+                <Toaster theme={tema === 'escuro' ? 'dark' : 'light'} richColors position="bottom-right" />
+                <ExportWatcher />
+                <CommandPalette />
+            </div>
+        </TooltipProvider>
     );
 }

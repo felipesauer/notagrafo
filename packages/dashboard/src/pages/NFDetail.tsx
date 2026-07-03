@@ -1,6 +1,6 @@
 import { type JSX, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams, useRouter } from '@tanstack/react-router';
+import { useParams } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import { Building2, Download, FileText, Network } from 'lucide-react';
 import { useNFDetail } from '../api/hooks.js';
@@ -94,7 +94,6 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 /** Detalhe de uma NF: dados + CFOP, itens com NCM e tributos, totais, mini-grafo e eventos. */
 export function NFDetailPage(): JSX.Element {
     const { t } = useTranslation();
-    const router = useRouter();
     const tema = useThemeStore((s) => s.tema);
     const { chave } = useParams({ strict: false }) as { chave: string };
     const { data, isLoading, isError, refetch } = useNFDetail(chave);
@@ -125,7 +124,6 @@ export function NFDetailPage(): JSX.Element {
         <div>
             <PageHeader
                 title={`${t('nf.detalheTitulo')} ${nf.numero ?? ''}`}
-                onBack={() => router.history.back()}
                 actions={
                     <Button type="button" variant="outline" onClick={baixarXml}>
                         <Download /> {t('nf.baixarXml')}

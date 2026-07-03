@@ -78,20 +78,22 @@ export function RedeGraph({ nos, arestas }: { nos: RedeNo[]; arestas: RedeAresta
                 edges={edges}
                 theme={theme}
                 layoutType="forceDirected2d"
+                layoutOverrides={{ linkDistance: 180, nodeStrength: -650, clusterStrength: 0.35 }}
                 sizingType="attribute"
                 sizingAttribute="totalNFs"
-                minNodeSize={7}
-                maxNodeSize={22}
+                minNodeSize={6}
+                maxNodeSize={18}
                 clusterAttribute="uf"
-                labelType="nodes"
+                labelType="all"
                 edgeArrowPosition="end"
                 draggable
+                animated
                 selections={selections}
                 actives={actives}
                 onNodeClick={onNodeClick}
                 onCanvasClick={onCanvasClick}
             />
-            {selections.length > 0 && (
+            {selections.length > 0 ? (
                 <button
                     type="button"
                     onClick={() => clearSelections()}
@@ -99,6 +101,10 @@ export function RedeGraph({ nos, arestas }: { nos: RedeNo[]; arestas: RedeAresta
                 >
                     {t('rede.limparSelecao')}
                 </button>
+            ) : (
+                <div className="pointer-events-none absolute left-3 top-3 rounded-md border bg-background/80 px-2.5 py-1 text-[11px] text-muted-foreground shadow-sm backdrop-blur">
+                    {t('rede.dicaInteracao')}
+                </div>
             )}
         </div>
     );
