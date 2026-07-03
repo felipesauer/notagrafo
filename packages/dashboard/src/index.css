@@ -8,19 +8,18 @@
    Escopado às classes de página ainda NÃO migradas — Overview, Login, NFList,
    FilterSidebar e UploadModal já saíram, então não constam aqui. A NOTA-95
    remove o resto ao migrar as últimas páginas. */
-.exportacoes h2, .configuracoes h2, .configuracoes h3, .grafo-page h3, .graph-panel h3 { font-weight: 700; margin: 0.6em 0; }
-.exportacoes h2, .configuracoes h2 { font-size: 1.5em; }
+.configuracoes h2, .configuracoes h3, .grafo-page h3, .graph-panel h3 { font-weight: 700; margin: 0.6em 0; }
+.configuracoes h2 { font-size: 1.5em; }
 .configuracoes h3, .grafo-page h3, .graph-panel h3 { font-size: 1.1em; }
-.configuracoes p, .exportacoes p { margin: 0.5em 0; }
+.configuracoes p { margin: 0.5em 0; }
 .configuracoes ul { list-style: none; padding: 0; margin: 0; }
-.exportacoes fieldset, .configuracoes fieldset { border: 1px solid var(--muted); border-radius: 6px; padding: 0.5em 0.75em; margin: 0.5em 0; }
-.exportacoes a, .graph-panel a { color: var(--accent); }
+.configuracoes fieldset { border: 1px solid var(--muted); border-radius: 6px; padding: 0.5em 0.75em; margin: 0.5em 0; }
+.graph-panel a { color: var(--accent); }
 /* Botões e inputs SÓ dentro dos wrappers legados (nunca sobre .ui do shadcn). */
-.exportacoes button, .configuracoes button, .grafo-page button, .graph-panel button {
+.configuracoes button, .grafo-page button, .graph-panel button {
     border: 1px solid var(--muted); background: var(--card); color: var(--fg);
     padding: 0.35rem 0.75rem; border-radius: 6px; cursor: pointer; font: inherit;
 }
-.exportacoes input:not([type='checkbox']), .exportacoes select,
 .grafo-page input, .grafo-page select, .configuracoes input {
     border: 1px solid var(--muted); background: var(--bg); color: var(--fg);
     padding: 0.35rem 0.5rem; border-radius: 6px; font: inherit;

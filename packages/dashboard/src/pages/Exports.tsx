@@ -1,9 +1,17 @@
 import { type JSX, useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { Download, FileDown } from 'lucide-react';
 import { apiFetch, downloadFile } from '../api/api.client.js';
 import { NFStatusBadge, InlineError, EmptyState, LoadingSkeleton } from '../components/shared.js';
+import { PageHeader } from '../components/PageHeader.js';
 import { useExportStore } from '../stores/export.store.js';
+import { Button } from '../components/ui/button.js';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card.js';
+import { Checkbox } from '../components/ui/checkbox.js';
+import { Label } from '../components/ui/label.js';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table.js';
 
 type Formato = 'csv' | 'xlsx' | 'json';
 
@@ -18,6 +26,9 @@ interface ExportRegistro {
 
 const CAMPOS = ['chaveAcesso', 'numero', 'dataEmissao', 'valorTotal', 'cnpjEmitente', 'cnpjDestinatario'];
 
+const selectClass =
+    'h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50';
+
 export function ExportsPage(): JSX.Element {
     const { t } = useTranslation();
     const setJob = useExportStore((s) => s.setJob);
@@ -26,7 +37,6 @@ export function ExportsPage(): JSX.Element {
     const [registros, setRegistros] = useState<ExportRegistro[]>([]);
     const [erro, setErro] = useState<string | null>(null);
 
-    // Hidrata o histórico ao montar (GET /export): sobrevive a reload/nova aba.
     const historico = useQuery({
         queryKey: ['export', 'list'],
         queryFn: () => apiFetch<{ data: ExportRegistro[] }>('/export'),
@@ -39,7 +49,6 @@ export function ExportsPage(): JSX.Element {
         setCampos((cs) => (cs.includes(c) ? cs.filter((x) => x !== c) : [...cs, c]));
     }
 
-    // Estável (setRegistros é estável) — evita re-disparar o efeito de sync em ExportRow.
     const atualizarRegistro = useCallback((atual: ExportRegistro): void => {
         setRegistros((rs) => rs.map((x) => (x.exportId === atual.exportId ? atual : x)));
     }, []);
@@ -60,50 +69,64 @@ export function ExportsPage(): JSX.Element {
     }
 
     return (
-        <div className="exportacoes">
-            <section className="export-form">
-                <h2>{t('exportacoes.nova')}</h2>
-                <label>
-                    {t('exportacoes.formato')}
-                    <select value={formato} onChange={(e) => setFormato(e.target.value as Formato)} data-testid="export-format">
-                        <option value="csv">CSV</option>
-                        <option value="xlsx">XLSX</option>
-                        <option value="json">JSON</option>
-                    </select>
-                </label>
-                <fieldset>
-                    <legend>{t('exportacoes.campos')}</legend>
-                    {CAMPOS.map((c) => (
-                        <label key={c} className="checkbox">
-                            <input type="checkbox" checked={campos.includes(c)} onChange={() => alternarCampo(c)} /> {c}
-                        </label>
-                    ))}
-                </fieldset>
-                {erro && <p className="login__erro">{erro}</p>}
-                <button type="button" onClick={() => void gerar()}>{t('exportacoes.gerar')}</button>
-            </section>
-
-            <section className="export-list" data-testid="export-list">
-                <h2>{t('exportacoes.historico')}</h2>
-                {historico.isLoading ? (
-                    <LoadingSkeleton linhas={3} />
-                ) : historico.isError ? (
-                    <InlineError onRetry={() => void historico.refetch()} />
-                ) : registros.length === 0 ? (
-                    <EmptyState mensagem={t('exportacoes.vazio')} />
-                ) : (
-                    <table className="data-table" data-testid="data-table">
-                        <thead>
-                            <tr><th>{t('exportacoes.formato')}</th><th>{t('nf.status')}</th><th>{t('exportacoes.acoes')}</th></tr>
-                        </thead>
-                        <tbody>
-                            {registros.map((r) => (
-                                <ExportRow key={r.exportId} registro={r} onUpdate={atualizarRegistro} />
+        <div>
+            <PageHeader title={t('sidebar.exportacoes')} />
+            <div className="grid gap-6 lg:grid-cols-[340px_1fr]">
+                <Card className="h-fit py-4" data-testid="export-form">
+                    <CardHeader className="px-4 pb-0"><CardTitle className="text-base">{t('exportacoes.nova')}</CardTitle></CardHeader>
+                    <CardContent className="space-y-4 px-4">
+                        <div className="grid gap-1.5">
+                            <Label htmlFor="export-formato" className="text-xs text-muted-foreground">{t('exportacoes.formato')}</Label>
+                            <select id="export-formato" data-testid="export-format" className={selectClass} value={formato} onChange={(e) => setFormato(e.target.value as Formato)}>
+                                <option value="csv">CSV</option>
+                                <option value="xlsx">XLSX</option>
+                                <option value="json">JSON</option>
+                            </select>
+                        </div>
+                        <fieldset className="grid gap-2">
+                            <legend className="mb-1 text-xs text-muted-foreground">{t('exportacoes.campos')}</legend>
+                            {CAMPOS.map((c) => (
+                                <Label key={c} className="flex items-center gap-2 text-sm font-normal">
+                                    <Checkbox checked={campos.includes(c)} onCheckedChange={() => alternarCampo(c)} />
+                                    {c}
+                                </Label>
                             ))}
-                        </tbody>
-                    </table>
-                )}
-            </section>
+                        </fieldset>
+                        {erro && <p className="text-sm text-destructive">{erro}</p>}
+                        <Button type="button" className="w-full" onClick={() => void gerar()}>
+                            <FileDown /> {t('exportacoes.gerar')}
+                        </Button>
+                    </CardContent>
+                </Card>
+
+                <Card className="overflow-hidden py-0" data-testid="export-list">
+                    <CardHeader className="px-4 py-3"><CardTitle className="text-base">{t('exportacoes.historico')}</CardTitle></CardHeader>
+                    <CardContent className="px-0 pb-0">
+                        {historico.isLoading ? (
+                            <div className="px-4 pb-4"><LoadingSkeleton variant="table" linhas={3} colunas={3} /></div>
+                        ) : historico.isError ? (
+                            <div className="px-4 pb-4"><InlineError onRetry={() => void historico.refetch()} /></div>
+                        ) : registros.length === 0 ? (
+                            <div className="px-4 pb-4"><EmptyState mensagem={t('exportacoes.vazio')} /></div>
+                        ) : (
+                            <Table data-testid="data-table">
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>{t('exportacoes.formato')}</TableHead>
+                                        <TableHead>{t('nf.status')}</TableHead>
+                                        <TableHead className="text-right">{t('exportacoes.acoes')}</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {registros.map((r) => (
+                                        <ExportRow key={r.exportId} registro={r} onUpdate={atualizarRegistro} />
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     );
 }
@@ -118,23 +141,27 @@ function ExportRow({ registro, onUpdate }: { registro: ExportRegistro; onUpdate:
         refetchInterval: pendente ? 10_000 : false,
         enabled: pendente,
     });
-    // Propaga a atualização de status ao pai via efeito (não durante o render).
     useEffect(() => {
         if (query.data && query.data.status !== registro.status) onUpdate({ ...registro, ...query.data });
     }, [query.data, registro, onUpdate]);
-    if (query.isError) return <tr><td colSpan={3}><InlineError onRetry={() => void query.refetch()} /></td></tr>;
+    if (query.isError) return <TableRow><TableCell colSpan={3}><InlineError onRetry={() => void query.refetch()} /></TableCell></TableRow>;
+
+    function baixar(): void {
+        void downloadFile(`/export/${registro.exportId}/download`, `export-${registro.exportId}.${registro.formato}`)
+            .then(() => toast.success(t('exportacoes.baixar')));
+    }
 
     return (
-        <tr>
-            <td>{registro.formato.toUpperCase()}</td>
-            <td><NFStatusBadge status={registro.status} /></td>
-            <td>
+        <TableRow>
+            <TableCell className="font-medium">{registro.formato.toUpperCase()}</TableCell>
+            <TableCell><NFStatusBadge status={registro.status} /></TableCell>
+            <TableCell className="text-right">
                 {registro.status === 'ready' && (
-                    <button type="button" className="link-icon" onClick={() => void downloadFile(`/export/${registro.exportId}/download`, `export-${registro.exportId}.${registro.formato}`)}>
-                        {t('exportacoes.baixar')}
-                    </button>
+                    <Button type="button" variant="ghost" size="sm" onClick={baixar}>
+                        <Download /> {t('exportacoes.baixar')}
+                    </Button>
                 )}
-            </td>
-        </tr>
+            </TableCell>
+        </TableRow>
     );
 }
