@@ -8,18 +8,37 @@ export interface NodeData extends Record<string, unknown> {
     tipo: NodeType;
     label: string;
     cnpj?: string;
+    /** Campos ricos para o nó-card (empresa). */
+    razaoSocial?: string;
+    uf?: string;
+    totalNFs?: number;
+    relacao?: string;
+    /** Marcado em runtime pelo hover-isola: nó fora da vizinhança do focado. */
+    dimmed?: boolean;
     detalhes?: Record<string, unknown>;
 }
 
+export interface EdgeData extends Record<string, unknown> {
+    /** Valor agregado da relação (peso → espessura da aresta). */
+    valorTotal?: number;
+    totalNFs?: number;
+    dimmed?: boolean;
+}
+
 export type GraphNode = Node<NodeData>;
+export type GraphEdge = Edge<EdgeData>;
 
-const W = 160;
-const H = 48;
+// Card maior que o círculo antigo → precisa de mais espaço no layout.
+const W = 210;
+const H = 62;
 
-/** Aplica layout hierárquico dagre aos nós, retornando-os com posições. */
+/**
+ * Layout hierárquico dagre. rankdir LR com ranksep generoso para o grafo
+ * respirar (antes ficava espremido). nodesep maior evita cards colados.
+ */
 export function applyLayout(nodes: GraphNode[], edges: Edge[]): GraphNode[] {
     const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
-    g.setGraph({ rankdir: 'LR', nodesep: 40, ranksep: 80 });
+    g.setGraph({ rankdir: 'LR', nodesep: 28, ranksep: 140, marginx: 24, marginy: 24 });
 
     for (const n of nodes) g.setNode(n.id, { width: W, height: H });
     for (const e of edges) g.setEdge(e.source, e.target);
@@ -37,6 +56,8 @@ interface ApiNode {
     razaoSocial: string;
     uf: string;
     totalNFs: number;
+    grau?: number;
+    relacao?: string;
 }
 interface ApiEdge {
     de: string;
@@ -59,12 +80,7 @@ export interface ApiGraph {
     produtos?: ApiProduto[];
 }
 
-/** Valor em BRL compacto para rótulos do grafo (ex.: R$ 14 mil). */
-function brlCompact(v: number): string {
-    return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact', maximumFractionDigits: 1 });
-}
-
-/** Iniciais da razão social para o rótulo do nó Empresa. */
+/** Iniciais da razão social para o avatar do nó Empresa. */
 function initials(nome: string): string {
     return nome
         .split(/\s+/)
@@ -75,20 +91,37 @@ function initials(nome: string): string {
 }
 
 /**
- * Converte a resposta de /empresa/:cnpj/grafo em nós e arestas React Flow,
- * mesclando com os já existentes SEM duplicar (por id = cnpj).
+ * Converte a resposta de /empresa/:cnpj/grafo em nós-card e arestas com peso,
+ * mesclando com os já existentes SEM duplicar (por id = cnpj). A raiz é marcada
+ * com relacao='raiz' para o nó-card destacá-la.
  */
 export function mergeGraph(
-    current: { nodes: GraphNode[]; edges: Edge[] },
+    current: { nodes: GraphNode[]; edges: GraphEdge[] },
     api: ApiGraph,
     rootCnpj: string,
-): { nodes: GraphNode[]; edges: Edge[] } {
+    /** Dados da empresa-raiz (de /empresa/:cnpj) — a API do grafo nem sempre
+     *  inclui a própria raiz em `nos`, então sem isto o nó raiz fica só com o CNPJ. */
+    rootMeta?: { razaoSocial?: string; uf?: string; totalNFs?: number },
+): { nodes: GraphNode[]; edges: GraphEdge[] } {
     const nodesById = new Map(current.nodes.map((n) => [n.id, n]));
     const edgesById = new Map(current.edges.map((e) => [e.id, e]));
 
-    // garante o nó raiz
+    const rootInfo = api.nos.find((n) => n.cnpj === rootCnpj) ?? (rootMeta ? { cnpj: rootCnpj, razaoSocial: rootMeta.razaoSocial ?? '', uf: rootMeta.uf ?? '', totalNFs: rootMeta.totalNFs ?? 0 } : undefined);
     if (!nodesById.has(rootCnpj)) {
-        nodesById.set(rootCnpj, { id: rootCnpj, position: { x: 0, y: 0 }, data: { tipo: 'empresa', label: rootCnpj.slice(0, 4), cnpj: rootCnpj } });
+        nodesById.set(rootCnpj, {
+            id: rootCnpj,
+            position: { x: 0, y: 0 },
+            data: {
+                tipo: 'empresa',
+                label: rootInfo ? initials(rootInfo.razaoSocial) : rootCnpj.slice(0, 4),
+                cnpj: rootCnpj,
+                razaoSocial: rootInfo?.razaoSocial,
+                uf: rootInfo?.uf,
+                totalNFs: rootInfo?.totalNFs,
+                relacao: 'raiz',
+                detalhes: rootInfo ? { ...rootInfo } : { cnpj: rootCnpj },
+            },
+        });
     }
 
     for (const node of api.nos) {
@@ -96,7 +129,16 @@ export function mergeGraph(
             nodesById.set(node.cnpj, {
                 id: node.cnpj,
                 position: { x: 0, y: 0 },
-                data: { tipo: 'empresa', label: initials(node.razaoSocial) || node.cnpj.slice(0, 4), cnpj: node.cnpj, detalhes: { ...node } },
+                data: {
+                    tipo: 'empresa',
+                    label: initials(node.razaoSocial) || node.cnpj.slice(0, 4),
+                    cnpj: node.cnpj,
+                    razaoSocial: node.razaoSocial,
+                    uf: node.uf,
+                    totalNFs: node.totalNFs,
+                    relacao: node.relacao,
+                    detalhes: { ...node },
+                },
             });
         }
     }
@@ -104,28 +146,33 @@ export function mergeGraph(
     for (const a of api.arestas) {
         const id = `${a.de}->${a.para}`;
         if (!edgesById.has(id) && nodesById.has(a.de) && nodesById.has(a.para)) {
-            // Rótulo: "N NFs" + valor agregado quando disponível ("· R$ X").
-            const label = a.valorTotal ? `${a.totalNFs} NFs · ${brlCompact(a.valorTotal)}` : String(a.totalNFs);
-            edgesById.set(id, { id, source: a.de, target: a.para, label, markerEnd: { type: 'arrowclosed' } } as Edge);
+            edgesById.set(id, {
+                id,
+                source: a.de,
+                target: a.para,
+                type: 'weighted',
+                data: { valorTotal: a.valorTotal, totalNFs: a.totalNFs },
+            } as GraphEdge);
         }
     }
 
-    // Produtos da empresa-raiz (quando includeProdutos): nó Produto + aresta CONTÉM.
+    // Produtos da empresa-raiz (quando includeProdutos): nó Produto + aresta.
     for (const p of api.produtos ?? []) {
         const id = `prod:${p.idUnico}`;
         if (!nodesById.has(id)) {
             nodesById.set(id, {
                 id,
                 position: { x: 0, y: 0 },
-                data: { tipo: 'produto', label: p.descricao || p.idUnico, detalhes: { ...p } },
+                data: { tipo: 'produto', label: p.descricao || p.idUnico, razaoSocial: p.descricao, uf: p.ncm, totalNFs: p.totalNFs, detalhes: { ...p } },
             });
         }
         const edgeId = `${rootCnpj}->${id}`;
         if (!edgesById.has(edgeId)) {
-            edgesById.set(edgeId, { id: edgeId, source: rootCnpj, target: id, label: brlCompact(p.valorTotal), markerEnd: { type: 'arrowclosed' } } as Edge);
+            edgesById.set(edgeId, { id: edgeId, source: rootCnpj, target: id, type: 'weighted', data: { valorTotal: p.valorTotal, totalNFs: p.totalNFs } } as GraphEdge);
         }
     }
 
-    const nodes = applyLayout([...nodesById.values()], [...edgesById.values()]);
-    return { nodes, edges: [...edgesById.values()] };
+    const edges = [...edgesById.values()];
+    const nodes = applyLayout([...nodesById.values()], edges);
+    return { nodes, edges };
 }

@@ -1,13 +1,14 @@
 import { type JSX, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearch, useNavigate } from '@tanstack/react-router';
-import { ReactFlow, Background, Controls, MiniMap, useReactFlow, ReactFlowProvider, type Edge, type Node } from '@xyflow/react';
+import { ReactFlow, Background, Controls, MiniMap, useReactFlow, ReactFlowProvider, MarkerType, type Node } from '@xyflow/react';
 import { toPng } from 'html-to-image';
 import '@xyflow/react/dist/style.css';
 import { Download, Loader2, RotateCcw, Search } from 'lucide-react';
 import { apiFetch } from '../api/api.client.js';
-import { mergeGraph, type ApiGraph, type GraphNode, type NodeData, type NodeType } from '../graph/layout.js';
+import { mergeGraph, type ApiGraph, type GraphEdge, type GraphNode, type NodeData, type NodeType } from '../graph/layout.js';
 import { CustomNode } from '../graph/CustomNode.js';
+import { WeightedEdge } from '../graph/WeightedEdge.js';
 import { GraphPanel } from '../graph/GraphPanel.js';
 import { useGraphStore, type GraphDirection } from '../stores/graph.store.js';
 import { useThemeStore } from '../stores/theme.store.js';
@@ -20,15 +21,23 @@ import { Switch } from '../components/ui/switch.js';
 import { Card } from '../components/ui/card.js';
 
 const nodeTypes = { custom: CustomNode };
+const edgeTypes = { weighted: WeightedEdge };
 
 const selectClass =
     'h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50';
 
-/** Cor (CSS var) por tipo de nó — casa com CustomNode; usada na legenda e no MiniMap. */
+/** Cor (CSS var) por tipo — para a legenda (CSS resolve a var normalmente). */
 const TIPO_COR: Record<NodeType, string> = {
     empresa: 'var(--chart-1)',
     notafiscal: 'var(--chart-2)',
     produto: 'var(--chart-3)',
+};
+/** Cor concreta por tipo para o MiniMap: seu <canvas> NÃO resolve CSS vars,
+ *  então precisa de hex/rgb literais (era a causa do minimap "vazio"). */
+const TIPO_COR_MINIMAP: Record<NodeType, string> = {
+    empresa: '#6ea8fe',
+    notafiscal: '#46c56a',
+    produto: '#e0a83c',
 };
 
 function Legenda(): JSX.Element {
@@ -64,18 +73,28 @@ function GraphInner(): JSX.Element {
     const setDirection = useGraphStore((s) => s.setDirection);
     const setIncludeProdutos = useGraphStore((s) => s.setIncludeProdutos);
 
-    const [graph, setGraph] = useState<{ nodes: GraphNode[]; edges: Edge[] }>({ nodes: [], edges: [] });
+    const [graph, setGraph] = useState<{ nodes: GraphNode[]; edges: GraphEdge[] }>({ nodes: [], edges: [] });
     const [selected, setSelected] = useState<NodeData | null>(null);
     const [searchInput, setSearchInput] = useState(search.cnpj ?? '');
     const [loading, setLoading] = useState(false);
+    const [hovered, setHovered] = useState<string | null>(null);
     const { nodes, edges } = graph;
 
     const load = useCallback(async (cnpj: string, degree: number, dir: GraphDirection, merge: boolean, produtos = false) => {
         const prodParam = produtos ? '&includeProdutos=true' : '';
         setLoading(true);
         try {
-            const api = await apiFetch<ApiGraph>(`/empresa/${cnpj}/grafo?depth=${degree}&direction=${dir}${prodParam}`);
-            setGraph((prev) => mergeGraph(merge ? prev : { nodes: [], edges: [] }, api, cnpj));
+            // Busca o grafo e, em paralelo, os dados da empresa-raiz (a API do
+            // grafo não inclui a própria raiz em `nos`, então o nó raiz ficaria
+            // só com o CNPJ). Falha do /empresa não derruba o grafo.
+            const [api, rootMeta] = await Promise.all([
+                apiFetch<ApiGraph>(`/empresa/${cnpj}/grafo?depth=${degree}&direction=${dir}${prodParam}`),
+                apiFetch<{ razaoSocial?: string; uf?: string; stats?: { totalNFsEmitidas?: number; totalNFsRecebidas?: number } }>(`/empresa/${cnpj}`).catch(() => null),
+            ]);
+            const meta = rootMeta
+                ? { razaoSocial: rootMeta.razaoSocial, uf: rootMeta.uf, totalNFs: (rootMeta.stats?.totalNFsEmitidas ?? 0) + (rootMeta.stats?.totalNFsRecebidas ?? 0) }
+                : undefined;
+            setGraph((prev) => mergeGraph(merge ? prev : { nodes: [], edges: [] }, api, cnpj, meta));
         } finally {
             setLoading(false);
         }
@@ -116,7 +135,29 @@ function GraphInner(): JSX.Element {
         a.click();
     }
 
-    const rfNodes = useMemo(() => nodes.map((n) => ({ ...n, type: 'custom' })), [nodes]);
+    // Hover-isola: vizinhança do nó sob o mouse (ele + conectados diretos).
+    const vizinhanca = useMemo(() => {
+        if (!hovered) return null;
+        const set = new Set<string>([hovered]);
+        for (const e of edges) {
+            if (e.source === hovered) set.add(e.target);
+            if (e.target === hovered) set.add(e.source);
+        }
+        return set;
+    }, [hovered, edges]);
+
+    const rfNodes = useMemo(
+        () => nodes.map((n) => ({ ...n, type: 'custom', data: { ...n.data, dimmed: vizinhanca ? !vizinhanca.has(n.id) : false } })),
+        [nodes, vizinhanca],
+    );
+    const rfEdges = useMemo(
+        () =>
+            edges.map((e) => {
+                const dim = vizinhanca ? !(vizinhanca.has(e.source) && vizinhanca.has(e.target)) : false;
+                return { ...e, markerEnd: { type: MarkerType.ArrowClosed, color: 'var(--muted-foreground)' }, data: { ...e.data, dimmed: dim } };
+            }),
+        [edges, vizinhanca],
+    );
 
     return (
         <div className="flex h-[calc(100vh-8.5rem)] flex-col">
@@ -172,15 +213,28 @@ function GraphInner(): JSX.Element {
                         <Legenda />
                         <ReactFlow
                             nodes={rfNodes}
-                            edges={edges}
+                            edges={rfEdges}
                             nodeTypes={nodeTypes}
+                            edgeTypes={edgeTypes}
                             onNodeClick={onNodeClick}
+                            onNodeMouseEnter={(_e, n) => setHovered(n.id)}
+                            onNodeMouseLeave={() => setHovered(null)}
                             colorMode={tema === 'escuro' ? 'dark' : 'light'}
+                            minZoom={0.2}
                             fitView
+                            fitViewOptions={{ padding: 0.2 }}
                         >
                             <Background />
                             <Controls />
-                            <MiniMap pannable zoomable nodeColor={(n) => TIPO_COR[(n.data as { tipo: NodeType }).tipo] ?? 'var(--muted)'} />
+                            <MiniMap
+                                pannable
+                                zoomable
+                                className="!rounded-md !border !border-border"
+                                style={{ background: 'var(--card)' }}
+                                maskColor={tema === 'escuro' ? 'rgba(0,0,0,0.55)' : 'rgba(255,255,255,0.6)'}
+                                nodeColor={(n) => TIPO_COR_MINIMAP[(n.data as { tipo: NodeType }).tipo] ?? '#888'}
+                                nodeStrokeWidth={3}
+                            />
                         </ReactFlow>
                         {selected && <GraphPanel node={selected} onClose={() => setSelected(null)} />}
                     </>
