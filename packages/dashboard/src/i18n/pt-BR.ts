@@ -8,6 +8,7 @@ export const ptBR = {
         cancelar: 'Cancelar',
         vazio: 'Nenhum resultado.',
         buscar: 'Buscar',
+        erroFatal: 'Algo deu errado. Recarregue a página.',
     },
     login: {
         titulo: 'Entrar',

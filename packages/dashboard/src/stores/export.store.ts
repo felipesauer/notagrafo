@@ -16,7 +16,7 @@ interface ExportState {
     atualizarStatus: (status: ExportStatus, downloadUrl?: string) => void;
 }
 
-/** Store do export ativo — alimenta o ExportBanner com polling. */
+/** Store do export ativo — alimenta o ExportWatcher (polling + toast). */
 export const useExportStore = create<ExportState>((set) => ({
     jobAtivo: null,
     setJob: (jobAtivo) => set({ jobAtivo }),

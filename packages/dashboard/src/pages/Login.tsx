@@ -1,8 +1,13 @@
 import { useState, type FormEvent, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearch } from '@tanstack/react-router';
+import { ReceiptText } from 'lucide-react';
 import { apiFetch, ApiError } from '../api/api.client.js';
 import { useAuthStore, type Usuario } from '../stores/auth.store.js';
+import { Button } from '../components/ui/button.js';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card.js';
+import { Input } from '../components/ui/input.js';
+import { Label } from '../components/ui/label.js';
 
 interface LoginResponse {
     token: string;
@@ -36,28 +41,36 @@ export function LoginPage(): JSX.Element {
     }
 
     return (
-        <main className="login">
-            <div className="login__card">
-                <h1 className="login__brand">notagrafo</h1>
-                <form onSubmit={onSubmit}>
-                    <label>
-                        {t('login.email')}
-                        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
-                    </label>
-                    <label>
-                        {t('login.senha')}
-                        <input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} required autoComplete="current-password" />
-                    </label>
-                    {erro && (
-                        <p role="alert" className="login__erro">
-                            {erro}
-                        </p>
-                    )}
-                    <button type="submit" disabled={carregando}>
-                        {carregando ? t('comum.carregando') : t('login.entrar')}
-                    </button>
-                </form>
-            </div>
+        <main className="grid min-h-svh place-items-center bg-muted/30 p-4">
+            <Card className="w-full max-w-sm">
+                <CardHeader className="items-center text-center">
+                    <div className="mx-auto mb-2 flex size-11 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                        <ReceiptText className="size-5" />
+                    </div>
+                    <CardTitle className="text-xl">notagrafo</CardTitle>
+                    <CardDescription>{t('login.titulo')}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={onSubmit} className="grid gap-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="email">{t('login.email')}</Label>
+                            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="senha">{t('login.senha')}</Label>
+                            <Input id="senha" type="password" value={senha} onChange={(e) => setSenha(e.target.value)} required autoComplete="current-password" />
+                        </div>
+                        {erro && (
+                            <p role="alert" className="text-sm text-destructive">
+                                {erro}
+                            </p>
+                        )}
+                        <Button type="submit" disabled={carregando} className="w-full">
+                            {carregando ? t('comum.carregando') : t('login.entrar')}
+                        </Button>
+                    </form>
+                </CardContent>
+            </Card>
         </main>
     );
 }

@@ -2,7 +2,7 @@ import { type JSX } from 'react';
 import { createRootRoute, createRoute, createRouter, Outlet, redirect } from '@tanstack/react-router';
 import { useAuthStore } from './stores/auth.store.js';
 import { isAuthRequired } from './lib/auth-config.js';
-import { AppLayout } from './components/AppLayout.js';
+import { AppShell } from './components/layout/AppShell.js';
 import { LoginPage } from './pages/Login.js';
 import { OverviewPage } from './pages/Overview.js';
 import { NFListPage } from './pages/NFList.js';
@@ -38,7 +38,7 @@ const protectedLayout = createRoute({
             throw redirect({ to: '/login', search: { redirect: location.pathname } });
         }
     },
-    component: AppLayout,
+    component: AppShell,
 });
 
 const childRoute = (path: string, component: () => JSX.Element) =>

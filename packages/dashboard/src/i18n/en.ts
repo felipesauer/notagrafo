@@ -8,6 +8,7 @@ export const en = {
         cancelar: 'Cancel',
         vazio: 'No results.',
         buscar: 'Search',
+        erroFatal: 'Something went wrong. Please reload the page.',
     },
     login: {
         titulo: 'Sign in',
