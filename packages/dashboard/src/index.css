@@ -8,19 +8,17 @@
    Escopado às classes de página ainda NÃO migradas — Overview, Login, NFList,
    FilterSidebar e UploadModal já saíram, então não constam aqui. A NOTA-95
    remove o resto ao migrar as últimas páginas. */
-.configuracoes h2, .configuracoes h3, .grafo-page h3, .graph-panel h3 { font-weight: 700; margin: 0.6em 0; }
-.configuracoes h2 { font-size: 1.5em; }
-.configuracoes h3, .grafo-page h3, .graph-panel h3 { font-size: 1.1em; }
+.configuracoes h2 { font-size: 1.5em; font-weight: 700; margin: 0.6em 0; }
+.configuracoes h3 { font-size: 1.1em; font-weight: 700; margin: 0.6em 0; }
 .configuracoes p { margin: 0.5em 0; }
 .configuracoes ul { list-style: none; padding: 0; margin: 0; }
 .configuracoes fieldset { border: 1px solid var(--muted); border-radius: 6px; padding: 0.5em 0.75em; margin: 0.5em 0; }
-.graph-panel a { color: var(--accent); }
 /* Botões e inputs SÓ dentro dos wrappers legados (nunca sobre .ui do shadcn). */
-.configuracoes button, .grafo-page button, .graph-panel button {
+.configuracoes button {
     border: 1px solid var(--muted); background: var(--card); color: var(--fg);
     padding: 0.35rem 0.75rem; border-radius: 6px; cursor: pointer; font: inherit;
 }
-.grafo-page input, .grafo-page select, .configuracoes input {
+.configuracoes input {
     border: 1px solid var(--muted); background: var(--bg); color: var(--fg);
     padding: 0.35rem 0.5rem; border-radius: 6px; font: inherit;
 }
@@ -89,29 +87,3 @@ body {
 .inline-error { color: #dc2626; display: flex; gap: 1rem; align-items: center; }
 .empty-state { color: var(--muted); padding: 2rem; text-align: center; }
 .muted { color: var(--muted); }
-
-/* ── Página de grafo (NOTA-25) ─────────────────────────────── */
-.grafo-page { display: flex; flex-direction: column; height: calc(100vh - 120px); }
-.grafo-area { flex: 1; position: relative; border: 1px solid var(--card); border-radius: 8px; }
-.grafo-no {
-    border-radius: 50%;
-    color: #fff;
-    display: grid;
-    place-items: center;
-    font-size: 0.75rem;
-    font-weight: 600;
-    border: 2px solid rgba(255,255,255,0.4);
-}
-.graph-panel {
-    position: absolute;
-    right: 0; top: 0; bottom: 0;
-    width: 280px;
-    background: var(--bg);
-    border-left: 1px solid var(--card);
-    padding: 1rem;
-    overflow-y: auto;
-}
-.graph-panel__close { float: right; }
-.graph-panel__links { display: flex; flex-direction: column; gap: 0.3rem; margin-top: 0.5rem; }
-.grafo-page .toolbar { flex-wrap: wrap; align-items: center; }
-.grafo-toggle { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.85rem; }
