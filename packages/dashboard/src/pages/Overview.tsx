@@ -254,6 +254,7 @@ function OverviewContent({
                         {o.ultimasProcessadas.length === 0 ? (
                             <EmptyState />
                         ) : (
+                            <div className="overflow-x-auto">
                             <Table data-testid="data-table">
                                 <TableHeader>
                                     <TableRow>
@@ -274,6 +275,7 @@ function OverviewContent({
                                     ))}
                                 </TableBody>
                             </Table>
+                            </div>
                         )}
                     </CardContent>
                 </Card>

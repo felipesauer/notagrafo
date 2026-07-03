@@ -1,15 +1,13 @@
 import { type JSX, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
-import { type NFFiltros, filtrosAtivos, filtroLabel } from './FilterSidebar.js';
+import { type NFFiltros, filtrosAtivos, filtroLabel } from './filtros.js';
 import { Button } from './ui/button.js';
 import { Input } from './ui/input.js';
 import { Label } from './ui/label.js';
 import { Badge } from './ui/badge.js';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover.js';
-
-const selectClass =
-    'h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50';
+import { NativeSelect } from './ui/native-select.js';
 
 /** Contagem de resultados: "N de M" (M = total sem paginação, vindo de meta.total). */
 function ResultCount({ shown, total }: { shown: number; total?: number }): JSX.Element | null {
@@ -104,13 +102,13 @@ export function NFFilterBar({
                     <kbd className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 rounded border border-border bg-muted px-1.5 font-mono text-[10px] text-muted-foreground sm:block">/</kbd>
                 </div>
 
-                <select value={status} onChange={(e) => onStatus(e.target.value)} data-testid="nf-status-filter" className={selectClass}>
+                <NativeSelect value={status} onChange={(e) => onStatus(e.target.value)} data-testid="nf-status-filter" wrapperClassName="w-40">
                     <option value="">{t('nf.todosStatus')}</option>
                     <option value="ativa">{t('nf.statusAtiva')}</option>
                     <option value="cancelada">{t('nf.statusCancelada')}</option>
                     <option value="denegada">{t('nf.statusDenegada')}</option>
                     <option value="inutilizada">{t('nf.statusInutilizada')}</option>
-                </select>
+                </NativeSelect>
 
                 <Popover open={open} onOpenChange={setOpen}>
                     <PopoverTrigger asChild>

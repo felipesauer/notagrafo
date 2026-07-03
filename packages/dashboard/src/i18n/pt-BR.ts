@@ -43,7 +43,7 @@ export const ptBR = {
         numero: 'Número', emitente: 'Emitente', destinatario: 'Destinatário', valor: 'Valor',
         status: 'Status', emissao: 'Emissão', todosStatus: 'Todos os status',
         statusAtiva: 'Ativa', statusCancelada: 'Cancelada', statusDenegada: 'Denegada', statusInutilizada: 'Inutilizada',
-        chave: 'Chave de acesso', acoes: 'Ações', verDetalhe: 'Ver detalhe',
+        chave: 'Chave de acesso', acoes: 'Ações', maisAcoes: 'Mais ações', verDetalhe: 'Ver detalhe',
         abrirGrafo: 'Abrir no grafo', copiarChave: 'Copiar chave', filtrarEmitente: 'Filtrar por este emitente',
         baixarXml: 'Baixar XML', copiar: 'Copiar', copiado: 'Copiado!',
         eventos: 'Eventos', semEventos: 'Nenhum evento registrado.',
@@ -132,6 +132,7 @@ export const ptBR = {
         navegar: 'Navegar', acoes: 'Ações', nf: 'Nota fiscal', irParaNf: 'Abrir NF',
     },
     sidebar: {
+        grupoGeral: 'Geral', grupoDados: 'Dados', grupoAnalise: 'Análise', grupoSistema: 'Sistema',
         overview: 'Visão geral',
         nfs: 'Notas Fiscais',
         empresas: 'Empresas',

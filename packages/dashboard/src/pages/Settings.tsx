@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card.
 import { Button } from '../components/ui/button.js';
 import { Switch } from '../components/ui/switch.js';
 import { Label } from '../components/ui/label.js';
+import { NativeSelect } from '../components/ui/native-select.js';
 
 interface Health {
     status: string;
@@ -23,9 +24,6 @@ async function fetchHealth(): Promise<Health> {
     const res = await fetch('/health');
     return (await res.json()) as Health;
 }
-
-const selectClass =
-    'h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50';
 
 export function SettingsPage(): JSX.Element {
     const { t, i18n } = useTranslation();
@@ -59,15 +57,15 @@ export function SettingsPage(): JSX.Element {
                         </div>
                         <div className="flex items-center justify-between">
                             <Label htmlFor="cfg-idioma" className="font-normal">{t('config.idioma')}</Label>
-                            <select
+                            <NativeSelect
                                 id="cfg-idioma"
-                                className={selectClass}
+                                wrapperClassName="w-48"
                                 value={i18n.language}
                                 onChange={(e) => setIdioma(e.target.value as Idioma)}
                             >
                                 <option value="pt-BR">Português (BR)</option>
                                 <option value="en">English</option>
-                            </select>
+                            </NativeSelect>
                         </div>
                     </CardContent>
                 </Card>

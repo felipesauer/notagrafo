@@ -19,12 +19,11 @@ import { Label } from '../components/ui/label.js';
 import { Slider } from '../components/ui/slider.js';
 import { Switch } from '../components/ui/switch.js';
 import { Card } from '../components/ui/card.js';
+import { NativeSelect } from '../components/ui/native-select.js';
 
 const nodeTypes = { custom: CustomNode };
 const edgeTypes = { weighted: WeightedEdge };
 
-const selectClass =
-    'h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50';
 
 /** Cor (CSS var) por tipo — para a legenda (CSS resolve a var normalmente). */
 const TIPO_COR: Record<NodeType, string> = {
@@ -187,11 +186,11 @@ function GraphInner(): JSX.Element {
                     <Label className="whitespace-nowrap text-xs text-muted-foreground">{t('grafo.profundidade')}: {depth}</Label>
                     <Slider className="w-28" min={1} max={4} step={1} value={[depth]} onValueChange={([v]) => setDepth(v ?? 1)} />
                 </div>
-                <select value={direction} onChange={(e) => setDirection(e.target.value as GraphDirection)} className={selectClass}>
+                <NativeSelect value={direction} onChange={(e) => setDirection(e.target.value as GraphDirection)} wrapperClassName="w-40">
                     <option value="both">{t('grafo.ambos')}</option>
                     <option value="emitente">{t('grafo.emitente')}</option>
                     <option value="destinatario">{t('grafo.destinatario')}</option>
-                </select>
+                </NativeSelect>
                 <Label className="flex items-center gap-2 text-xs">
                     <Switch checked={includeProdutos} onCheckedChange={setIncludeProdutos} />
                     {t('grafo.incluirProdutos')}

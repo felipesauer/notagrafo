@@ -49,6 +49,7 @@ export function CompaniesPage(): JSX.Element {
             {/* h2 do PageHeader — companies.spec usa heading level 2 */}
             <PageHeader title={t('empresas.titulo')} />
             <Card className="overflow-hidden py-0">
+                <div className="overflow-x-auto">
                 <Table data-testid="data-table">
                     <TableHeader>
                         <TableRow>
@@ -92,6 +93,7 @@ export function CompaniesPage(): JSX.Element {
                         })}
                     </TableBody>
                 </Table>
+                </div>
             </Card>
         </div>
     );

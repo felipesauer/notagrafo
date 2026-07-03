@@ -1,6 +1,7 @@
 import { type JSX, useMemo } from 'react';
 import { ResponsiveSankey } from '@nivo/sankey';
 import { useThemeStore } from '../../stores/theme.store.js';
+import { useIsMobile } from '../../hooks/use-mobile.js';
 import { resolveTokenColors } from './resolveTheme.js';
 import type { FluxoAresta } from '../../api/hooks.js';
 
@@ -32,6 +33,8 @@ interface SankeyLink {
  */
 export function FluxoSankey({ arestas }: { arestas: FluxoAresta[] }): JSX.Element {
     const tema = useThemeStore((s) => s.tema);
+    const isMobile = useIsMobile();
+    const sideMargin = isMobile ? 92 : 180;
 
     const { data, theme } = useMemo(() => {
         const cores = resolveTokenColors();
@@ -58,7 +61,7 @@ export function FluxoSankey({ arestas }: { arestas: FluxoAresta[] }): JSX.Elemen
     return (
         <ResponsiveSankey
             data={data}
-            margin={{ top: 8, right: 180, bottom: 8, left: 180 }}
+            margin={{ top: 8, right: sideMargin, bottom: 8, left: sideMargin }}
             align="justify"
             colors={(n: { nodeColor?: string }) => n.nodeColor ?? '#3b82f6'}
             nodeOpacity={1}
@@ -75,7 +78,10 @@ export function FluxoSankey({ arestas }: { arestas: FluxoAresta[] }): JSX.Elemen
             labelOrientation="horizontal"
             labelPadding={10}
             theme={theme}
-            label={(n: { label?: string; id: string }) => n.label ?? n.id}
+            label={(n: { label?: string; id: string }) => {
+                const s = n.label ?? n.id;
+                return isMobile && s.length > 12 ? `${s.slice(0, 11)}…` : s;
+            }}
             nodeTooltip={({ node }: { node: { label?: string; id: string; value: number } }) => (
                 <div style={{ padding: '6px 10px', fontSize: 12 }}>
                     <strong>{node.label ?? node.id}</strong>

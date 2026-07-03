@@ -11,6 +11,7 @@ import { Button } from '../components/ui/button.js';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card.js';
 import { Checkbox } from '../components/ui/checkbox.js';
 import { Label } from '../components/ui/label.js';
+import { NativeSelect } from '../components/ui/native-select.js';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table.js';
 
 type Formato = 'csv' | 'xlsx' | 'json';
@@ -25,9 +26,6 @@ interface ExportRegistro {
 }
 
 const CAMPOS = ['chaveAcesso', 'numero', 'dataEmissao', 'valorTotal', 'cnpjEmitente', 'cnpjDestinatario'];
-
-const selectClass =
-    'h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50';
 
 export function ExportsPage(): JSX.Element {
     const { t } = useTranslation();
@@ -77,11 +75,11 @@ export function ExportsPage(): JSX.Element {
                     <CardContent className="space-y-4 px-4">
                         <div className="grid gap-1.5">
                             <Label htmlFor="export-formato" className="text-xs text-muted-foreground">{t('exportacoes.formato')}</Label>
-                            <select id="export-formato" data-testid="export-format" className={selectClass} value={formato} onChange={(e) => setFormato(e.target.value as Formato)}>
+                            <NativeSelect id="export-formato" data-testid="export-format" wrapperClassName="w-full" value={formato} onChange={(e) => setFormato(e.target.value as Formato)}>
                                 <option value="csv">CSV</option>
                                 <option value="xlsx">XLSX</option>
                                 <option value="json">JSON</option>
-                            </select>
+                            </NativeSelect>
                         </div>
                         <fieldset className="grid gap-2">
                             <legend className="mb-1 text-xs text-muted-foreground">{t('exportacoes.campos')}</legend>

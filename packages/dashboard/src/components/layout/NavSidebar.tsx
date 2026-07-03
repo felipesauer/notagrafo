@@ -22,6 +22,7 @@ import {
     SidebarFooter,
     SidebarGroup,
     SidebarGroupContent,
+    SidebarGroupLabel,
     SidebarHeader,
     SidebarMenu,
     SidebarMenuButton,
@@ -43,16 +44,40 @@ interface NavItem {
     key: string;
 }
 
-const ITENS: NavItem[] = [
-    { to: '/', icon: Home, key: 'sidebar.overview' },
-    { to: '/nf', icon: FileText, key: 'sidebar.nfs' },
-    { to: '/empresas', icon: Building2, key: 'sidebar.empresas' },
-    { to: '/produtos', icon: Package, key: 'sidebar.produtos' },
-    { to: '/impostos', icon: ReceiptText, key: 'sidebar.impostos' },
-    { to: '/grafo', icon: Waypoints, key: 'sidebar.grafo' },
-    { to: '/rede', icon: Network, key: 'sidebar.rede' },
-    { to: '/exportacoes', icon: Download, key: 'sidebar.exportacoes' },
-    { to: '/configuracoes', icon: Settings, key: 'sidebar.configuracoes' },
+interface NavGroup {
+    labelKey: string;
+    itens: NavItem[];
+}
+
+/** Navegação agrupada por área: geral, dados, análise, sistema. */
+const GRUPOS: NavGroup[] = [
+    {
+        labelKey: 'sidebar.grupoGeral',
+        itens: [{ to: '/', icon: Home, key: 'sidebar.overview' }],
+    },
+    {
+        labelKey: 'sidebar.grupoDados',
+        itens: [
+            { to: '/nf', icon: FileText, key: 'sidebar.nfs' },
+            { to: '/empresas', icon: Building2, key: 'sidebar.empresas' },
+            { to: '/produtos', icon: Package, key: 'sidebar.produtos' },
+            { to: '/impostos', icon: ReceiptText, key: 'sidebar.impostos' },
+        ],
+    },
+    {
+        labelKey: 'sidebar.grupoAnalise',
+        itens: [
+            { to: '/grafo', icon: Waypoints, key: 'sidebar.grafo' },
+            { to: '/rede', icon: Network, key: 'sidebar.rede' },
+        ],
+    },
+    {
+        labelKey: 'sidebar.grupoSistema',
+        itens: [
+            { to: '/exportacoes', icon: Download, key: 'sidebar.exportacoes' },
+            { to: '/configuracoes', icon: Settings, key: 'sidebar.configuracoes' },
+        ],
+    },
 ];
 
 /** Iniciais para o avatar (nome ou e-mail). */
@@ -128,27 +153,30 @@ export function NavSidebar(): JSX.Element {
                 </div>
             </SidebarHeader>
             <SidebarContent>
-                <SidebarGroup>
-                    <SidebarGroupContent>
-                        <SidebarMenu>
-                            {ITENS.map((item) => (
-                                <SidebarMenuItem key={item.to}>
-                                    <SidebarMenuButton asChild tooltip={t(item.key)}>
-                                        <Link
-                                            to={item.to as string}
-                                            // exato só na raiz; as demais casam o prefixo
-                                            activeOptions={{ exact: item.to === '/' }}
-                                            activeProps={{ 'data-active': 'true' }}
-                                        >
-                                            <item.icon />
-                                            <span>{t(item.key)}</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                            ))}
-                        </SidebarMenu>
-                    </SidebarGroupContent>
-                </SidebarGroup>
+                {GRUPOS.map((grupo) => (
+                    <SidebarGroup key={grupo.labelKey}>
+                        <SidebarGroupLabel>{t(grupo.labelKey)}</SidebarGroupLabel>
+                        <SidebarGroupContent>
+                            <SidebarMenu>
+                                {grupo.itens.map((item) => (
+                                    <SidebarMenuItem key={item.to}>
+                                        <SidebarMenuButton asChild tooltip={t(item.key)}>
+                                            <Link
+                                                to={item.to as string}
+                                                // exato só na raiz; as demais casam o prefixo
+                                                activeOptions={{ exact: item.to === '/' }}
+                                                activeProps={{ 'data-active': 'true' }}
+                                            >
+                                                <item.icon />
+                                                <span>{t(item.key)}</span>
+                                            </Link>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                ))}
+                            </SidebarMenu>
+                        </SidebarGroupContent>
+                    </SidebarGroup>
+                ))}
             </SidebarContent>
             <SidebarFooter>
                 <SidebarMenu>

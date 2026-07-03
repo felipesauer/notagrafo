@@ -66,6 +66,7 @@ export function ProductsPage(): JSX.Element {
         <div>
             <PageHeader title={t('produtos.titulo')} />
             <Card className="overflow-hidden py-0">
+                <div className="overflow-x-auto">
                 <Table data-testid="data-table">
                     <TableHeader>
                         <TableRow>
@@ -115,6 +116,7 @@ export function ProductsPage(): JSX.Element {
                         })}
                     </TableBody>
                 </Table>
+                </div>
             </Card>
         </div>
     );

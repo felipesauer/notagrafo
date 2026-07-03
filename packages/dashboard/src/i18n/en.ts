@@ -20,6 +20,7 @@ export const en = {
         erroCredenciais: 'Invalid e-mail or password.',
     },
     sidebar: {
+        grupoGeral: 'General', grupoDados: 'Data', grupoAnalise: 'Analysis', grupoSistema: 'System',
         overview: 'Overview',
         nfs: 'Invoices',
         empresas: 'Companies',
@@ -55,7 +56,7 @@ export const en = {
         numero: 'Number', emitente: 'Issuer', destinatario: 'Recipient', valor: 'Value',
         status: 'Status', emissao: 'Issued', todosStatus: 'All statuses',
         statusAtiva: 'Active', statusCancelada: 'Cancelled', statusDenegada: 'Denied', statusInutilizada: 'Voided',
-        chave: 'Access key', acoes: 'Actions', verDetalhe: 'View detail',
+        chave: 'Access key', acoes: 'Actions', maisAcoes: 'More actions', verDetalhe: 'View detail',
         abrirGrafo: 'Open in graph', copiarChave: 'Copy key', filtrarEmitente: 'Filter by this issuer',
         baixarXml: 'Download XML', copiar: 'Copy', copiado: 'Copied!',
         eventos: 'Events', semEventos: 'No events recorded.',
