@@ -1,22 +1,57 @@
 import { type JSX, type ReactNode } from 'react';
 import { Card, CardContent } from './ui/card.js';
+import { Sparkline } from './charts/Sparkline.js';
+import { DeltaBadge } from './charts/DeltaBadge.js';
 
 /**
- * Card de indicador (KPI): ícone lucide em tile + rótulo + valor tabular.
- * Compartilhado entre Visão Geral e Impostos. Mantém data-testid="kpi-card"
- * (os e2e da Overview contam 4).
+ * Card de indicador (KPI) no estilo BI: ícone + label uppercase, valor grande
+ * tabular, e opcionalmente uma linha de contexto (delta % + legenda) e um
+ * sparkline de tendência ao pé. Compartilhado entre Visão Geral e Impostos.
+ * Mantém data-testid="kpi-card" (os e2e da Overview contam 4).
  */
-export function KpiCard({ label, value, icon }: { label: string; value: ReactNode; icon: ReactNode }): JSX.Element {
+export function KpiCard({
+    label,
+    value,
+    icon,
+    delta,
+    deltaInvert = false,
+    hint,
+    spark,
+    sparkColor = 'var(--chart-1)',
+}: {
+    label: string;
+    value: ReactNode;
+    icon: ReactNode;
+    /** Variação fracionária vs período anterior (0.125 = +12,5%). */
+    delta?: number;
+    deltaInvert?: boolean;
+    /** Texto de contexto ao lado do delta (ex.: "vs. 90d ant."). */
+    hint?: ReactNode;
+    /** Série para o sparkline; omitido quando não há tendência real. */
+    spark?: number[];
+    sparkColor?: string;
+}): JSX.Element {
     return (
-        <Card data-testid="kpi-card" className="gap-0 py-4">
-            <CardContent className="flex items-center gap-3 px-4">
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary [&>svg]:size-4.5">
-                    {icon}
+        <Card data-testid="kpi-card" className="gap-0 overflow-hidden py-4">
+            <CardContent className="px-4">
+                <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</span>
+                    <span className="flex size-7 items-center justify-center rounded-md bg-primary/10 text-primary [&>svg]:size-4">
+                        {icon}
+                    </span>
                 </div>
-                <div className="min-w-0">
-                    <p className="truncate text-xs text-muted-foreground">{label}</p>
-                    <p className="text-xl font-semibold tabular-nums">{value}</p>
-                </div>
+                <p className="mt-2 text-3xl font-semibold leading-none tracking-tight tabular-nums">{value}</p>
+                {(delta !== undefined || hint) && (
+                    <div className="mt-2 flex items-center gap-2 text-xs">
+                        {delta !== undefined && <DeltaBadge value={delta} invert={deltaInvert} />}
+                        {hint && <span className="text-muted-foreground">{hint}</span>}
+                    </div>
+                )}
+                {spark && spark.length >= 2 && (
+                    <div className="mt-3">
+                        <Sparkline data={spark} color={sparkColor} />
+                    </div>
+                )}
             </CardContent>
         </Card>
     );

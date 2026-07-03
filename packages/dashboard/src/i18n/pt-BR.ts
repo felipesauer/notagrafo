@@ -32,6 +32,11 @@ export const ptBR = {
         numero: 'Número',
         valor: 'Valor',
         processadaEm: 'Processada em',
+        periodoAnterior: 'tendência no período',
+        empresasHint: '{{count}} emitentes ativos',
+        cargaHint: '{{valor}} em tributos',
+        composicaoTributaria: 'Composição tributária',
+        porUfHint: 'emitente · nº de NF-e',
     },
     nf: {
         numero: 'Número', emitente: 'Emitente', destinatario: 'Destinatário', valor: 'Valor',

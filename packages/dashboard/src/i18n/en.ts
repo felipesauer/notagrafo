@@ -43,6 +43,11 @@ export const en = {
         numero: 'Number',
         valor: 'Value',
         processadaEm: 'Processed at',
+        periodoAnterior: 'trend in period',
+        empresasHint: '{{count}} active issuers',
+        cargaHint: '{{valor}} in taxes',
+        composicaoTributaria: 'Tax composition',
+        porUfHint: 'issuer · invoice count',
     },
     nf: {
         numero: 'Number', emitente: 'Issuer', destinatario: 'Recipient', valor: 'Value',
