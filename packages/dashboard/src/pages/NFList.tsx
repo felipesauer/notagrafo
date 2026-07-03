@@ -122,7 +122,7 @@ export function NFListPage(): JSX.Element {
                             <span className="text-xs text-muted-foreground">{t('nf.filtros.ativos', { count: chips.length })}</span>
                             {chips.map(([campo, valor]) => (
                                 <Badge key={campo} variant="secondary" className="gap-1 pr-1">
-                                    <span className="text-muted-foreground">{filtroLabel(t, campo)}:</span> {valor}
+                                    <span className="text-muted-foreground">{filtroLabel(t, campo)}{valor ? ':' : ''}</span> {valor}
                                     <button
                                         type="button"
                                         onClick={() => removerFiltro(campo)}

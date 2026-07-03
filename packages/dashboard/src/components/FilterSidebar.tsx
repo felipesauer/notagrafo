@@ -41,12 +41,13 @@ export function filtroLabel(t: (k: string) => string, campo: keyof NFFiltros): s
     return key ? t(key) : campo;
 }
 
-/** Filtros ativos como pares [campo, valor exibível], para renderizar chips. */
+/** Filtros ativos como pares [campo, valor exibível], para renderizar chips.
+ *  Booleanos (ex.: comImposto) retornam valor vazio — o chip mostra só o rótulo. */
 export function filtrosAtivos(f: NFFiltros): [keyof NFFiltros, string][] {
     const out: [keyof NFFiltros, string][] = [];
     for (const [k, v] of Object.entries(f)) {
         if (v === undefined || v === '' || v === false) continue;
-        out.push([k as keyof NFFiltros, v === true ? '✓' : String(v)]);
+        out.push([k as keyof NFFiltros, v === true ? '' : String(v)]);
     }
     return out;
 }

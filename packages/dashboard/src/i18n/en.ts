@@ -109,6 +109,7 @@ export const en = {
         historico: 'History', acoes: 'Actions', baixar: 'Download', vazio: 'No exports yet.',
     },
     config: {
+        aparencia: 'Appearance', tema: 'Theme', temaClaro: 'Light', temaEscuro: 'Dark', idioma: 'Language', sobre: 'About',
         perfil: 'Profile', alterarSenha: 'Change password', usuarios: 'Users', convidar: 'Invite user',
         armazenamento: 'Storage', driver: 'Driver', sistema: 'System',
         xsdVersions: 'XSD versions', servicos: 'Services', uptime: 'Uptime', verificarSaude: 'Check health',

@@ -98,8 +98,9 @@ export const ptBR = {
         historico: 'Histórico', acoes: 'Ações', baixar: 'Baixar', vazio: 'Nenhuma exportação ainda.',
     },
     config: {
+        aparencia: 'Aparência', tema: 'Tema', temaClaro: 'Claro', temaEscuro: 'Escuro', idioma: 'Idioma',
         perfil: 'Perfil', alterarSenha: 'Alterar senha', usuarios: 'Usuários', convidar: 'Convidar usuário',
-        armazenamento: 'Armazenamento', driver: 'Driver', sistema: 'Sistema',
+        armazenamento: 'Armazenamento', driver: 'Driver', sistema: 'Sistema', sobre: 'Sobre',
         xsdVersions: 'Versões de XSD', servicos: 'Serviços', uptime: 'Uptime', verificarSaude: 'Verificar saúde',
     },
     header: {
