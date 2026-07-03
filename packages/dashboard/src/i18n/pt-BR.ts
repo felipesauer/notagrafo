@@ -108,6 +108,10 @@ export const ptBR = {
         alternarIdioma: 'Alternar idioma',
         notificacoes: 'Notificações',
     },
+    comando: {
+        placeholder: 'Digite um comando ou cole uma chave de acesso…',
+        navegar: 'Navegar', acoes: 'Ações', nf: 'Nota fiscal', irParaNf: 'Abrir NF',
+    },
     sidebar: {
         overview: 'Visão geral',
         nfs: 'Notas Fiscais',

@@ -119,6 +119,10 @@ export const en = {
         alternarIdioma: 'Toggle language',
         notificacoes: 'Notifications',
     },
+    comando: {
+        placeholder: 'Type a command or paste an access key…',
+        navegar: 'Navigate', acoes: 'Actions', nf: 'Invoice', irParaNf: 'Open invoice',
+    },
     export: {
         pronta: 'Your export is ready.',
         baixar: 'Download file',

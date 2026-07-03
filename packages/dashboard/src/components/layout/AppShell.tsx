@@ -6,6 +6,7 @@ import { Toaster } from '../ui/sonner.js';
 import { NavSidebar } from './NavSidebar.js';
 import { SiteHeader } from './SiteHeader.js';
 import { ExportWatcher } from './ExportWatcher.js';
+import { CommandPalette } from './CommandPalette.js';
 
 /**
  * Shell das rotas autenticadas: sidebar colapsável + header + conteúdo. Monta o
@@ -26,6 +27,7 @@ export function AppShell(): JSX.Element {
             {/* theme explícito: nosso tema vem do theme.store, não do next-themes. */}
             <Toaster theme={tema === 'escuro' ? 'dark' : 'light'} richColors position="bottom-right" />
             <ExportWatcher />
+            <CommandPalette />
         </SidebarProvider>
     );
 }
