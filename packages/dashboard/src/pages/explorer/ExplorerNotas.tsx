@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNFList, type NFListItem } from '../../api/hooks.js';
 import { NFStatusBadge, CurrencyValue, DateDisplay, LoadingSkeleton, InlineError, EmptyState } from '../../components/shared.js';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table.js';
+import { Card } from '../../components/ui/card.js';
 import { NFPeek } from './NFPeek.js';
 
 const cnpjFmt = (c: string): string =>
@@ -40,7 +41,8 @@ export function ExplorerNotas({ q, status, peek, onPeek }: { q?: string; status?
 
     return (
         <>
-            <div className="overflow-x-auto">
+            {/* Desktop: tabela densa */}
+            <div className="hidden overflow-x-auto md:block">
                 <Table data-testid="data-table">
                     <TableHeader>
                         <TableRow>
@@ -72,6 +74,29 @@ export function ExplorerNotas({ q, status, peek, onPeek }: { q?: string; status?
                         ))}
                     </TableBody>
                 </Table>
+            </div>
+
+            {/* Mobile: cards empilhados (sem scroll lateral) */}
+            <div className="grid gap-2.5 p-3 md:hidden" data-testid="data-cards">
+                {rows.map((nf, i) => (
+                    <Card key={nf.chaveAcesso} className={`cursor-pointer gap-0 p-3.5 ${sel === i ? 'ring-2 ring-primary' : ''}`} onClick={() => onPeek(nf.chaveAcesso)}>
+                        <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                                <span className="text-xs text-muted-foreground">{t('nf.numero')}</span>
+                                <p className="font-mono font-semibold leading-tight tabular-nums text-primary">{nf.numero}</p>
+                            </div>
+                            <div className="text-right">
+                                <span className="font-mono font-medium tabular-nums"><CurrencyValue value={nf.valorTotal} /></span>
+                                <div className="mt-1"><NFStatusBadge status={nf.status} /></div>
+                            </div>
+                        </div>
+                        <div className="mt-3 grid gap-2 text-sm">
+                            <div className="flex items-baseline gap-2"><span className="w-16 shrink-0 text-xs text-muted-foreground">{t('nf.emitente')}</span><Parte p={nf.emitente} /></div>
+                            <div className="flex items-baseline gap-2"><span className="w-16 shrink-0 text-xs text-muted-foreground">{t('nf.destinatario')}</span><Parte p={nf.destinatario} /></div>
+                        </div>
+                        <div className="mt-3 border-t pt-2.5 text-xs text-muted-foreground tabular-nums"><DateDisplay value={nf.dataEmissao} /></div>
+                    </Card>
+                ))}
             </div>
 
             <NFPeek

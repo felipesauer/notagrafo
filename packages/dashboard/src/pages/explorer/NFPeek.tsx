@@ -84,7 +84,7 @@ export function NFPeek({
                                 <dd className="font-mono font-medium tabular-nums"><CurrencyValue value={nf.valorTotal} /></dd>
                                 <dt className="text-muted-foreground">{t('nf.emissao')}</dt>
                                 <dd className="font-mono tabular-nums"><DateDisplay value={nf.dataEmissao} /></dd>
-                                <dt className="text-muted-foreground">{t('nf.serie')}</dt>
+                                <dt className="text-muted-foreground">{t('nf.filtros.serie')}</dt>
                                 <dd className="font-mono tabular-nums">{nf.serie}</dd>
                             </dl>
 

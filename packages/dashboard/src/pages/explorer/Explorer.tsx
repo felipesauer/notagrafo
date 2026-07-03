@@ -94,6 +94,16 @@ export function ExplorerPage(): JSX.Element {
 
             {/* Área principal */}
             <div className="flex min-w-0 flex-1 flex-col">
+                {/* Seletor de entidade horizontal (mobile — o rail vertical some) */}
+                <div className="flex gap-1 overflow-x-auto border-b px-3 py-2 md:hidden">
+                    {ENTITIES.map((e) => (
+                        <button key={e.key} type="button" onClick={() => trocar(e.key)}
+                            className={`flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] ${entity === e.key ? 'bg-sidebar-accent font-medium text-foreground' : 'text-muted-foreground'}`}>
+                            <e.icon className="size-4" /> {t(e.labelKey)}
+                        </button>
+                    ))}
+                </div>
+
                 {/* Header contextual da entidade */}
                 <div className="flex flex-wrap items-center gap-2 border-b px-4 py-2.5">
                     <span className="flex items-center gap-2 text-sm font-semibold tracking-tight">
