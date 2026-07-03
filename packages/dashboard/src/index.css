@@ -89,7 +89,6 @@ body {
 .badge { color: #fff; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.8rem; }
 .impostos__rankings { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start; }
 @media (max-width: 800px) { .impostos__rankings { grid-template-columns: 1fr; } }
-.inline-card { display: flex; gap: 1.5rem; padding: 0.75rem; background: var(--card); border-radius: 6px; }
 .skeleton__row { height: 1.5rem; background: var(--card); border-radius: 4px; margin-bottom: 0.5rem; animation: pulse 1.5s infinite; }
 @keyframes pulse { 50% { opacity: 0.5; } }
 .inline-error { color: #dc2626; display: flex; gap: 1rem; align-items: center; }
