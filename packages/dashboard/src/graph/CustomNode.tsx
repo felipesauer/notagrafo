@@ -17,7 +17,7 @@ const TIPO = {
  * tipo + razão social + linha de contexto (UF · nº de NF-e). A raiz do ego-graph
  * ganha um anel de destaque; nós fora da vizinhança do hover ficam esmaecidos.
  */
-export function CustomNode({ data, selected }: NodeProps): JSX.Element {
+export function CustomNode({ data, selected, sourcePosition, targetPosition }: NodeProps): JSX.Element {
     const d = data as NodeData;
     const { color, Icon } = TIPO[d.tipo];
     const isRoot = d.relacao === 'raiz';
@@ -32,7 +32,11 @@ export function CustomNode({ data, selected }: NodeProps): JSX.Element {
             )}
             style={isRoot || selected ? ({ '--tw-ring-color': color } as React.CSSProperties) : undefined}
         >
-            <Handle type="target" position={Position.Left} className="!bg-border" />
+            {/* Um handle de cada tipo; a POSIÇÃO vem do nó (targetPosition/
+                sourcePosition), que o layout radial define apontando para o centro
+                — assim as arestas saem/entram pelo lado certo, sem laço. */}
+            <Handle type="target" position={targetPosition ?? Position.Left} className="!border-0 !bg-transparent" />
+            <Handle type="source" position={sourcePosition ?? Position.Right} className="!border-0 !bg-transparent" />
             <BaseNodeContent className="flex-row items-center gap-2.5 p-2.5">
                 <span
                     className="flex size-9 shrink-0 items-center justify-center rounded-md text-white [&>svg]:size-4.5"

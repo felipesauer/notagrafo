@@ -1,5 +1,5 @@
 import Dagre from '@dagrejs/dagre';
-import type { Node, Edge } from '@xyflow/react';
+import { Position, type Node, type Edge } from '@xyflow/react';
 
 /** Tipo de nó no grafo (controla a cor/estilo). */
 export type NodeType = 'empresa' | 'notafiscal' | 'produto';
@@ -57,13 +57,28 @@ export function applyLayout(nodes: GraphNode[], edges: Edge[]): GraphNode[] {
         const R = Math.max(300, 90 + outros.length * 46);
         const cx = 0, cy = 0;
         const pos = new Map<string, { x: number; y: number }>([[root.id, { x: cx, y: cy }]]);
+        // handle do vizinho voltado para o centro (lado oposto à sua posição):
+        // à direita da raiz → conecta pela esquerda; acima → por baixo; etc.
+        const sideFor = (dx: number, dy: number): Position =>
+            Math.abs(dx) >= Math.abs(dy) ? (dx >= 0 ? Position.Left : Position.Right) : (dy >= 0 ? Position.Top : Position.Bottom);
+        const handles = new Map<string, { source: Position; target: Position }>();
         outros.forEach((n, i) => {
-            // começa à direita e distribui no círculo; leve deslocamento evita
-            // que a 1ª e a última fiquem exatamente na horizontal da raiz.
             const ang = (i / outros.length) * Math.PI * 2 - Math.PI / 2 + 0.0001;
-            pos.set(n.id, { x: cx + Math.cos(ang) * R, y: cy + Math.sin(ang) * R });
+            const dx = Math.cos(ang), dy = Math.sin(ang);
+            pos.set(n.id, { x: cx + dx * R, y: cy + dy * R });
+            const side = sideFor(dx, dy);
+            handles.set(n.id, { source: side, target: side });
         });
-        return withSize(nodes, (id) => pos.get(id) ?? { x: 0, y: 0 });
+        return nodes.map((n) => {
+            const p = pos.get(n.id) ?? { x: 0, y: 0 };
+            const h = handles.get(n.id);
+            return {
+                ...n,
+                position: { x: p.x - W / 2, y: p.y - H / 2 },
+                width: W, height: H,
+                ...(h ? { sourcePosition: h.source, targetPosition: h.target } : {}),
+            };
+        });
     }
 
     const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
