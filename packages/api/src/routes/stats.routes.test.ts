@@ -111,3 +111,26 @@ describe('GET /stats/produto/:idUnico/empresas (unit)', () => {
         expect(runs[0]!.params.idUnico).toBe('789');
     });
 });
+
+describe('GET /stats/fluxo (unit)', () => {
+    it('retorna as arestas do fluxo e respeita o limite', async () => {
+        const { driver, runs } = makeFakeDriver(() => [
+            rec({ de: '111', para: '222', deNome: 'Alpha', paraNome: 'Beta', totalNFs: 5, valorTotal: 9000 }),
+        ]);
+        app = await buildTestApi((a) => statsRoutes(a, driver));
+        const res = await app.inject({ method: 'GET', url: '/stats/fluxo?limite=15' });
+        expect(res.statusCode).toBe(200);
+        const j = res.json();
+        expect(j.limite).toBe(15);
+        expect(j.arestas[0]).toMatchObject({ de: '111', para: '222', deNome: 'Alpha', valorTotal: 9000 });
+        expect(runs[0]!.cypher).toContain('a.cnpj <> b.cnpj');
+        expect((runs[0]!.params.limite as { toNumber: () => number }).toNumber()).toBe(15);
+    });
+
+    it('rejeita limite fora do intervalo do schema (0 → 400)', async () => {
+        const { driver } = makeFakeDriver(() => []);
+        app = await buildTestApi((a) => statsRoutes(a, driver));
+        const res = await app.inject({ method: 'GET', url: '/stats/fluxo?limite=0' });
+        expect(res.statusCode).toBe(400);
+    });
+});

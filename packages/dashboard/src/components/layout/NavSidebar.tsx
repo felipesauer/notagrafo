@@ -9,6 +9,7 @@ import {
     Home,
     type LucideIcon,
     LogOut,
+    Network,
     Package,
     ReceiptText,
     Settings,
@@ -49,6 +50,7 @@ const ITENS: NavItem[] = [
     { to: '/produtos', icon: Package, key: 'sidebar.produtos' },
     { to: '/impostos', icon: ReceiptText, key: 'sidebar.impostos' },
     { to: '/grafo', icon: Waypoints, key: 'sidebar.grafo' },
+    { to: '/rede', icon: Network, key: 'sidebar.rede' },
     { to: '/exportacoes', icon: Download, key: 'sidebar.exportacoes' },
     { to: '/configuracoes', icon: Settings, key: 'sidebar.configuracoes' },
 ];

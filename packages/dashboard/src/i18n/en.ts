@@ -26,6 +26,7 @@ export const en = {
         produtos: 'Products',
         impostos: 'Taxes',
         grafo: 'Graph',
+        rede: 'Network',
         exportacoes: 'Exports',
         configuracoes: 'Settings',
         sair: 'Sign out',
@@ -113,6 +114,13 @@ export const en = {
         vazio: 'Search a company to start.',
         incluirProdutos: 'Include products',
         nfsComImposto: 'Invoices with ICMS', nfsDoNcm: 'Invoices of this NCM',
+    },
+    rede: {
+        titulo: 'Network', subtitulo: 'Analysis of trade relationships between companies',
+        abaFluxo: 'Value flow', abaRede: 'Full network',
+        fluxoTitulo: 'Value flow between companies', fluxoAjuda: 'Each band links an issuer to a recipient; thickness represents the total value billed in the period.',
+        topPares: 'Pairs shown', vazio: 'No company-to-company flow in the base yet.',
+        totalNFs: 'Invoices', valor: 'Value',
     },
     exportacoes: {
         nova: 'New export', formato: 'Format', campos: 'Fields', gerar: 'Generate export',

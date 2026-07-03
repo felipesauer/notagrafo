@@ -103,6 +103,13 @@ export const ptBR = {
         incluirProdutos: 'Incluir produtos',
         nfsComImposto: 'NFs com ICMS', nfsDoNcm: 'NFs deste NCM',
     },
+    rede: {
+        titulo: 'Rede', subtitulo: 'Análise das relações comerciais entre empresas',
+        abaFluxo: 'Fluxo de valor', abaRede: 'Rede completa',
+        fluxoTitulo: 'Fluxo de valor entre empresas', fluxoAjuda: 'Cada faixa liga um emitente ao destinatário; a espessura representa o valor total faturado no período.',
+        topPares: 'Pares exibidos', vazio: 'Sem fluxo entre empresas na base ainda.',
+        totalNFs: 'NFs', valor: 'Valor',
+    },
     exportacoes: {
         nova: 'Nova exportação', formato: 'Formato', campos: 'Campos', gerar: 'Gerar exportação',
         historico: 'Histórico', acoes: 'Ações', baixar: 'Baixar', vazio: 'Nenhuma exportação ainda.',
@@ -129,6 +136,7 @@ export const ptBR = {
         produtos: 'Produtos',
         impostos: 'Impostos',
         grafo: 'Grafo',
+        rede: 'Rede',
         exportacoes: 'Exportações',
         configuracoes: 'Configurações',
         sair: 'Sair',

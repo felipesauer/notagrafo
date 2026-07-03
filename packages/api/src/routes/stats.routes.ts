@@ -7,6 +7,7 @@ import {
     taxSummary,
     taxByNcm,
     taxByCfop,
+    getFluxoEmpresas,
     type MetricaProduto,
     type TaxFilters,
 } from '@notagrafo/graph';
@@ -314,6 +315,28 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
         async (request) => {
             const empresas = await productCompanies(driver, request.params.idUnico);
             return { idUnico: request.params.idUnico, empresas };
+        },
+    );
+
+    // GET /stats/fluxo — fluxo de valor agregado entre empresas (Sankey)
+    app.get<{ Querystring: { limite?: number } }>(
+        '/stats/fluxo',
+        {
+            preHandler: app.authenticate,
+            schema: {
+                tags: ['stats'],
+                summary: 'Fluxo de valor entre empresas (emitente → destinatário), top-N por valor',
+                querystring: {
+                    type: 'object',
+                    properties: { limite: { type: 'integer', minimum: 1, maximum: 100 } },
+                },
+                security: [{ bearerAuth: [] }],
+            },
+        },
+        async (request) => {
+            return getFluxoEmpresas(driver, {
+                ...(request.query.limite ? { limite: Number(request.query.limite) } : {}),
+            });
         },
     );
 }

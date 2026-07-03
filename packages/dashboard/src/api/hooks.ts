@@ -150,3 +150,19 @@ export function useTaxStats(filtros: Record<string, string | number | undefined>
         queryFn: () => apiFetch<TaxStats>(`/stats/impostos${qs(filtros)}`),
     });
 }
+
+export interface FluxoAresta {
+    de: string;
+    para: string;
+    deNome: string;
+    paraNome: string;
+    totalNFs: number;
+    valorTotal: number;
+}
+
+export function useFluxo(limite = 30) {
+    return useQuery({
+        queryKey: ['stats', 'fluxo', limite],
+        queryFn: () => apiFetch<{ arestas: FluxoAresta[]; limite: number }>(`/stats/fluxo${qs({ limite })}`),
+    });
+}

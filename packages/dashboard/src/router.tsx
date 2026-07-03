@@ -16,6 +16,7 @@ const CompaniesPage = lazyRouteComponent(() => import('./pages/Companies.js'), '
 const ProductsPage = lazyRouteComponent(() => import('./pages/Products.js'), 'ProductsPage');
 const TaxesPage = lazyRouteComponent(() => import('./pages/Taxes.js'), 'TaxesPage');
 const GraphPage = lazyRouteComponent(() => import('./pages/Graph.js'), 'GraphPage');
+const NetworkPage = lazyRouteComponent(() => import('./pages/Network.js'), 'NetworkPage');
 const ExportsPage = lazyRouteComponent(() => import('./pages/Exports.js'), 'ExportsPage');
 const SettingsPage = lazyRouteComponent(() => import('./pages/Settings.js'), 'SettingsPage');
 
@@ -76,6 +77,7 @@ const grafoRoute = createRoute({
     }),
     component: GraphPage,
 });
+const redeRoute = childRoute('/rede', NetworkPage);
 const exportacoesRoute = childRoute('/exportacoes', ExportsPage);
 const configuracoesRoute = childRoute('/configuracoes', SettingsPage);
 
@@ -89,6 +91,7 @@ const routeTree = rootRoute.addChildren([
         produtosRoute,
         impostosRoute,
         grafoRoute,
+        redeRoute,
         exportacoesRoute,
         configuracoesRoute,
     ]),
