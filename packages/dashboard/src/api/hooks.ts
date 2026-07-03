@@ -25,6 +25,8 @@ export interface NFListItem {
 export interface NFPage {
     data: NFListItem[];
     pagination: { nextCursor: string | null; limit: number; hasMore: boolean };
+    /** meta.total = total de NFs que casam os filtros (para "N de M"). */
+    meta?: { total: number; filtrosAtivos?: string[] };
 }
 
 export interface TopEmpresa {
