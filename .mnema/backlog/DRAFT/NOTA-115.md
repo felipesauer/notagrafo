@@ -17,15 +17,19 @@ mnema:
     navega para /?entity=notas&cnpjEmitente=... (o donut de imposto ancora em
     Impostos). Cursor/paginação e filtros existentes (q/status) preservados.
   acceptance_criteria: []
-  labels: []
+  labels:
+    - area:api
+    - area:dashboard
+    - area:graph
+    - tipo:feature
   estimate: 5
   priority: 2
   assignee: null
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
-  epic_key: null
+  epic_key: NOTA-EPIC-17
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-04T00:10:32.176Z'
+  updated_at: '2026-07-04T00:10:52.709Z'
 ---
 # Drill-through Visão Geral → Explorer + filtros ufEmitente/cnpjEmitente (ponta a ponta)
