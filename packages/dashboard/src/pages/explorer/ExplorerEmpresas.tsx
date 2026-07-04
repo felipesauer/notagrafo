@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Card } from '../../components/ui/card.js';
 import { Sheet, SheetContent } from '../../components/ui/sheet.js';
 import { Button } from '../../components/ui/button.js';
+import { useDensityStore, densityClass } from '../../stores/density.store.js';
 
 const brlK = (n: number): string => (n >= 1000 ? `R$ ${(n / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mil` : `R$ ${n.toFixed(2)}`);
 const cnpjFmt = (c: string): string => (c.length === 14 ? c.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : c);
@@ -55,6 +56,7 @@ function EmpresaPeek({ cnpj, empresa, onClose, onOpenChange }: { cnpj: string | 
 /** Explorador da entidade Empresas: ranking por volume, com peek de parceiros. */
 export function ExplorerEmpresas({ peek, onPeek }: { peek?: string; onPeek: (cnpj: string | undefined) => void }): JSX.Element {
     const { t } = useTranslation();
+    const density = useDensityStore((s) => s.density);
     const { data, isLoading, isError, refetch } = useTopCompanies();
     const rows = data?.ranking ?? [];
 
@@ -66,8 +68,8 @@ export function ExplorerEmpresas({ peek, onPeek }: { peek?: string; onPeek: (cnp
 
     return (
         <>
-            <div className="hidden overflow-x-auto md:block">
-                <Table data-testid="data-table">
+            <div className="hidden max-h-[calc(100svh-8.5rem)] overflow-auto md:block">
+                <Table data-testid="data-table" data-sticky className={densityClass(density)}>
                     <TableHeader>
                         <TableRow>
                             <TableHead className="w-10 text-right">#</TableHead>

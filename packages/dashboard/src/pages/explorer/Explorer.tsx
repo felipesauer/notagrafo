@@ -14,6 +14,7 @@ import {
     DropdownMenuSeparator, DropdownMenuTrigger,
 } from '../../components/ui/dropdown-menu.js';
 import { UploadModal } from '../../components/UploadModal.js';
+import { DensityToggle } from '../../components/DensityToggle.js';
 import { ExplorerNotas } from './ExplorerNotas.js';
 import { ExplorerEmpresas } from './ExplorerEmpresas.js';
 import { ExplorerProdutos } from './ExplorerProdutos.js';
@@ -114,6 +115,7 @@ export function ExplorerPage(): JSX.Element {
                     <meta.icon className="size-4 text-muted-foreground" /> {t(meta.labelKey)}
                 </span>
                 <div className="ml-auto flex items-center gap-2">
+                    <DensityToggle />
                     <ViewsMenu views={views} onApply={aplicarView} onRemove={removeView} t={t} />
                     {entity === 'notas' && (
                         <>

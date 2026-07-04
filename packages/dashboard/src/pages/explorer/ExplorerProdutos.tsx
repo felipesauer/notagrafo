@@ -5,6 +5,7 @@ import { useTopProducts } from '../../api/hooks.js';
 import { LoadingSkeleton, InlineError, EmptyState } from '../../components/shared.js';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table.js';
 import { Card } from '../../components/ui/card.js';
+import { useDensityStore, densityClass } from '../../stores/density.store.js';
 
 interface Produto { idUnico: string; descricao?: string; ncm?: string; totalNFs?: number; valorTotal?: number }
 const brlK = (n: number): string => (n >= 1000 ? `R$ ${(n / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mil` : `R$ ${n.toFixed(2)}`);
@@ -12,6 +13,7 @@ const brlK = (n: number): string => (n >= 1000 ? `R$ ${(n / 1000).toLocaleString
 /** Explorador da entidade Produtos: ranking por volume, com deep-link para as NF-e do NCM. */
 export function ExplorerProdutos(): JSX.Element {
     const { t } = useTranslation();
+    const density = useDensityStore((s) => s.density);
     const { data, isLoading, isError, refetch } = useTopProducts();
     const rows = (data?.ranking as unknown as Produto[]) ?? [];
 
@@ -21,8 +23,8 @@ export function ExplorerProdutos(): JSX.Element {
 
     return (
         <>
-            <div className="hidden overflow-x-auto md:block">
-                <Table data-testid="data-table">
+            <div className="hidden max-h-[calc(100svh-8.5rem)] overflow-auto md:block">
+                <Table data-testid="data-table" data-sticky className={densityClass(density)}>
                     <TableHeader>
                         <TableRow>
                             <TableHead>{t('produtos.descricao')}</TableHead>

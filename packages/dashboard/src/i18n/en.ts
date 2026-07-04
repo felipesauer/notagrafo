@@ -127,6 +127,7 @@ export const en = {
         minhasViews: 'My views', emBreve: '{{entidade}} is coming to the explorer soon.',
         salvarView: 'Save view', semViews: 'Save a filter as a view.',
         filtrandoPor: 'Filtering by:',
+        densidade: 'Density', densidadeCompacta: 'Compact', densidadePadrao: 'Default', densidadeEspacada: 'Relaxed',
     },
     rede: {
         titulo: 'Network', subtitulo: 'Analysis of trade relationships between companies',

@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-120
-  state: READY
+  state: IN_REVIEW
   title: >-
     Fase 2 — Home/Overview: bento + KPIs + Insights panel (dados reais) + Bar
     List
@@ -32,12 +32,12 @@ mnema:
     - redesign
   estimate: 5
   priority: 2
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
   epic_key: NOTA-EPIC-18
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-04T15:29:21.679Z'
+  updated_at: '2026-07-04T15:34:43.692Z'
 ---
 # Fase 2 — Home/Overview: bento + KPIs + Insights panel (dados reais) + Bar List

@@ -112,6 +112,7 @@ export const ptBR = {
         minhasViews: 'Minhas views', emBreve: '{{entidade}} chega ao explorador em breve.',
         salvarView: 'Salvar view', semViews: 'Salve um filtro como view.',
         filtrandoPor: 'Filtrando por:',
+        densidade: 'Densidade', densidadeCompacta: 'Compacta', densidadePadrao: 'Padrão', densidadeEspacada: 'Espaçada',
     },
     rede: {
         titulo: 'Rede', subtitulo: 'Análise das relações comerciais entre empresas',
