@@ -138,6 +138,7 @@ export const en = {
         redeTitulo: 'Full trade network', redeAjuda: 'Each node is a company (size ∝ activity); colors group by state. Click two companies to highlight the path between them.',
         nosExibidos: 'Nodes shown', limparSelecao: 'Clear selection', porUf: 'Color by state',
         dicaInteracao: 'Drag nodes · click two to trace the path',
+        legendaUf: 'State (company count)',
     },
     eventos: {
         titulo: 'Events', subtitulo: 'Audit trail across all invoices, most recent first',

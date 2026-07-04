@@ -123,6 +123,7 @@ export const ptBR = {
         redeTitulo: 'Rede comercial completa', redeAjuda: 'Cada nó é uma empresa (tamanho ∝ atividade); as cores agrupam por UF. Clique em duas empresas para destacar o caminho entre elas.',
         nosExibidos: 'Nós exibidos', limparSelecao: 'Limpar seleção', porUf: 'Cor por UF',
         dicaInteracao: 'Arraste os nós · clique em dois para ver o caminho',
+        legendaUf: 'UF (nº de empresas)',
     },
     eventos: {
         titulo: 'Eventos', subtitulo: 'Auditoria de todas as notas fiscais, mais recentes primeiro',
