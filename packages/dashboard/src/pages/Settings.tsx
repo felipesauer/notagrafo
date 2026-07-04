@@ -11,6 +11,7 @@ import { Button } from '../components/ui/button.js';
 import { Switch } from '../components/ui/switch.js';
 import { Label } from '../components/ui/label.js';
 import { NativeSelect } from '../components/ui/native-select.js';
+import { DensityToggle } from '../components/DensityToggle.js';
 
 interface Health {
     status: string;
@@ -69,6 +70,10 @@ export function SettingsPage(): JSX.Element {
                                 <option value="pt-BR">Português (BR)</option>
                                 <option value="en">English</option>
                             </NativeSelect>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <Label className="font-normal">{t('explorer.densidade')}</Label>
+                            <DensityToggle />
                         </div>
                     </CardContent>
                 </Card>
