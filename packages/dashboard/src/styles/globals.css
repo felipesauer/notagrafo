@@ -54,14 +54,16 @@
     --sidebar-border: oklch(0.918 0.008 260);
     --sidebar-ring: oklch(0.55 0.235 264);
 
-    /* Status de NF — par cor (texto/ícone) + fundo suave da pill */
-    --status-ativa: oklch(0.62 0.18 150);
+    /* Status de NF — par cor (texto/ícone) + fundo suave da pill. As cores de
+       texto foram escurecidas para atingir contraste WCAG AA (≥4.5) sobre o
+       fundo tonal claro da pill (texto pequeno) — NOTA-124. */
+    --status-ativa: oklch(0.50 0.16 150);
     --status-ativa-bg: oklch(0.95 0.05 150);
-    --status-cancelada: oklch(0.58 0.235 22);
+    --status-cancelada: oklch(0.53 0.22 22);
     --status-cancelada-bg: oklch(0.95 0.04 22);
-    --status-denegada: oklch(0.68 0.16 70);
+    --status-denegada: oklch(0.53 0.13 70);
     --status-denegada-bg: oklch(0.96 0.06 80);
-    --status-inutilizada: oklch(0.60 0.01 260);
+    --status-inutilizada: oklch(0.48 0.01 260);
     --status-inutilizada-bg: oklch(0.95 0.005 260);
 
     /* Status de exportação */
