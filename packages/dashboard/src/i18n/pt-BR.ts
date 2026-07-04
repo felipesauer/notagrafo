@@ -157,7 +157,8 @@ export const ptBR = {
     },
     sidebar: {
         grupoGeral: 'Geral', grupoDados: 'Dados', grupoAnalise: 'Análise', grupoSistema: 'Sistema',
-        overview: 'Visão geral', explorar: 'Explorador',
+        inicio: 'Início', overview: 'Visão geral', explorar: 'Explorador',
+        insights: 'Insights',
         nfs: 'Notas Fiscais',
         empresas: 'Empresas',
         produtos: 'Produtos',
@@ -173,5 +174,8 @@ export const ptBR = {
         pronta: 'Sua exportação está pronta.',
         baixar: 'Baixar arquivo',
         fechar: 'Dispensar',
+    },
+    insights: {
+        emBreve: 'Os insights aparecem aqui conforme suas notas são processadas.',
     },
 } as const;

@@ -5,7 +5,7 @@ test.describe('Rede', () => {
     test('abre a página, mostra o Sankey de fluxo e alterna para a rede completa', async ({ page }) => {
         await login(page);
         // Rede é uma entidade do explorador (aba de análise)
-        await page.goto('/?entity=rede');
+        await page.goto('/explorar?entity=rede');
 
         // as duas abas de análise
         const abaFluxo = page.getByRole('tab', { name: /fluxo de valor|value flow/i });

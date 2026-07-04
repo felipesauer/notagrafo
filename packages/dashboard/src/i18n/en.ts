@@ -21,7 +21,8 @@ export const en = {
     },
     sidebar: {
         grupoGeral: 'General', grupoDados: 'Data', grupoAnalise: 'Analysis', grupoSistema: 'System',
-        overview: 'Overview', explorar: 'Explorer',
+        inicio: 'Home', overview: 'Overview', explorar: 'Explorer',
+        insights: 'Insights',
         nfs: 'Invoices',
         empresas: 'Companies',
         produtos: 'Products',
@@ -173,5 +174,8 @@ export const en = {
         pronta: 'Your export is ready.',
         baixar: 'Download file',
         fechar: 'Dismiss',
+    },
+    insights: {
+        emBreve: 'Insights appear here as your invoices get processed.',
     },
 } as const;

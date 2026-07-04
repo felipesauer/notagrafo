@@ -322,7 +322,7 @@ function UfBars({ data }: { data: { uf: string; size: number; valorTotal: number
             {data.map((d, i) => (
                 <Link
                     key={d.uf}
-                    to={'/' as string}
+                    to={'/explorar' as string}
                     search={{ entity: 'notas', ufEmitente: d.uf } as never}
                     aria-label={t('overview.verNotasUf', { uf: d.uf })}
                     className="grid grid-cols-[32px_1fr_88px] items-center gap-3 rounded-md px-1 py-1 transition-colors hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:outline-none"
@@ -350,7 +350,7 @@ function FornecedorBars({ data }: { data: { nome: string; cnpj: string; valorTot
             {data.map((d) => (
                 <Link
                     key={d.cnpj || d.nome}
-                    to={'/' as string}
+                    to={'/explorar' as string}
                     search={{ entity: 'notas', cnpjEmitente: d.cnpj } as never}
                     aria-label={t('overview.verNotasFornecedor', { nome: d.nome })}
                     className="group grid grid-cols-[1fr_auto] items-center gap-3 rounded-md px-1 py-1 transition-colors hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:outline-none"

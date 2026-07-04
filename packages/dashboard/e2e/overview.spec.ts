@@ -4,8 +4,8 @@ import { login } from './helpers.js';
 test.describe('Overview', () => {
     test('exibe KPIs, gráfico de volume e o Treemap por UF', async ({ page }) => {
         await login(page);
-        // a Overview agora é uma tela secundária (/visao-geral); a home é o explorador
-        await page.goto('/visao-geral');
+        // a Overview agora é a Home (rota /) do redesign BI
+        await page.goto('/');
         await expect(page.getByTestId('kpi-card').first()).toBeVisible();
         await expect(page.getByTestId('kpi-card')).toHaveCount(4);
 

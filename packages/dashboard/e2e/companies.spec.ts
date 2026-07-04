@@ -4,7 +4,8 @@ import { login } from './helpers.js';
 test.describe('Empresas (explorador)', () => {
     test('troca para Empresas e abre o peek com stats', async ({ page }) => {
         await login(page);
-        // troca de entidade pelo rail do explorador
+        await page.goto('/explorar');
+        // troca de entidade pelas tabs do explorador
         await page.getByRole('button', { name: /^empresas$|^companies$/i }).first().click();
         await expect(page.getByTestId('data-table')).toBeVisible();
 
