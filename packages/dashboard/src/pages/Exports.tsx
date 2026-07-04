@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 import { Download, FileDown } from 'lucide-react';
 import { apiFetch, downloadFile } from '../api/api.client.js';
 import { NFStatusBadge, InlineError, EmptyState, LoadingSkeleton } from '../components/shared.js';
-import { PageHeader } from '../components/PageHeader.js';
 import { useExportStore } from '../stores/export.store.js';
 import { Button } from '../components/ui/button.js';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card.js';
@@ -13,6 +12,14 @@ import { Checkbox } from '../components/ui/checkbox.js';
 import { Label } from '../components/ui/label.js';
 import { NativeSelect } from '../components/ui/native-select.js';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table.js';
+
+/** KB/MB humano para o tamanho do arquivo de export. */
+const fmtBytes = (b?: number): string => {
+    if (!b) return '—';
+    if (b >= 1024 * 1024) return `${(b / 1024 / 1024).toFixed(1)} MB`;
+    if (b >= 1024) return `${(b / 1024).toFixed(0)} KB`;
+    return `${b} B`;
+};
 
 type Formato = 'csv' | 'xlsx' | 'json';
 
@@ -68,9 +75,16 @@ export function ExportsPage(): JSX.Element {
 
     return (
         <div>
-            <PageHeader title={t('sidebar.exportacoes')} />
-            <div className="grid gap-6 lg:grid-cols-[340px_1fr]">
-                <Card className="h-fit py-4" data-testid="export-form">
+            {/* Header contextual leve (padrão das telas novas), não o h1 gigante. */}
+            <div className="mb-4 flex items-center gap-2 border-b px-1 pb-3">
+                <FileDown className="size-4 text-muted-foreground" />
+                <div>
+                    <h2 className="text-sm font-semibold leading-none tracking-tight">{t('sidebar.exportacoes')}</h2>
+                    <p className="mt-1 text-xs text-muted-foreground">{t('exportacoes.subtitulo')}</p>
+                </div>
+            </div>
+            <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
+                <Card className="h-fit gap-4 py-4" data-testid="export-form">
                     <CardHeader className="px-4 pb-0"><CardTitle className="text-base">{t('exportacoes.nova')}</CardTitle></CardHeader>
                     <CardContent className="space-y-4 px-4">
                         <div className="grid gap-1.5">
@@ -81,37 +95,45 @@ export function ExportsPage(): JSX.Element {
                                 <option value="json">JSON</option>
                             </NativeSelect>
                         </div>
-                        <fieldset className="grid gap-2">
+                        <fieldset className="grid gap-1.5">
                             <legend className="mb-1 text-xs text-muted-foreground">{t('exportacoes.campos')}</legend>
                             {CAMPOS.map((c) => (
-                                <Label key={c} className="flex items-center gap-2 text-sm font-normal">
+                                <Label key={c} className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-sm font-normal hover:bg-muted/50">
                                     <Checkbox checked={campos.includes(c)} onCheckedChange={() => alternarCampo(c)} />
-                                    {c}
+                                    <span>{t(`exportacoes.campo.${c}`, { defaultValue: c })}</span>
+                                    <span className="ml-auto font-mono text-[10px] text-muted-foreground/60">{c}</span>
                                 </Label>
                             ))}
                         </fieldset>
                         {erro && <p className="text-sm text-destructive">{erro}</p>}
-                        <Button type="button" className="w-full" onClick={() => void gerar()}>
+                        <Button type="button" className="w-full" disabled={campos.length === 0} onClick={() => void gerar()}>
                             <FileDown /> {t('exportacoes.gerar')}
                         </Button>
                     </CardContent>
                 </Card>
 
                 <Card className="overflow-hidden py-0" data-testid="export-list">
-                    <CardHeader className="px-4 py-3"><CardTitle className="text-base">{t('exportacoes.historico')}</CardTitle></CardHeader>
+                    <CardHeader className="border-b px-4 py-3"><CardTitle className="text-base">{t('exportacoes.historico')}</CardTitle></CardHeader>
                     <CardContent className="px-0 pb-0">
                         {historico.isLoading ? (
-                            <div className="px-4 pb-4"><LoadingSkeleton variant="table" linhas={3} colunas={3} /></div>
+                            <div className="p-4"><LoadingSkeleton variant="table" linhas={3} colunas={4} /></div>
                         ) : historico.isError ? (
-                            <div className="px-4 pb-4"><InlineError onRetry={() => void historico.refetch()} /></div>
+                            <div className="p-4"><InlineError onRetry={() => void historico.refetch()} /></div>
                         ) : registros.length === 0 ? (
-                            <div className="px-4 pb-4"><EmptyState mensagem={t('exportacoes.vazio')} /></div>
+                            <div className="p-8">
+                                <EmptyState
+                                    mensagem={t('exportacoes.vazio')}
+                                    action={<Button type="button" variant="outline" size="sm" onClick={() => void gerar()}><FileDown /> {t('exportacoes.primeira')}</Button>}
+                                />
+                            </div>
                         ) : (
                             <Table data-testid="data-table">
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>{t('exportacoes.formato')}</TableHead>
                                         <TableHead>{t('nf.status')}</TableHead>
+                                        <TableHead className="text-right">{t('exportacoes.registros')}</TableHead>
+                                        <TableHead className="text-right">{t('exportacoes.tamanho')}</TableHead>
                                         <TableHead className="text-right">{t('exportacoes.acoes')}</TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -142,7 +164,7 @@ function ExportRow({ registro, onUpdate }: { registro: ExportRegistro; onUpdate:
     useEffect(() => {
         if (query.data && query.data.status !== registro.status) onUpdate({ ...registro, ...query.data });
     }, [query.data, registro, onUpdate]);
-    if (query.isError) return <TableRow><TableCell colSpan={3}><InlineError onRetry={() => void query.refetch()} /></TableCell></TableRow>;
+    if (query.isError) return <TableRow><TableCell colSpan={5}><InlineError onRetry={() => void query.refetch()} /></TableCell></TableRow>;
 
     function baixar(): void {
         void downloadFile(`/export/${registro.exportId}/download`, `export-${registro.exportId}.${registro.formato}`)
@@ -153,6 +175,8 @@ function ExportRow({ registro, onUpdate }: { registro: ExportRegistro; onUpdate:
         <TableRow>
             <TableCell className="font-medium">{registro.formato.toUpperCase()}</TableCell>
             <TableCell><NFStatusBadge status={registro.status} /></TableCell>
+            <TableCell className="text-right font-mono tabular-nums text-muted-foreground">{registro.totalRegistros ?? '—'}</TableCell>
+            <TableCell className="text-right font-mono tabular-nums text-muted-foreground">{fmtBytes(registro.tamanhoBytes)}</TableCell>
             <TableCell className="text-right">
                 {registro.status === 'ready' && (
                     <Button type="button" variant="ghost" size="sm" onClick={baixar}>

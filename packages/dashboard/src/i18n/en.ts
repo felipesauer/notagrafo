@@ -21,7 +21,7 @@ export const en = {
     },
     sidebar: {
         grupoGeral: 'General', grupoDados: 'Data', grupoAnalise: 'Analysis', grupoSistema: 'System',
-        overview: 'Overview',
+        overview: 'Overview', explorar: 'Explorer',
         nfs: 'Invoices',
         empresas: 'Companies',
         produtos: 'Products',
@@ -35,6 +35,8 @@ export const en = {
     },
     overview: {
         titulo: 'Overview',
+        subtitulo: 'Invoice processing at a glance',
+        gran: { dia: 'Day', semana: 'Week', mes: 'Month' },
         totalNFs: 'Total invoices',
         totalEmpresas: 'Companies',
         totalProdutos: 'Products',
@@ -47,6 +49,8 @@ export const en = {
         numero: 'Number',
         valor: 'Value',
         processadaEm: 'Processed at',
+        verNotasUf: 'View invoices from {{uf}}',
+        verNotasFornecedor: 'View invoices from {{nome}}',
         periodoAnterior: 'trend in period',
         empresasHint: '{{count}} active issuers',
         cargaHint: '{{valor}} in taxes',
@@ -69,6 +73,7 @@ export const en = {
         falhou: 'Processing failed.',
         anterior: 'Previous', proxima: 'Next', pagina: 'Page {{page}}', paginaDe: 'Page {{page}} · {{total}} invoices', detalheTitulo: 'Invoice', itens: 'Items',
         produto: 'Product', qtd: 'Qty', miniGrafo: 'Graph', verNoGrafo: 'View in graph',
+        notaN: 'Invoice {{n}}', fluxo: 'Flow', abrirDetalhe: 'Open detail',
         ncm: 'NCM', cfop: 'CFOP', icms: 'ICMS', ipi: 'IPI', pis: 'PIS', cofins: 'COFINS',
         totais: 'Totals', valorNF: 'Invoice total',
         filtros: {
@@ -117,6 +122,11 @@ export const en = {
         incluirProdutos: 'Include products',
         nfsComImposto: 'Invoices with ICMS', nfsDoNcm: 'Invoices of this NCM',
     },
+    explorer: {
+        minhasViews: 'My views', emBreve: '{{entidade}} is coming to the explorer soon.',
+        salvarView: 'Save view', semViews: 'Save a filter as a view.',
+        filtrandoPor: 'Filtering by:',
+    },
     rede: {
         titulo: 'Network', subtitulo: 'Analysis of trade relationships between companies',
         abaFluxo: 'Value flow', abaRede: 'Full network',
@@ -125,6 +135,7 @@ export const en = {
         totalNFs: 'Invoices', valor: 'Value',
         redeTitulo: 'Full trade network', redeAjuda: 'Each node is a company (size ∝ activity); colors group by state. Click two companies to highlight the path between them.',
         nosExibidos: 'Nodes shown', limparSelecao: 'Clear selection', porUf: 'Color by state',
+        dicaInteracao: 'Drag nodes · click two to trace the path',
     },
     eventos: {
         titulo: 'Events', subtitulo: 'Audit trail across all invoices, most recent first',
@@ -135,6 +146,13 @@ export const en = {
     exportacoes: {
         nova: 'New export', formato: 'Format', campos: 'Fields', gerar: 'Generate export',
         historico: 'History', acoes: 'Actions', baixar: 'Download', vazio: 'No exports yet.',
+        subtitulo: 'Generate extracts of the invoice base as CSV, XLSX or JSON.',
+        registros: 'Records', tamanho: 'Size', selecioneCampos: 'Select the fields to export.',
+        primeira: 'Create the first',
+        campo: {
+            chaveAcesso: 'Access key', numero: 'Number', dataEmissao: 'Issue date',
+            valorTotal: 'Total value', cnpjEmitente: 'Issuer tax ID', cnpjDestinatario: 'Recipient tax ID',
+        },
     },
     config: {
         aparencia: 'Appearance', tema: 'Theme', temaClaro: 'Light', temaEscuro: 'Dark', idioma: 'Language', sobre: 'About',

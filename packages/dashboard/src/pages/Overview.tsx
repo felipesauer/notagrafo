@@ -1,9 +1,8 @@
-import { type JSX, useMemo } from 'react';
+import { type JSX, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from '@tanstack/react-router';
 import {
     Bar,
-    BarChart,
     CartesianGrid,
     Cell,
     ComposedChart,
@@ -16,7 +15,6 @@ import {
 import { Building2, FileText, Package, Receipt } from 'lucide-react';
 import { useOverview, useVolume, useTopCompanies, useByUf, useTaxStats } from '../api/hooks.js';
 import { CurrencyValue, DateDisplay, LoadingSkeleton, InlineError, EmptyState } from '../components/shared.js';
-import { PageHeader } from '../components/PageHeader.js';
 import { KpiCard } from '../components/KpiCard.js';
 import { FadeIn } from '../components/Motion.js';
 import { ChartCard } from '../components/charts/ChartCard.js';
@@ -44,20 +42,47 @@ const volumeConfig = {
     valorTotal: { label: 'Valor', color: 'var(--chart-3)' },
 } satisfies ChartConfig;
 
-const rankConfig = { valorTotal: { label: 'Valor', color: 'var(--chart-3)' } } satisfies ChartConfig;
+type Gran = 'dia' | 'semana' | 'mes';
 
-/** Página de visão geral: KPIs com tendência, bento grid de charts e últimas NFs. */
-export function OverviewPage(): JSX.Element {
+/** Barra de report (estilo Power BI): título + seletor de granularidade que
+ *  controla a série temporal do canvas. */
+function ReportBar({ gran, onGran }: { gran: Gran; onGran: (g: Gran) => void }): JSX.Element {
     const { t } = useTranslation();
+    const opts: Gran[] = ['dia', 'semana', 'mes'];
+    return (
+        <div className="mb-4 flex flex-wrap items-center gap-3">
+            <div>
+                <h2 className="text-lg font-semibold leading-none tracking-tight">{t('overview.titulo')}</h2>
+                <p className="mt-1 text-xs text-muted-foreground">{t('overview.subtitulo')}</p>
+            </div>
+            <div className="ml-auto inline-flex rounded-lg border bg-muted/40 p-0.5">
+                {opts.map((g) => (
+                    <button key={g} type="button" onClick={() => onGran(g)}
+                        className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${gran === g ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+                        {t(`overview.gran.${g}`)}
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+/** Página de visão geral: report BI (estilo Power BI) com KPIs, canvas de charts
+ *  em bento grid e filtro de período que controla a série temporal. */
+export function OverviewPage(): JSX.Element {
+    const [gran, setGran] = useState<Gran>('dia');
     const overview = useOverview();
-    const volume = useVolume('dia');
+    const volume = useVolume(gran);
     const topCompanies = useTopCompanies();
     const byUf = useByUf('emitente');
     const taxes = useTaxStats();
 
     return (
-        <div>
-            <PageHeader title={t('overview.titulo')} />
+        // canvas: moldura de report (estilo Power BI). Um gradiente sutil +
+        // inset ring dá separação dos cartões nos DOIS temas — no claro o
+        // bg-muted/20 chapado quase sumia contra os cartões brancos.
+        <div className="-m-4 min-h-[calc(100svh-3rem)] bg-gradient-to-b from-muted/50 to-muted/20 p-4 shadow-[inset_0_1px_0_0_hsl(0_0%_100%/0.04),inset_0_0_0_1px_var(--border)] md:-m-6 md:p-6">
+            <ReportBar gran={gran} onGran={setGran} />
             {overview.isLoading ? (
                 <LoadingSkeleton variant="kpis" linhas={4} />
             ) : overview.isError || !overview.data ? (
@@ -88,7 +113,7 @@ function OverviewContent({
 }: {
     o: NonNullable<OverviewData>;
     volumeSeries: { periodo: string; totalNFs: number; valorTotal: number }[];
-    ranking: { razaoSocial: string; valorTotal: number }[];
+    ranking: { cnpj: string; razaoSocial: string; valorTotal: number }[];
     byUf: ByUfQuery;
     taxTotals?: TaxTotals;
 }): JSX.Element {
@@ -101,7 +126,7 @@ function OverviewContent({
         : 0;
 
     const treemapUf = (byUf.data?.porUf ?? []).map((u) => ({ name: u.uf, uf: u.uf, size: u.totalNFs, valorTotal: u.valorTotal }));
-    const rankTop = ranking.slice(0, 5).map((e) => ({ nome: e.razaoSocial, valorTotal: e.valorTotal }));
+    const rankTop = ranking.slice(0, 5).map((e) => ({ nome: e.razaoSocial, cnpj: e.cnpj, valorTotal: e.valorTotal }));
 
     // Composição tributária para o donut.
     const taxPie = taxTotals
@@ -213,16 +238,15 @@ function OverviewContent({
                 </Card>
             </FadeIn>
 
-            {/* ── Ranking fornecedores (5 col) ── */}
+            {/* ── Ranking fornecedores (5 col) — cada linha faz drill-through para
+                   o Explorer filtrado pelo CNPJ do emitente ── */}
             <FadeIn className="lg:col-span-5" delay={0.3}>
-                <ChartCard title={t('overview.topFornecedores')} config={rankConfig} className="h-[240px] w-full">
-                    <BarChart data={rankTop} layout="vertical" margin={{ left: 8, right: 12 }}>
-                        <XAxis type="number" hide />
-                        <YAxis type="category" dataKey="nome" width={140} tickLine={false} axisLine={false} fontSize={11} />
-                        <ChartTooltip cursor={{ fill: 'var(--muted)' }} content={<ChartTooltipContent hideLabel formatter={(v) => brl(Number(v))} />} />
-                        <Bar dataKey="valorTotal" fill="var(--color-valorTotal)" radius={[0, 4, 4, 0]} maxBarSize={22} />
-                    </BarChart>
-                </ChartCard>
+                <Card data-testid="chart" className="gap-4">
+                    <CardHeader className="space-y-0"><h3 className="text-base leading-none font-semibold">{t('overview.topFornecedores')}</h3></CardHeader>
+                    <CardContent>
+                        {rankTop.length === 0 ? <EmptyState /> : <FornecedorBars data={rankTop} />}
+                    </CardContent>
+                </Card>
             </FadeIn>
 
             {/* ── Distribuição por UF — treemap denso (7 col) ── */}
@@ -284,21 +308,61 @@ function OverviewContent({
     );
 }
 
-/** Barras horizontais densas de nº de NF-e por UF (substitui o treemap cru). */
+/** Barras horizontais densas por UF. A barra e o número dentro dela representam
+ *  a MESMA métrica (nº de NF-e, o eixo declarado no hint); o valor em R$ fica à
+ *  direita como contexto secundário, tipograficamente subordinado, para não
+ *  competir com a barra (barra curta + R$ alto lia como inconsistência).
+ *  Cada linha é um drill-through: leva ao Explorer filtrado por UF do emitente. */
 function UfBars({ data }: { data: { uf: string; size: number; valorTotal: number }[] }): JSX.Element {
+    const { t } = useTranslation();
     const max = Math.max(...data.map((d) => d.size), 1);
+    const fmtValor = (v: number): string => (v >= 1000 ? `R$ ${(v / 1000).toFixed(0)}k` : `R$ ${v.toFixed(0)}`);
     return (
-        <div className="space-y-2.5">
+        <div className="space-y-1">
             {data.map((d, i) => (
-                <div key={d.uf} className="grid grid-cols-[36px_1fr_auto] items-center gap-3">
+                <Link
+                    key={d.uf}
+                    to={'/' as string}
+                    search={{ entity: 'notas', ufEmitente: d.uf } as never}
+                    aria-label={t('overview.verNotasUf', { uf: d.uf })}
+                    className="grid grid-cols-[32px_1fr_88px] items-center gap-3 rounded-md px-1 py-1 transition-colors hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:outline-none"
+                >
                     <span className="text-xs font-medium tabular-nums text-muted-foreground">{d.uf}</span>
                     <div className="h-6 overflow-hidden rounded bg-muted/50">
-                        <div className="flex h-full items-center rounded pl-2 text-[11px] font-medium text-white" style={{ width: `${Math.max((d.size / max) * 100, 12)}%`, background: chartColor(i) }}>
+                        <div className="flex h-full items-center justify-end rounded pr-2 text-[11px] font-semibold text-white tabular-nums" style={{ width: `${Math.max((d.size / max) * 100, 14)}%`, background: chartColor(i) }}>
                             {d.size}
                         </div>
                     </div>
-                    <span className="text-xs tabular-nums text-muted-foreground">{d.valorTotal >= 1000 ? `R$ ${(d.valorTotal / 1000).toFixed(0)}k` : `R$ ${d.valorTotal.toFixed(0)}`}</span>
-                </div>
+                    <span className="text-right text-xs tabular-nums text-muted-foreground/70">{fmtValor(d.valorTotal)}</span>
+                </Link>
+            ))}
+        </div>
+    );
+}
+
+/** Ranking de fornecedores como barras-Link: cada linha leva ao Explorer
+ *  filtrado pelo CNPJ do emitente (drill-through). Escala por valor faturado. */
+function FornecedorBars({ data }: { data: { nome: string; cnpj: string; valorTotal: number }[] }): JSX.Element {
+    const { t } = useTranslation();
+    const max = Math.max(...data.map((d) => d.valorTotal), 1);
+    return (
+        <div className="space-y-1">
+            {data.map((d) => (
+                <Link
+                    key={d.cnpj || d.nome}
+                    to={'/' as string}
+                    search={{ entity: 'notas', cnpjEmitente: d.cnpj } as never}
+                    aria-label={t('overview.verNotasFornecedor', { nome: d.nome })}
+                    className="group grid grid-cols-[1fr_auto] items-center gap-3 rounded-md px-1 py-1 transition-colors hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:outline-none"
+                >
+                    <div className="min-w-0">
+                        <p className="truncate text-xs font-medium">{d.nome}</p>
+                        <div className="mt-1 h-2 overflow-hidden rounded-full bg-muted/50">
+                            <div className="h-full rounded-full bg-[var(--chart-3)]" style={{ width: `${Math.max((d.valorTotal / max) * 100, 4)}%` }} />
+                        </div>
+                    </div>
+                    <span className="shrink-0 text-right text-xs font-medium tabular-nums text-muted-foreground">{brlCompact(d.valorTotal)}</span>
+                </Link>
             ))}
         </div>
     );

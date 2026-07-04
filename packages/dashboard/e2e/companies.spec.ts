@@ -1,20 +1,18 @@
 import { test, expect } from '@playwright/test';
 import { login } from './helpers.js';
 
-test.describe('Empresas', () => {
-    test('lista empresas e expande os stats de uma linha', async ({ page }) => {
+test.describe('Empresas (explorador)', () => {
+    test('troca para Empresas e abre o peek com stats', async ({ page }) => {
         await login(page);
-        await page.getByRole('link', { name: /empresas|companies/i }).click();
-        // level:2 — o título da página é <h2>; sem isso o seletor também casaria
-        // o <h1> de breadcrumb (mesmo texto da rota) → strict mode violation.
-        await expect(page.getByRole('heading', { level: 2, name: /empresas|companies/i })).toBeVisible();
+        // troca de entidade pelo rail do explorador
+        await page.getByRole('button', { name: /^empresas$|^companies$/i }).first().click();
         await expect(page.getByTestId('data-table')).toBeVisible();
 
         const primeira = page.getByTestId('data-table').locator('tbody tr').first();
         await expect(primeira).toBeVisible();
-        // clicar expande os stats (NFs emitidas/recebidas) num inline-card
+        // clicar abre o peek da empresa com os stats (NFs emitidas/recebidas)
         await primeira.click();
-        await expect(page.getByTestId('inline-card').first()).toBeVisible();
+        await expect(page.getByTestId('empresa-peek')).toBeVisible();
         await expect(page.getByText(/nfs emitidas|issued invoices/i).first()).toBeVisible();
     });
 });

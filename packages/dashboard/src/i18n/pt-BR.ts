@@ -21,6 +21,8 @@ export const ptBR = {
     },
     overview: {
         titulo: 'Visão geral',
+        subtitulo: 'Panorama do processamento de notas fiscais',
+        gran: { dia: 'Dia', semana: 'Semana', mes: 'Mês' },
         totalNFs: 'Total de NFs',
         totalEmpresas: 'Empresas',
         totalProdutos: 'Produtos',
@@ -33,6 +35,8 @@ export const ptBR = {
         numero: 'Número',
         valor: 'Valor',
         processadaEm: 'Processada em',
+        verNotasUf: 'Ver notas de {{uf}}',
+        verNotasFornecedor: 'Ver notas de {{nome}}',
         periodoAnterior: 'tendência no período',
         empresasHint: '{{count}} emitentes ativos',
         cargaHint: '{{valor}} em tributos',
@@ -55,6 +59,7 @@ export const ptBR = {
         falhou: 'Falha no processamento.',
         anterior: 'Anterior', proxima: 'Próxima', pagina: 'Página {{page}}', paginaDe: 'Página {{page}} · {{total}} NF-e', detalheTitulo: 'NF', itens: 'Itens',
         produto: 'Produto', qtd: 'Qtd', miniGrafo: 'Grafo', verNoGrafo: 'Ver no grafo',
+        notaN: 'Nota fiscal {{n}}', fluxo: 'Fluxo', abrirDetalhe: 'Abrir detalhe',
         ncm: 'NCM', cfop: 'CFOP', icms: 'ICMS', ipi: 'IPI', pis: 'PIS', cofins: 'COFINS',
         totais: 'Totais', valorNF: 'Valor da NF',
         filtros: {
@@ -103,6 +108,11 @@ export const ptBR = {
         incluirProdutos: 'Incluir produtos',
         nfsComImposto: 'NFs com ICMS', nfsDoNcm: 'NFs deste NCM',
     },
+    explorer: {
+        minhasViews: 'Minhas views', emBreve: '{{entidade}} chega ao explorador em breve.',
+        salvarView: 'Salvar view', semViews: 'Salve um filtro como view.',
+        filtrandoPor: 'Filtrando por:',
+    },
     rede: {
         titulo: 'Rede', subtitulo: 'Análise das relações comerciais entre empresas',
         abaFluxo: 'Fluxo de valor', abaRede: 'Rede completa',
@@ -111,6 +121,7 @@ export const ptBR = {
         totalNFs: 'NFs', valor: 'Valor',
         redeTitulo: 'Rede comercial completa', redeAjuda: 'Cada nó é uma empresa (tamanho ∝ atividade); as cores agrupam por UF. Clique em duas empresas para destacar o caminho entre elas.',
         nosExibidos: 'Nós exibidos', limparSelecao: 'Limpar seleção', porUf: 'Cor por UF',
+        dicaInteracao: 'Arraste os nós · clique em dois para ver o caminho',
     },
     eventos: {
         titulo: 'Eventos', subtitulo: 'Auditoria de todas as notas fiscais, mais recentes primeiro',
@@ -121,6 +132,13 @@ export const ptBR = {
     exportacoes: {
         nova: 'Nova exportação', formato: 'Formato', campos: 'Campos', gerar: 'Gerar exportação',
         historico: 'Histórico', acoes: 'Ações', baixar: 'Baixar', vazio: 'Nenhuma exportação ainda.',
+        subtitulo: 'Gere extrações da base de NF-e em CSV, XLSX ou JSON.',
+        registros: 'Registros', tamanho: 'Tamanho', selecioneCampos: 'Selecione os campos a exportar.',
+        primeira: 'Criar a primeira',
+        campo: {
+            chaveAcesso: 'Chave de acesso', numero: 'Número', dataEmissao: 'Data de emissão',
+            valorTotal: 'Valor total', cnpjEmitente: 'CNPJ emitente', cnpjDestinatario: 'CNPJ destinatário',
+        },
     },
     config: {
         aparencia: 'Aparência', tema: 'Tema', temaClaro: 'Claro', temaEscuro: 'Escuro', idioma: 'Idioma',
@@ -139,7 +157,7 @@ export const ptBR = {
     },
     sidebar: {
         grupoGeral: 'Geral', grupoDados: 'Dados', grupoAnalise: 'Análise', grupoSistema: 'Sistema',
-        overview: 'Visão geral',
+        overview: 'Visão geral', explorar: 'Explorador',
         nfs: 'Notas Fiscais',
         empresas: 'Empresas',
         produtos: 'Produtos',

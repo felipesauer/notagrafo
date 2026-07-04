@@ -1,12 +1,12 @@
 import { type JSX, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearch, useNavigate } from '@tanstack/react-router';
-import { ReactFlow, Background, Controls, MiniMap, useReactFlow, ReactFlowProvider, MarkerType, type Node } from '@xyflow/react';
+import { ReactFlow, Background, Controls, MiniMap, useReactFlow, ReactFlowProvider, MarkerType, useNodesState, useEdgesState, type Node } from '@xyflow/react';
 import { toPng } from 'html-to-image';
 import '@xyflow/react/dist/style.css';
 import { Download, Loader2, RotateCcw, Search } from 'lucide-react';
 import { apiFetch } from '../api/api.client.js';
-import { mergeGraph, type ApiGraph, type GraphEdge, type GraphNode, type NodeData, type NodeType } from '../graph/layout.js';
+import { mergeGraph, type ApiGraph, type EdgeData, type GraphEdge, type GraphNode, type NodeData, type NodeType } from '../graph/layout.js';
 import { CustomNode } from '../graph/CustomNode.js';
 import { WeightedEdge } from '../graph/WeightedEdge.js';
 import { GraphPanel } from '../graph/GraphPanel.js';
@@ -108,11 +108,6 @@ function GraphInner(): JSX.Element {
     // os nós-card antes do fit (senão enquadra em posições ainda não aplicadas
     // e corta os vizinhos). padding folgado para os cards não colarem na borda.
     const nodesKey = useMemo(() => nodes.map((n) => n.id).sort().join('|'), [nodes]);
-    useEffect(() => {
-        if (!nodesKey) return;
-        const id = setTimeout(() => void fitView({ padding: 0.25, duration: 400, maxZoom: 1.2 }), 80);
-        return () => clearTimeout(id);
-    }, [nodesKey, fitView]);
 
     const onNodeClick = useCallback(
         (_e: unknown, node: Node) => {
@@ -152,18 +147,34 @@ function GraphInner(): JSX.Element {
         return set;
     }, [hovered, edges]);
 
-    const rfNodes = useMemo(
-        () => nodes.map((n) => ({ ...n, type: 'custom', data: { ...n.data, dimmed: vizinhanca ? !vizinhanca.has(n.id) : false } })),
-        [nodes, vizinhanca],
-    );
-    const rfEdges = useMemo(
-        () =>
-            edges.map((e) => {
-                const dim = vizinhanca ? !(vizinhanca.has(e.source) && vizinhanca.has(e.target)) : false;
-                return { ...e, markerEnd: { type: MarkerType.ArrowClosed, color: 'var(--muted-foreground)' }, data: { ...e.data, dimmed: dim } };
-            }),
-        [edges, vizinhanca],
-    );
+    // Estado controlado do React Flow: sem isto, os nós (passados como prop)
+    // não arrastam de verdade. useNodesState dá o onNodesChange que persiste o
+    // drag; ressincronizamos só quando o GRAFO muda (fetch/merge), preservando
+    // as posições que o usuário arrastou entre re-renders.
+    const [rfNodes, setRfNodes, onNodesChange] = useNodesState<GraphNode>([]);
+    const [rfEdges, setRfEdges, onEdgesChange] = useEdgesState<GraphEdge>([]);
+
+    useEffect(() => {
+        setRfNodes(nodes.map((n) => ({ ...n, type: 'custom' })));
+        setRfEdges(edges.map((e) => ({ ...e, markerEnd: { type: MarkerType.ArrowClosed, color: 'var(--muted-foreground)' } })));
+    }, [nodes, edges, setRfNodes, setRfEdges]);
+
+    // Hover-isola: atualiza só o `dimmed` (não mexe em posição — o drag fica intacto).
+    useEffect(() => {
+        setRfNodes((ns) => ns.map((n) => ({ ...n, data: { ...n.data, dimmed: vizinhanca ? !vizinhanca.has(n.id) : false } })));
+        setRfEdges((es) => es.map((e) => {
+            const dim = vizinhanca ? !(vizinhanca.has(e.source) && vizinhanca.has(e.target)) : false;
+            return { ...e, data: { ...(e.data as EdgeData), dimmed: dim } };
+        }));
+    }, [vizinhanca, setRfNodes, setRfEdges]);
+
+    // Enquadra após os nós entrarem no estado controlado do React Flow — só quando
+    // o CONJUNTO muda (fetch), nunca no drag (arrastar não altera a contagem).
+    useEffect(() => {
+        if (!nodesKey || rfNodes.length === 0) return;
+        const id = setTimeout(() => void fitView({ padding: 0.22, duration: 450, maxZoom: 1.15 }), 180);
+        return () => clearTimeout(id);
+    }, [nodesKey, rfNodes.length, fitView]);
 
     return (
         <div className="flex h-[calc(100vh-8.5rem)] flex-col">
@@ -220,6 +231,8 @@ function GraphInner(): JSX.Element {
                         <ReactFlow
                             nodes={rfNodes}
                             edges={rfEdges}
+                            onNodesChange={onNodesChange}
+                            onEdgesChange={onEdgesChange}
                             nodeTypes={nodeTypes}
                             edgeTypes={edgeTypes}
                             onNodeClick={onNodeClick}
@@ -227,8 +240,9 @@ function GraphInner(): JSX.Element {
                             onNodeMouseLeave={() => setHovered(null)}
                             colorMode={tema === 'escuro' ? 'dark' : 'light'}
                             minZoom={0.2}
+                            nodesDraggable
                             fitView
-                            fitViewOptions={{ padding: 0.2 }}
+                            fitViewOptions={{ padding: 0.3 }}
                         >
                             <Background />
                             <Controls />

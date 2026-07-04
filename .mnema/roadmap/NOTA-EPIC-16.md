@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-EPIC-16
   kind: epic
-  state: OPEN
+  state: CLOSED
   title: >-
     Análise de rede — fluxo fiscal (Nivo) e exploração da rede completa
     (Reagraph)
@@ -19,6 +19,6 @@ mnema:
     api/graph.
   metadata: {}
   created_at: '2026-07-03T15:50:30.241Z'
-  closed_at: null
+  closed_at: '2026-07-03T22:00:20.677Z'
 ---
 # Análise de rede — fluxo fiscal (Nivo) e exploração da rede completa (Reagraph)

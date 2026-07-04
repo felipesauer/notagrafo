@@ -17,14 +17,14 @@ const RedeGraph = lazy(() => import('../components/charts/RedeGraph.js').then((m
 type Aba = 'fluxo' | 'rede';
 
 /** Página de análise de rede: aba de fluxo (Sankey/Nivo) + aba de rede completa (Reagraph, NOTA-108). */
-export function NetworkPage(): JSX.Element {
+/** Conteúdo da Rede (abas Fluxo/Rede completa) sem PageHeader — reutilizado na
+ *  página standalone e no explorador (onde o header vem da casca). */
+export function NetworkContent(): JSX.Element {
     const { t } = useTranslation();
     const [aba, setAba] = useState<Aba>('fluxo');
 
     return (
         <div>
-            <PageHeader title={t('rede.titulo')} description={t('rede.subtitulo')} />
-
             <div className="mb-4 inline-flex rounded-lg border bg-muted/40 p-1" role="tablist">
                 <TabButton active={aba === 'fluxo'} onClick={() => setAba('fluxo')} icon={<GitCompareArrows className="size-4" />}>
                     {t('rede.abaFluxo')}
@@ -35,6 +35,16 @@ export function NetworkPage(): JSX.Element {
             </div>
 
             {aba === 'fluxo' ? <FluxoTab /> : <RedeTab />}
+        </div>
+    );
+}
+
+export function NetworkPage(): JSX.Element {
+    const { t } = useTranslation();
+    return (
+        <div>
+            <PageHeader title={t('rede.titulo')} description={t('rede.subtitulo')} />
+            <NetworkContent />
         </div>
     );
 }

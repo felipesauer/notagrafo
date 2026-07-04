@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-EPIC-15
   kind: epic
-  state: OPEN
+  state: CLOSED
   title: >-
     UX & navegação — filtros no topo, listagem com ações, continuidade, grafo
     repensado
@@ -21,6 +21,6 @@ mnema:
     retomada depois.
   metadata: {}
   created_at: '2026-07-03T02:43:03.130Z'
-  closed_at: null
+  closed_at: '2026-07-03T22:00:18.554Z'
 ---
 # UX & navegação — filtros no topo, listagem com ações, continuidade, grafo repensado

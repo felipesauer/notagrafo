@@ -1,30 +1,34 @@
 import { test, expect } from '@playwright/test';
 import { login } from './helpers.js';
 
-test.describe('listagem de NFs', () => {
-    test('filtra por status e abre o detalhe de uma NF', async ({ page }) => {
+test.describe('explorador de NFs', () => {
+    test('filtra por status e abre o detalhe via peek', async ({ page }) => {
         await login(page);
-        await page.getByRole('link', { name: /notas fiscais|invoices/i }).click();
+        // a home é o explorador, entidade Notas por padrão
         await expect(page.getByTestId('data-table')).toBeVisible();
 
-        // filtra por status ativa — o select de status da toolbar tem testid
-        // próprio (o FilterSidebar tem outros selects)
+        // filtra por status ativa (select da toolbar do explorador)
         await page.getByTestId('nf-status-filter').selectOption('ativa');
         await expect(page.getByTestId('data-table').locator('tbody tr').first()).toBeVisible();
 
-        // abre o detalhe pela primeira linha (link no número)
-        await page.getByTestId('data-table').locator('tbody tr a').first().click();
+        // clicar numa linha abre o peek (drill-down in-place)
+        await page.getByTestId('data-table').locator('tbody tr').first().click();
+        await expect(page.getByTestId('nf-peek')).toBeVisible();
+
+        // do peek, "abrir detalhe" leva à página completa da NF
+        await page.getByTestId('nf-peek').getByRole('link').last().click();
         await expect(page).toHaveURL(/\/nf\//);
         await expect(page.getByText(/itens|items/i)).toBeVisible();
     });
 
-    test('paginação avança e volta', async ({ page }) => {
+    test('peek navega entre NFs (setas) sem sair da lista', async ({ page }) => {
         await login(page);
-        await page.getByRole('link', { name: /notas fiscais|invoices/i }).click();
-        const proxima = page.getByRole('button', { name: /próxima|next/i });
-        if (await proxima.isEnabled()) {
-            await proxima.click();
-            await expect(page.getByRole('button', { name: /anterior|previous/i })).toBeEnabled();
-        }
+        await expect(page.getByTestId('data-table')).toBeVisible();
+        await page.getByTestId('data-table').locator('tbody tr').first().click();
+        await expect(page.getByTestId('nf-peek')).toBeVisible();
+        // seta pra baixo troca a NF do peek, mantendo a lista
+        await page.keyboard.press('ArrowDown');
+        await expect(page.getByTestId('nf-peek')).toBeVisible();
+        await expect(page).toHaveURL(/peek=/);
     });
 });

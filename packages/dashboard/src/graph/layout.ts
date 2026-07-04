@@ -1,5 +1,5 @@
 import Dagre from '@dagrejs/dagre';
-import type { Node, Edge } from '@xyflow/react';
+import { Position, type Node, type Edge } from '@xyflow/react';
 
 /** Tipo de nó no grafo (controla a cor/estilo). */
 export type NodeType = 'empresa' | 'notafiscal' | 'produto';
@@ -33,25 +33,60 @@ const W = 210;
 const H = 62;
 
 /**
- * Layout hierárquico dagre. rankdir LR com ranksep generoso para o grafo
- * respirar (antes ficava espremido). nodesep maior evita cards colados.
+/** Anexa width/height a cada nó — o React Flow os usa no MiniMap e no fitView
+ *  sem depender da medição assíncrona do DOM dos nós-card. */
+const withSize = (nodes: GraphNode[], pos: (id: string) => { x: number; y: number }): GraphNode[] =>
+    nodes.map((n) => { const p = pos(n.id); return { ...n, position: { x: p.x - W / 2, y: p.y - H / 2 }, width: W, height: H }; });
+
+/**
+ * Layout do ego-graph: RADIAL quando há uma raiz clara (relacao === 'raiz') e o
+ * resto são vizinhos diretos — a raiz fica no centro e os vizinhos distribuídos
+ * num círculo ao redor (estilo grafo de rede / Power BI: sem espaço morto, sem
+ * arestas longas cruzando cards). Para grafos mais profundos (depth > 1), cai no
+ * dagre hierárquico LR com espaçamento generoso.
  */
 export function applyLayout(nodes: GraphNode[], edges: Edge[]): GraphNode[] {
-    const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
-    g.setGraph({ rankdir: 'LR', nodesep: 28, ranksep: 140, marginx: 24, marginy: 24 });
+    const root = nodes.find((n) => (n.data as NodeData).relacao === 'raiz');
+    const outros = nodes.filter((n) => n !== root);
+    // radial só quando é ego-graph raso: 1 raiz + vizinhos, sem cadeias
+    const isEgoRaso = root && outros.length >= 1 && outros.length <= 24
+        && outros.every((n) => edges.some((e) => (e.source === root.id && e.target === n.id) || (e.target === root.id && e.source === n.id)));
 
+    if (isEgoRaso && root) {
+        // raio cresce com a quantidade de vizinhos para não colarem
+        const R = Math.max(300, 90 + outros.length * 46);
+        const cx = 0, cy = 0;
+        const pos = new Map<string, { x: number; y: number }>([[root.id, { x: cx, y: cy }]]);
+        // handle do vizinho voltado para o centro (lado oposto à sua posição):
+        // à direita da raiz → conecta pela esquerda; acima → por baixo; etc.
+        const sideFor = (dx: number, dy: number): Position =>
+            Math.abs(dx) >= Math.abs(dy) ? (dx >= 0 ? Position.Left : Position.Right) : (dy >= 0 ? Position.Top : Position.Bottom);
+        const handles = new Map<string, { source: Position; target: Position }>();
+        outros.forEach((n, i) => {
+            const ang = (i / outros.length) * Math.PI * 2 - Math.PI / 2 + 0.0001;
+            const dx = Math.cos(ang), dy = Math.sin(ang);
+            pos.set(n.id, { x: cx + dx * R, y: cy + dy * R });
+            const side = sideFor(dx, dy);
+            handles.set(n.id, { source: side, target: side });
+        });
+        return nodes.map((n) => {
+            const p = pos.get(n.id) ?? { x: 0, y: 0 };
+            const h = handles.get(n.id);
+            return {
+                ...n,
+                position: { x: p.x - W / 2, y: p.y - H / 2 },
+                width: W, height: H,
+                ...(h ? { sourcePosition: h.source, targetPosition: h.target } : {}),
+            };
+        });
+    }
+
+    const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
+    g.setGraph({ rankdir: 'LR', nodesep: 80, ranksep: 240, edgesep: 40, marginx: 40, marginy: 40, ranker: 'network-simplex' });
     for (const n of nodes) g.setNode(n.id, { width: W, height: H });
     for (const e of edges) g.setEdge(e.source, e.target);
-
     Dagre.layout(g);
-
-    // width/height explícitos: o React Flow os usa para o MiniMap e para o
-    // fitView sem depender da medição assíncrona do DOM dos nós-card (senão o
-    // MiniMap fica vazio e o fit corta os vizinhos no primeiro render).
-    return nodes.map((n) => {
-        const pos = g.node(n.id);
-        return { ...n, position: { x: pos.x - W / 2, y: pos.y - H / 2 }, width: W, height: H };
-    });
+    return withSize(nodes, (id) => g.node(id));
 }
 
 interface ApiNode {
