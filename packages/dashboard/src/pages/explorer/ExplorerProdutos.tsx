@@ -36,7 +36,7 @@ export function ExplorerProdutos(): JSX.Element {
                             <TableRow key={p.idUnico} className="cursor-pointer" onClick={() => { /* deep-link via Link no NCM */ }}>
                                 <TableCell className="font-medium">{p.descricao || '—'}</TableCell>
                                 <TableCell onClick={(e) => e.stopPropagation()}>
-                                    {p.ncm ? <Link className="font-mono text-[12px] text-primary hover:underline" to={'/nf' as string} search={{ ncm: p.ncm } as never}>{p.ncm}</Link> : <span className="text-muted-foreground">—</span>}
+                                    {p.ncm ? <Link className="font-mono text-[12px] text-primary hover:underline" to={'/' as string} search={{ entity: 'notas', ncm: p.ncm } as never}>{p.ncm}</Link> : <span className="text-muted-foreground">—</span>}
                                 </TableCell>
                                 <TableCell className="text-right font-mono tabular-nums">{p.totalNFs ?? 0}</TableCell>
                                 <TableCell className="text-right font-mono font-medium tabular-nums">{brlK(p.valorTotal ?? 0)}</TableCell>
@@ -51,7 +51,7 @@ export function ExplorerProdutos(): JSX.Element {
                     <Card key={p.idUnico} className="gap-0 p-3.5">
                         <p className="font-medium leading-tight">{p.descricao || '—'}</p>
                         <div className="mt-2 flex items-center justify-between border-t pt-2 text-xs">
-                            {p.ncm ? <Link className="font-mono text-primary" to={'/nf' as string} search={{ ncm: p.ncm } as never}>NCM {p.ncm}</Link> : <span className="text-muted-foreground">—</span>}
+                            {p.ncm ? <Link className="font-mono text-primary" to={'/' as string} search={{ entity: 'notas', ncm: p.ncm } as never}>NCM {p.ncm}</Link> : <span className="text-muted-foreground">—</span>}
                             <span className="font-mono font-medium tabular-nums">{brlK(p.valorTotal ?? 0)} · {p.totalNFs ?? 0} NF-e</span>
                         </div>
                     </Card>
