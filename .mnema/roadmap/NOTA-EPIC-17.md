@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-EPIC-17
   kind: epic
-  state: OPEN
+  state: CLOSED
   title: Reconstrução da navegação — modelo entidade-central + views + peek + Cmd+K
   description: >-
     Fase 5 do redesign. Reconstruir a UX/UI de navegação do dashboard, inspirada
@@ -20,6 +20,6 @@ mnema:
     Pilha #28-#51 já mesclada no main; nasce da branch feat/nav-rebuild.
   metadata: {}
   created_at: '2026-07-03T21:55:11.670Z'
-  closed_at: null
+  closed_at: '2026-07-04T00:30:24.574Z'
 ---
 # Reconstrução da navegação — modelo entidade-central + views + peek + Cmd+K

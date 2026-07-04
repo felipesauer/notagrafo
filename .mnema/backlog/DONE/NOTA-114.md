@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-114
-  state: IN_REVIEW
+  state: DONE
   title: >-
     Refino visual: grafo/rede espaçados e móveis (inspiração Power BI) + ações
     inline + polish das telas
@@ -24,6 +24,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T23:48:48.592Z'
+  updated_at: '2026-07-04T00:28:53.028Z'
 ---
 # Refino visual: grafo/rede espaçados e móveis (inspiração Power BI) + ações inline + polish das telas
