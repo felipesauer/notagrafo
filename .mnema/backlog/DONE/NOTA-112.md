@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-112
-  state: IN_REVIEW
+  state: DONE
   title: Cmd+K expandido + views salvas favoritáveis
   description: >-
     Expandir a command palette (Cmd+K): chave 44díg→NF, buscar empresa por
@@ -22,6 +22,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T22:40:47.866Z'
+  updated_at: '2026-07-04T00:30:11.751Z'
 ---
 # Cmd+K expandido + views salvas favoritáveis

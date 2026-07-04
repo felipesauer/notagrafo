@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-116
-  state: IN_REVIEW
+  state: DONE
   title: Polish da tela Exportações
   description: >-
     Retocar Exports.tsx: header contextual leve, campos com rótulos legíveis via
@@ -23,6 +23,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-04T00:29:15.285Z'
+  updated_at: '2026-07-04T00:30:17.527Z'
 ---
 # Polish da tela Exportações (form em canvas, empty rico, badges tokenizados)

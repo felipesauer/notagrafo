@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-111
-  state: IN_REVIEW
+  state: DONE
   title: Análise (Rede & fluxo, Eventos) dentro da nova casca
   description: >-
     Integrar Rede & fluxo (Network: Sankey Nivo + Reagraph WebGL) e Eventos
@@ -21,6 +21,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T22:32:38.003Z'
+  updated_at: '2026-07-04T00:30:09.277Z'
 ---
 # Análise (Rede & fluxo, Eventos) dentro da nova casca

@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-115
-  state: IN_REVIEW
+  state: DONE
   title: Drill-through Visão Geral → Explorer + filtros ufEmitente/cnpjEmitente
   description: >-
     Cross-filter/drill-through da Visão Geral para o Explorer filtrado. Backend
@@ -31,6 +31,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-04T00:29:14.295Z'
+  updated_at: '2026-07-04T00:30:15.727Z'
 ---
 # Drill-through Visão Geral → Explorer + filtros ufEmitente/cnpjEmitente (ponta a ponta)

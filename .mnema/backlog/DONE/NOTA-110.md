@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-110
-  state: IN_REVIEW
+  state: DONE
   title: Migrar Empresas/Produtos/Impostos para o Explorador (troca de entidade)
   description: >-
     Fundir as listas separadas de Empresas, Produtos e Impostos no Explorador
@@ -27,6 +27,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T22:26:21.110Z'
+  updated_at: '2026-07-04T00:30:07.344Z'
 ---
 # Migrar Empresas/Produtos/Impostos para o Explorador (troca de entidade)

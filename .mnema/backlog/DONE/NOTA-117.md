@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-117
-  state: IN_REVIEW
+  state: DONE
   title: Polish da tela Configurações
   description: >-
     Retocar Settings.tsx: header contextual leve, cards mais densos, health por
@@ -21,6 +21,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-04T00:29:15.992Z'
+  updated_at: '2026-07-04T00:30:19.420Z'
 ---
 # Polish da tela Configurações (health com ícones/status, cards coerentes)

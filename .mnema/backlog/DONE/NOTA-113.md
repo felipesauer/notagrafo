@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-113
-  state: IN_REVIEW
+  state: DONE
   title: Remover shell/páginas antigos + varredura final (Explorer vira shell)
   description: >-
     Explorer vira o shell inteiro (home /), fim da navegação dupla. Remover
@@ -24,6 +24,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-03T23:03:13.428Z'
+  updated_at: '2026-07-04T00:30:13.655Z'
 ---
 # Remover shell/páginas antigos + varredura final
