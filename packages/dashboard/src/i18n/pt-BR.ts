@@ -132,6 +132,13 @@ export const ptBR = {
     exportacoes: {
         nova: 'Nova exportação', formato: 'Formato', campos: 'Campos', gerar: 'Gerar exportação',
         historico: 'Histórico', acoes: 'Ações', baixar: 'Baixar', vazio: 'Nenhuma exportação ainda.',
+        subtitulo: 'Gere extrações da base de NF-e em CSV, XLSX ou JSON.',
+        registros: 'Registros', tamanho: 'Tamanho', selecioneCampos: 'Selecione os campos a exportar.',
+        primeira: 'Criar a primeira',
+        campo: {
+            chaveAcesso: 'Chave de acesso', numero: 'Número', dataEmissao: 'Data de emissão',
+            valorTotal: 'Valor total', cnpjEmitente: 'CNPJ emitente', cnpjDestinatario: 'CNPJ destinatário',
+        },
     },
     config: {
         aparencia: 'Aparência', tema: 'Tema', temaClaro: 'Claro', temaEscuro: 'Escuro', idioma: 'Idioma',

@@ -146,6 +146,13 @@ export const en = {
     exportacoes: {
         nova: 'New export', formato: 'Format', campos: 'Fields', gerar: 'Generate export',
         historico: 'History', acoes: 'Actions', baixar: 'Download', vazio: 'No exports yet.',
+        subtitulo: 'Generate extracts of the invoice base as CSV, XLSX or JSON.',
+        registros: 'Records', tamanho: 'Size', selecioneCampos: 'Select the fields to export.',
+        primeira: 'Create the first',
+        campo: {
+            chaveAcesso: 'Access key', numero: 'Number', dataEmissao: 'Issue date',
+            valorTotal: 'Total value', cnpjEmitente: 'Issuer tax ID', cnpjDestinatario: 'Recipient tax ID',
+        },
     },
     config: {
         aparencia: 'Appearance', tema: 'Theme', temaClaro: 'Light', temaEscuro: 'Dark', idioma: 'Language', sobre: 'About',

@@ -1,12 +1,11 @@
 import { type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { Moon, Sun } from 'lucide-react';
+import { CheckCircle2, Moon, Settings as SettingsIcon, Sun, XCircle } from 'lucide-react';
 import { useAuthStore } from '../stores/auth.store.js';
 import { useThemeStore } from '../stores/theme.store.js';
 import { setIdioma, type Idioma } from '../i18n/index.js';
 import { LoadingSkeleton, InlineError } from '../components/shared.js';
-import { PageHeader } from '../components/PageHeader.js';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card.js';
 import { Button } from '../components/ui/button.js';
 import { Switch } from '../components/ui/switch.js';
@@ -34,8 +33,12 @@ export function SettingsPage(): JSX.Element {
 
     return (
         <div>
-            <PageHeader title={t('sidebar.configuracoes')} />
-            <div className="grid max-w-3xl gap-6">
+            {/* Header contextual leve (padrão das telas novas). */}
+            <div className="mb-4 flex items-center gap-2 border-b px-1 pb-3">
+                <SettingsIcon className="size-4 text-muted-foreground" />
+                <h2 className="text-sm font-semibold leading-none tracking-tight">{t('sidebar.configuracoes')}</h2>
+            </div>
+            <div className="grid max-w-3xl gap-4">
                 {/* Aparência */}
                 <Card className="py-4">
                     <CardHeader className="px-4 pb-0"><CardTitle className="text-base">{t('config.aparencia')}</CardTitle></CardHeader>
@@ -95,24 +98,32 @@ export function SettingsPage(): JSX.Element {
                             <InlineError onRetry={() => void health.refetch()} />
                         ) : health.data ? (
                             <dl className="grid gap-3">
-                                <div className="grid gap-0.5">
+                                <div className="grid gap-1.5">
                                     <dt className="text-xs text-muted-foreground">{t('config.servicos')}</dt>
                                     <dd className="flex flex-wrap gap-2">
-                                        {Object.entries(health.data.services).map(([nome, st]) => (
-                                            <span key={nome} className="inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs">
-                                                <span className="size-2 rounded-full" style={{ background: st === 'ok' ? 'var(--status-ativa)' : 'var(--status-cancelada)' }} />
-                                                {nome}
-                                            </span>
-                                        ))}
+                                        {Object.entries(health.data.services).map(([nome, st]) => {
+                                            const ok = st === 'ok';
+                                            return (
+                                                <span key={nome} className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium">
+                                                    {ok
+                                                        ? <CheckCircle2 className="size-3.5" style={{ color: 'var(--status-ativa)' }} />
+                                                        : <XCircle className="size-3.5" style={{ color: 'var(--status-cancelada)' }} />}
+                                                    <span className="font-mono">{nome}</span>
+                                                    <span className="text-muted-foreground">{ok ? 'ok' : st}</span>
+                                                </span>
+                                            );
+                                        })}
                                     </dd>
                                 </div>
-                                <div className="grid gap-0.5">
-                                    <dt className="text-xs text-muted-foreground">{t('config.xsdVersions')}</dt>
-                                    <dd className="text-sm tabular-nums">{health.data.xsdVersions.join(', ')}</dd>
-                                </div>
-                                <div className="grid gap-0.5">
-                                    <dt className="text-xs text-muted-foreground">{t('config.uptime')}</dt>
-                                    <dd className="text-sm tabular-nums">{Math.round(health.data.uptime)}s</dd>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="grid gap-0.5">
+                                        <dt className="text-xs text-muted-foreground">{t('config.xsdVersions')}</dt>
+                                        <dd className="font-mono text-sm tabular-nums">{health.data.xsdVersions.join(', ')}</dd>
+                                    </div>
+                                    <div className="grid gap-0.5">
+                                        <dt className="text-xs text-muted-foreground">{t('config.uptime')}</dt>
+                                        <dd className="font-mono text-sm tabular-nums">{Math.round(health.data.uptime)}s</dd>
+                                    </div>
                                 </div>
                             </dl>
                         ) : null}
