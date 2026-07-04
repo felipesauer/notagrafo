@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-124
-  state: READY
+  state: IN_REVIEW
   title: Fase 6 — Polish & acessibilidade (WCAG AA), dark mode fino, 11 specs verdes
   description: >-
     Fase de fechamento: garantir os 11 specs Playwright verdes de ponta a ponta;
@@ -22,12 +22,12 @@ mnema:
     - redesign
   estimate: 3
   priority: 3
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
   epic_key: NOTA-EPIC-18
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-04T16:39:14.612Z'
+  updated_at: '2026-07-04T16:43:58.896Z'
 ---
 # Fase 6 — Polish & acessibilidade (WCAG AA), dark mode fino, 11 specs verdes

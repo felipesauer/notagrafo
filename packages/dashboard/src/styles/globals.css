@@ -66,11 +66,14 @@
     --status-inutilizada: oklch(0.48 0.01 260);
     --status-inutilizada-bg: oklch(0.95 0.005 260);
 
-    /* Status de exportação */
-    --export-pending: oklch(0.68 0.16 70);
-    --export-processing: oklch(0.55 0.235 264);
-    --export-ready: oklch(0.62 0.18 150);
-    --export-failed: oklch(0.58 0.235 22);
+    /* Status de exportação — o NFStatusBadge compartilha os fundos tonais claros
+       dos --status-*-bg (via statusBg), então estas cores de texto também
+       precisam ser escuras para o contraste WCAG AA no tema claro (NOTA-124).
+       Alinhadas com o --status-* de semântica equivalente. */
+    --export-pending: oklch(0.53 0.13 70);
+    --export-processing: oklch(0.48 0.01 260);
+    --export-ready: oklch(0.50 0.16 150);
+    --export-failed: oklch(0.53 0.22 22);
 
     /* Categóricas de chart — warm/cool alternada, ≥0.15 L entre adjacentes.
        MANTER oklch(L C H) sem alpha (ver restrição no cabeçalho). */
@@ -235,8 +238,16 @@ table.d-relaxed :where([data-slot='table-cell'], [data-slot='table-head']) {
     padding-bottom: 0.75rem;
 }
 
-/* Cabeçalho fixo nas tabelas de dados do Explorer: o container rola, o thead cola
-   no topo. Marcado por [data-sticky] para não afetar tabelas de leitura (detalhe). */
+/* Cabeçalho fixo nas tabelas de dados do Explorer: o thead cola no topo enquanto
+   as linhas rolam. O shadcn <Table> embrulha o <table> num div[data-slot=
+   table-container] com overflow-x-auto — esse container PRECISA ser o scrollport
+   vertical (o sticky se ancora no ancestral que rola), então damos a ele altura +
+   overflow-y quando a tabela é [data-sticky]. Marcado por [data-sticky] para não
+   afetar tabelas de leitura (detalhe da NF). */
+[data-slot='table-container']:has(> table[data-sticky]) {
+    max-height: calc(100svh - 8.5rem);
+    overflow-y: auto;
+}
 table[data-sticky] thead th {
     position: sticky;
     top: 0;

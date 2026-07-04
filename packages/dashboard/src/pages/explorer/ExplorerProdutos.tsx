@@ -23,7 +23,7 @@ export function ExplorerProdutos(): JSX.Element {
 
     return (
         <>
-            <div className="hidden max-h-[calc(100svh-8.5rem)] overflow-auto md:block">
+            <div className="hidden md:block">
                 <Table data-testid="data-table" data-sticky className={densityClass(density)}>
                     <TableHeader>
                         <TableRow>
@@ -35,9 +35,9 @@ export function ExplorerProdutos(): JSX.Element {
                     </TableHeader>
                     <TableBody>
                         {rows.map((p) => (
-                            <TableRow key={p.idUnico} className="cursor-pointer" onClick={() => { /* deep-link via Link no NCM */ }}>
+                            <TableRow key={p.idUnico}>
                                 <TableCell className="font-medium">{p.descricao || '—'}</TableCell>
-                                <TableCell onClick={(e) => e.stopPropagation()}>
+                                <TableCell>
                                     {p.ncm ? <Link className="font-mono text-[12px] text-primary hover:underline" to={'/explorar' as string} search={{ entity: 'notas', ncm: p.ncm } as never}>{p.ncm}</Link> : <span className="text-muted-foreground">—</span>}
                                 </TableCell>
                                 <TableCell className="text-right font-mono tabular-nums">{p.totalNFs ?? 0}</TableCell>

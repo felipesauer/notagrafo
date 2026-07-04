@@ -4,8 +4,11 @@ import { Link } from '@tanstack/react-router';
 import { AlertTriangle, CheckCircle2, FileText, Sparkles, TrendingDown, TrendingUp } from 'lucide-react';
 import { useOverview, useTopCompanies, useTaxStats } from '../../api/hooks.js';
 
+// Mesmo formato compacto da Overview (pt-BR) — os dois ficam lado a lado, então o
+// mesmo valor deve renderizar igual na Home e na coluna de Insights.
+const brl = (v: number): string => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 const brlCompact = (v: number): string =>
-    v >= 1e6 ? `R$ ${(v / 1e6).toFixed(1)} mi` : v >= 1e3 ? `R$ ${(v / 1e3).toFixed(0)} mil` : `R$ ${v.toFixed(0)}`;
+    v >= 1000 ? `R$ ${(v / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mil` : brl(v);
 const pct = (f: number): string => `${(f * 100).toFixed(0)}%`;
 const signedPct = (f: number): string => `${f >= 0 ? '+' : ''}${(f * 100).toFixed(1)}%`;
 
