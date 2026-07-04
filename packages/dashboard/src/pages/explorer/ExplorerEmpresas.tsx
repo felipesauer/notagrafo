@@ -39,7 +39,7 @@ function EmpresaPeek({ cnpj, empresa, onClose, onOpenChange }: { cnpj: string | 
                         </div>
                         <div className="flex gap-2 border-t p-3">
                             <Button asChild type="button" variant="outline" size="sm" className="flex-1 justify-center">
-                                <Link to={'/nf' as string} search={{ cnpjEmitente: empresa.cnpj } as never}>{t('empresas.verNFs', { defaultValue: 'Ver NF-e' })}</Link>
+                                <Link to={'/' as string} search={{ entity: 'notas', cnpjEmitente: empresa.cnpj } as never}>{t('empresas.verNFs', { defaultValue: 'Ver NF-e' })}</Link>
                             </Button>
                             <Button asChild type="button" size="sm" className="flex-1 justify-center">
                                 <Link to={'/grafo' as string} search={{ cnpj: empresa.cnpj } as never}><Network /> {t('empresas.verGrafo')}</Link>

@@ -62,9 +62,9 @@ function Parte({ p }: { p?: { cnpj: string; razaoSocial: string; uf: string } })
  * onde clicar numa linha abre o Peek lateral, navegável por ↑/↓ sem perder o
  * lugar. Peek é o drill-down primário; Enter/botão leva ao detalhe completo.
  */
-export function ExplorerNotas({ q, status, peek, onPeek }: { q?: string; status?: string; peek?: string; onPeek: (chave: string | undefined) => void }): JSX.Element {
+export function ExplorerNotas({ q, status, recorte, peek, onPeek }: { q?: string; status?: string; recorte?: Record<string, string | boolean>; peek?: string; onPeek: (chave: string | undefined) => void }): JSX.Element {
     const { t } = useTranslation();
-    const query = useNFList({ limit: 50, orderBy: 'dataEmissao', order: 'desc', ...(q ? { q } : {}), ...(status ? { status } : {}) });
+    const query = useNFList({ limit: 50, orderBy: 'dataEmissao', order: 'desc', ...(q ? { q } : {}), ...(status ? { status } : {}), ...recorte });
     const rows = query.data?.data ?? [];
 
     if (query.isLoading) return <LoadingSkeleton variant="table" linhas={10} colunas={6} />;

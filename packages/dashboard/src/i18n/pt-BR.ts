@@ -35,6 +35,8 @@ export const ptBR = {
         numero: 'Número',
         valor: 'Valor',
         processadaEm: 'Processada em',
+        verNotasUf: 'Ver notas de {{uf}}',
+        verNotasFornecedor: 'Ver notas de {{nome}}',
         periodoAnterior: 'tendência no período',
         empresasHint: '{{count}} emitentes ativos',
         cargaHint: '{{valor}} em tributos',
@@ -109,6 +111,7 @@ export const ptBR = {
     explorer: {
         minhasViews: 'Minhas views', emBreve: '{{entidade}} chega ao explorador em breve.',
         salvarView: 'Salvar view', semViews: 'Salve um filtro como view.',
+        filtrandoPor: 'Filtrando por:',
     },
     rede: {
         titulo: 'Rede', subtitulo: 'Análise das relações comerciais entre empresas',

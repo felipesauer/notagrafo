@@ -49,12 +49,23 @@ const ENTITY_KEYS = new Set<string>(ENTITIES.map((e) => e.key));
 export function ExplorerPage(): JSX.Element {
     const { t } = useTranslation();
     const navigate = useNavigate();
-    const search = useSearch({ strict: false }) as { entity?: string; peek?: string; q?: string; status?: string };
+    const search = useSearch({ strict: false }) as {
+        entity?: string; peek?: string; q?: string; status?: string;
+        ufEmitente?: string; cnpjEmitente?: string; ncm?: string; comImposto?: boolean;
+    };
 
     // A entidade ativa e os filtros vivem na URL (linkáveis). A busca tem um
     // espelho local para digitação fluida, com debounce antes de ir pra query.
     const entity: EntityKey = (search.entity && ENTITY_KEYS.has(search.entity) ? search.entity : 'notas') as EntityKey;
     const status = search.status ?? '';
+    // Filtros de recorte que chegam por drill-through (Visão Geral / peeks).
+    const recorte = {
+        ...(search.ufEmitente ? { ufEmitente: search.ufEmitente } : {}),
+        ...(search.cnpjEmitente ? { cnpjEmitente: search.cnpjEmitente } : {}),
+        ...(search.ncm ? { ncm: search.ncm } : {}),
+        ...(search.comImposto ? { comImposto: search.comImposto } : {}),
+    };
+    const temRecorte = Object.keys(recorte).length > 0;
     const [qInput, setQInput] = useState(search.q ?? '');
     const [modalAberto, setModalAberto] = useState(false);
     const q = useDebouncedValue(qInput, 300);
@@ -76,6 +87,9 @@ export function ExplorerPage(): JSX.Element {
     }
     function setPeek(chave: string | undefined): void {
         void navigate({ to: '/' as string, search: { ...search, peek: chave } as never });
+    }
+    function limparRecorte(): void {
+        void navigate({ to: '/' as string, search: { entity, ...(qInput.trim() ? { q: qInput.trim() } : {}), ...(status ? { status } : {}) } as never });
     }
     function aplicarView(v: { entity: string; q?: string; status?: string }): void {
         setQInput(v.q ?? '');
@@ -187,10 +201,26 @@ export function ExplorerPage(): JSX.Element {
                     </div>
                 </div>
 
+                {/* Faixa de filtro ativo (drill-through): mostra o recorte vindo da
+                    Visão Geral/peek com um chip removível — sem isso o usuário fica
+                    preso num filtro invisível. */}
+                {entity === 'notas' && temRecorte && (
+                    <div className="flex flex-wrap items-center gap-2 border-b bg-muted/30 px-4 py-2">
+                        <span className="text-xs text-muted-foreground">{t('explorer.filtrandoPor')}</span>
+                        {search.ufEmitente && <FilterChip label={t('nf.filtros.ufEmitente')} value={search.ufEmitente} />}
+                        {search.cnpjEmitente && <FilterChip label={t('nf.filtros.cnpjEmitente')} value={cnpjChip(search.cnpjEmitente)} />}
+                        {search.ncm && <FilterChip label={t('nf.ncm')} value={search.ncm} />}
+                        {search.comImposto && <FilterChip label={t('grafo.nfsComImposto')} value="" />}
+                        <Button type="button" variant="ghost" size="sm" className="ml-auto h-7 text-xs" onClick={limparRecorte}>
+                            <X /> {t('nf.filtros.limparTudo')}
+                        </Button>
+                    </div>
+                )}
+
                 {/* Conteúdo da entidade */}
                 <div className="flex-1 overflow-auto">
                     {entity === 'notas' ? (
-                        <ExplorerNotas q={q} status={status} peek={search.peek} onPeek={setPeek} />
+                        <ExplorerNotas q={q} status={status} recorte={recorte} peek={search.peek} onPeek={setPeek} />
                     ) : entity === 'empresas' ? (
                         <ExplorerEmpresas peek={search.peek} onPeek={setPeek} />
                     ) : entity === 'produtos' ? (
@@ -207,6 +237,21 @@ export function ExplorerPage(): JSX.Element {
 
             {modalAberto && <UploadModal onClose={() => setModalAberto(false)} />}
         </div>
+    );
+}
+
+/** Formata um CNPJ (14 dígitos) para o chip; devolve intacto se não for. */
+function cnpjChip(c: string): string {
+    return c.length === 14 ? c.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : c;
+}
+
+/** Chip somente-leitura de um filtro de recorte ativo (rótulo + valor). */
+function FilterChip({ label, value }: { label: string; value: string }): JSX.Element {
+    return (
+        <span className="inline-flex items-center gap-1.5 rounded-full border bg-background px-2.5 py-0.5 text-xs">
+            <span className="text-muted-foreground">{label}</span>
+            {value && <span className="font-medium tabular-nums">{value}</span>}
+        </span>
     );
 }
 

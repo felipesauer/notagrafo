@@ -48,15 +48,28 @@ type RouteComponent = ReturnType<typeof lazyRouteComponent> | (() => JSX.Element
 const childRoute = (path: string, component: RouteComponent) =>
     createRoute({ getParentRoute: () => protectedLayout, path, component });
 
-/** Home: o explorador é a experiência principal. entity/peek/q/status como search (linkáveis). */
+/**
+ * Home: o explorador é a experiência principal. entity/peek/q/status + os
+ * filtros de recorte (ufEmitente/cnpjEmitente/ncm/comImposto) vivem no search,
+ * tornando o Explorer linkável e habilitando drill-through da Visão Geral e dos
+ * peeks (empresa/grafo) para a lista de NF-e filtrada. Campos não listados aqui
+ * são descartados pelo validateSearch — por isso os deep-links precisam deles.
+ */
 const explorarRoute = createRoute({
     getParentRoute: () => protectedLayout,
     path: '/',
-    validateSearch: (search: Record<string, unknown>): { entity?: string; peek?: string; q?: string; status?: string } => ({
+    validateSearch: (search: Record<string, unknown>): {
+        entity?: string; peek?: string; q?: string; status?: string;
+        ufEmitente?: string; cnpjEmitente?: string; ncm?: string; comImposto?: boolean;
+    } => ({
         entity: typeof search.entity === 'string' ? search.entity : undefined,
         peek: typeof search.peek === 'string' ? search.peek : undefined,
         q: typeof search.q === 'string' ? search.q : undefined,
         status: typeof search.status === 'string' ? search.status : undefined,
+        ufEmitente: typeof search.ufEmitente === 'string' ? search.ufEmitente : undefined,
+        cnpjEmitente: typeof search.cnpjEmitente === 'string' ? search.cnpjEmitente : undefined,
+        ncm: typeof search.ncm === 'string' ? search.ncm : undefined,
+        comImposto: search.comImposto === true || search.comImposto === 'true' ? true : undefined,
     }),
     component: ExplorerPage,
 });

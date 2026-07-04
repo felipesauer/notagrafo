@@ -49,6 +49,8 @@ export const en = {
         numero: 'Number',
         valor: 'Value',
         processadaEm: 'Processed at',
+        verNotasUf: 'View invoices from {{uf}}',
+        verNotasFornecedor: 'View invoices from {{nome}}',
         periodoAnterior: 'trend in period',
         empresasHint: '{{count}} active issuers',
         cargaHint: '{{valor}} in taxes',
@@ -123,6 +125,7 @@ export const en = {
     explorer: {
         minhasViews: 'My views', emBreve: '{{entidade}} is coming to the explorer soon.',
         salvarView: 'Save view', semViews: 'Save a filter as a view.',
+        filtrandoPor: 'Filtering by:',
     },
     rede: {
         titulo: 'Network', subtitulo: 'Analysis of trade relationships between companies',
