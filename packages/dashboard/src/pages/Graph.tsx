@@ -32,11 +32,14 @@ const TIPO_COR: Record<NodeType, string> = {
     produto: 'var(--chart-3)',
 };
 /** Cor concreta por tipo para o MiniMap: seu <canvas> NÃO resolve CSS vars,
- *  então precisa de hex/rgb literais (era a causa do minimap "vazio"). */
+ *  então precisa de hex/rgb literais (era a causa do minimap "vazio"). Espelha
+ *  as --chart-1..3 do tema claro (NOTA-ADR-13), convertidas pela mesma matemática
+ *  OKLab→sRGB do toRgb() em charts/resolveTheme.ts: chart-1 cobalto, 2 esmeralda,
+ *  3 âmbar. Ao mudar a paleta em globals.css, recalcular estes 3 hex. */
 const TIPO_COR_MINIMAP: Record<NodeType, string> = {
-    empresa: '#6ea8fe',
-    notafiscal: '#46c56a',
-    produto: '#e0a83c',
+    empresa: '#255ff8',
+    notafiscal: '#1ebd5b',
+    produto: '#f0a800',
 };
 
 function Legenda(): JSX.Element {
