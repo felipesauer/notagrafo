@@ -81,8 +81,10 @@ export function OverviewPage(): JSX.Element {
     const taxes = useTaxStats();
 
     return (
-        // canvas: fundo levemente distinto dos cartões (moldura de report Power BI)
-        <div className="-m-4 min-h-[calc(100svh-3rem)] bg-muted/20 p-4 md:-m-6 md:p-6">
+        // canvas: moldura de report (estilo Power BI). Um gradiente sutil +
+        // inset ring dá separação dos cartões nos DOIS temas — no claro o
+        // bg-muted/20 chapado quase sumia contra os cartões brancos.
+        <div className="-m-4 min-h-[calc(100svh-3rem)] bg-gradient-to-b from-muted/50 to-muted/20 p-4 shadow-[inset_0_1px_0_0_hsl(0_0%_100%/0.04),inset_0_0_0_1px_var(--border)] md:-m-6 md:p-6">
             <ReportBar gran={gran} onGran={setGran} />
             {overview.isLoading ? (
                 <LoadingSkeleton variant="kpis" linhas={4} />
@@ -310,20 +312,24 @@ function OverviewContent({
     );
 }
 
-/** Barras horizontais densas de nº de NF-e por UF (substitui o treemap cru). */
+/** Barras horizontais densas por UF. A barra e o número dentro dela representam
+ *  a MESMA métrica (nº de NF-e, o eixo declarado no hint); o valor em R$ fica à
+ *  direita como contexto secundário, tipograficamente subordinado, para não
+ *  competir com a barra (barra curta + R$ alto lia como inconsistência). */
 function UfBars({ data }: { data: { uf: string; size: number; valorTotal: number }[] }): JSX.Element {
     const max = Math.max(...data.map((d) => d.size), 1);
+    const fmtValor = (v: number): string => (v >= 1000 ? `R$ ${(v / 1000).toFixed(0)}k` : `R$ ${v.toFixed(0)}`);
     return (
         <div className="space-y-2.5">
             {data.map((d, i) => (
-                <div key={d.uf} className="grid grid-cols-[36px_1fr_auto] items-center gap-3">
+                <div key={d.uf} className="grid grid-cols-[32px_1fr_88px] items-center gap-3">
                     <span className="text-xs font-medium tabular-nums text-muted-foreground">{d.uf}</span>
                     <div className="h-6 overflow-hidden rounded bg-muted/50">
-                        <div className="flex h-full items-center rounded pl-2 text-[11px] font-medium text-white" style={{ width: `${Math.max((d.size / max) * 100, 12)}%`, background: chartColor(i) }}>
+                        <div className="flex h-full items-center justify-end rounded pr-2 text-[11px] font-semibold text-white tabular-nums" style={{ width: `${Math.max((d.size / max) * 100, 14)}%`, background: chartColor(i) }}>
                             {d.size}
                         </div>
                     </div>
-                    <span className="text-xs tabular-nums text-muted-foreground">{d.valorTotal >= 1000 ? `R$ ${(d.valorTotal / 1000).toFixed(0)}k` : `R$ ${d.valorTotal.toFixed(0)}`}</span>
+                    <span className="text-right text-xs tabular-nums text-muted-foreground/70">{fmtValor(d.valorTotal)}</span>
                 </div>
             ))}
         </div>
