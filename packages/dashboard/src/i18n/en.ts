@@ -176,6 +176,18 @@ export const en = {
         fechar: 'Dismiss',
     },
     insights: {
+        titulo: 'Insights',
         emBreve: 'Insights appear here as your invoices get processed.',
+        cargaTituloAlta: 'Tax burden rising',
+        cargaTituloBaixa: 'Tax burden falling',
+        cargaCorpo: 'Recent tax burden is {{delta}} vs. the previous period.',
+        concentracaoTitulo: 'Supplier concentration',
+        concentracaoCorpo: '{{nome}} accounts for {{pct}} of billed value. High dependency on a single issuer.',
+        ingestaoTitulo: 'Healthy ingestion',
+        ingestaoCorpo: '{{ativas}} active invoices in the base · {{total}} processed in total.',
+        ultimaTitulo: 'Last processed invoice',
+        ultimaCorpo: 'Invoice {{numero}} · {{valor}}',
+        atividade: 'Recent activity',
+        verNota: 'View invoice',
     },
 } as const;

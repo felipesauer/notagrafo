@@ -18,6 +18,7 @@ import { CurrencyValue, DateDisplay, LoadingSkeleton, InlineError, EmptyState } 
 import { KpiCard } from '../components/KpiCard.js';
 import { FadeIn } from '../components/Motion.js';
 import { ChartCard } from '../components/charts/ChartCard.js';
+import { BarList, type BarItem } from '../components/charts/BarList.js';
 import { chartColor } from '../components/charts/palette.js';
 import { Card, CardContent, CardHeader } from '../components/ui/card.js';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '../components/ui/chart.js';
@@ -244,7 +245,20 @@ function OverviewContent({
                 <Card data-testid="chart" className="gap-4">
                     <CardHeader className="space-y-0"><h3 className="text-base leading-none font-semibold">{t('overview.topFornecedores')}</h3></CardHeader>
                     <CardContent>
-                        {rankTop.length === 0 ? <EmptyState /> : <FornecedorBars data={rankTop} />}
+                        {rankTop.length === 0 ? <EmptyState /> : (
+                            <BarList
+                                items={rankTop.map<BarItem>((e) => ({
+                                    id: e.cnpj || e.nome,
+                                    label: e.nome,
+                                    value: e.valorTotal,
+                                    hint: brlCompact(e.valorTotal),
+                                    to: '/explorar',
+                                    search: { entity: 'notas', cnpjEmitente: e.cnpj },
+                                    ariaLabel: t('overview.verNotasFornecedor', { nome: e.nome }),
+                                }))}
+                                fixedColor="var(--chart-3)"
+                            />
+                        )}
                     </CardContent>
                 </Card>
             </FadeIn>
@@ -264,7 +278,20 @@ function OverviewContent({
                         ) : treemapUf.length === 0 ? (
                             <EmptyState mensagem={t('overview.distribuicaoUfVazio')} />
                         ) : (
-                            <UfBars data={treemapUf} />
+                            <BarList
+                                colorByIndex
+                                items={treemapUf.map<BarItem>((u) => ({
+                                    id: u.uf,
+                                    label: u.uf,
+                                    tag: u.uf,
+                                    value: u.size,
+                                    hint: u.valorTotal >= 1000 ? `R$ ${(u.valorTotal / 1000).toFixed(0)}k` : `R$ ${u.valorTotal.toFixed(0)}`,
+                                    to: '/explorar',
+                                    search: { entity: 'notas', ufEmitente: u.uf },
+                                    ariaLabel: t('overview.verNotasUf', { uf: u.uf }),
+                                }))}
+                                formatValue={(v) => String(v)}
+                            />
                         )}
                     </CardContent>
                 </Card>
@@ -304,66 +331,6 @@ function OverviewContent({
                     </CardContent>
                 </Card>
             </FadeIn>
-        </div>
-    );
-}
-
-/** Barras horizontais densas por UF. A barra e o número dentro dela representam
- *  a MESMA métrica (nº de NF-e, o eixo declarado no hint); o valor em R$ fica à
- *  direita como contexto secundário, tipograficamente subordinado, para não
- *  competir com a barra (barra curta + R$ alto lia como inconsistência).
- *  Cada linha é um drill-through: leva ao Explorer filtrado por UF do emitente. */
-function UfBars({ data }: { data: { uf: string; size: number; valorTotal: number }[] }): JSX.Element {
-    const { t } = useTranslation();
-    const max = Math.max(...data.map((d) => d.size), 1);
-    const fmtValor = (v: number): string => (v >= 1000 ? `R$ ${(v / 1000).toFixed(0)}k` : `R$ ${v.toFixed(0)}`);
-    return (
-        <div className="space-y-1">
-            {data.map((d, i) => (
-                <Link
-                    key={d.uf}
-                    to={'/explorar' as string}
-                    search={{ entity: 'notas', ufEmitente: d.uf } as never}
-                    aria-label={t('overview.verNotasUf', { uf: d.uf })}
-                    className="grid grid-cols-[32px_1fr_88px] items-center gap-3 rounded-md px-1 py-1 transition-colors hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:outline-none"
-                >
-                    <span className="text-xs font-medium tabular-nums text-muted-foreground">{d.uf}</span>
-                    <div className="h-6 overflow-hidden rounded bg-muted/50">
-                        <div className="flex h-full items-center justify-end rounded pr-2 text-[11px] font-semibold text-white tabular-nums" style={{ width: `${Math.max((d.size / max) * 100, 14)}%`, background: chartColor(i) }}>
-                            {d.size}
-                        </div>
-                    </div>
-                    <span className="text-right text-xs tabular-nums text-muted-foreground/70">{fmtValor(d.valorTotal)}</span>
-                </Link>
-            ))}
-        </div>
-    );
-}
-
-/** Ranking de fornecedores como barras-Link: cada linha leva ao Explorer
- *  filtrado pelo CNPJ do emitente (drill-through). Escala por valor faturado. */
-function FornecedorBars({ data }: { data: { nome: string; cnpj: string; valorTotal: number }[] }): JSX.Element {
-    const { t } = useTranslation();
-    const max = Math.max(...data.map((d) => d.valorTotal), 1);
-    return (
-        <div className="space-y-1">
-            {data.map((d) => (
-                <Link
-                    key={d.cnpj || d.nome}
-                    to={'/explorar' as string}
-                    search={{ entity: 'notas', cnpjEmitente: d.cnpj } as never}
-                    aria-label={t('overview.verNotasFornecedor', { nome: d.nome })}
-                    className="group grid grid-cols-[1fr_auto] items-center gap-3 rounded-md px-1 py-1 transition-colors hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:outline-none"
-                >
-                    <div className="min-w-0">
-                        <p className="truncate text-xs font-medium">{d.nome}</p>
-                        <div className="mt-1 h-2 overflow-hidden rounded-full bg-muted/50">
-                            <div className="h-full rounded-full bg-[var(--chart-3)]" style={{ width: `${Math.max((d.valorTotal / max) * 100, 4)}%` }} />
-                        </div>
-                    </div>
-                    <span className="shrink-0 text-right text-xs font-medium tabular-nums text-muted-foreground">{brlCompact(d.valorTotal)}</span>
-                </Link>
-            ))}
         </div>
     );
 }

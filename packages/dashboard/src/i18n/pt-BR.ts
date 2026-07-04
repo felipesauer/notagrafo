@@ -176,6 +176,18 @@ export const ptBR = {
         fechar: 'Dispensar',
     },
     insights: {
+        titulo: 'Insights',
         emBreve: 'Os insights aparecem aqui conforme suas notas são processadas.',
+        cargaTituloAlta: 'Carga tributária subindo',
+        cargaTituloBaixa: 'Carga tributária caindo',
+        cargaCorpo: 'A carga tributária recente está {{delta}} vs. o período anterior.',
+        concentracaoTitulo: 'Concentração de fornecedor',
+        concentracaoCorpo: '{{nome}} concentra {{pct}} do valor faturado. Dependência alta de um único emitente.',
+        ingestaoTitulo: 'Ingestão saudável',
+        ingestaoCorpo: '{{ativas}} NF-e ativas na base · {{total}} processadas no total.',
+        ultimaTitulo: 'Última nota processada',
+        ultimaCorpo: 'NF-e {{numero}} · {{valor}}',
+        atividade: 'Atividade recente',
+        verNota: 'Ver nota',
     },
 } as const;
