@@ -97,7 +97,7 @@ export const ptBR = {
         icmsSt: 'ICMS-ST', fcp: 'FCP',
         serieTitulo: 'Carga tributária por mês',
         topNcm: 'Top NCM por imposto', topCfop: 'Top CFOP por imposto',
-        totalImposto: 'Imposto total',
+        totalImposto: 'Imposto total', serieMensal: 'Evolução mensal',
     },
     grafo: {
         buscarEmpresa: 'Buscar empresa (CNPJ)', profundidade: 'Profundidade',

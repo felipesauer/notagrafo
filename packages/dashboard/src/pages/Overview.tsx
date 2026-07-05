@@ -41,6 +41,7 @@ function trend(series: number[]): number | undefined {
 const volumeConfig = {
     totalNFs: { label: 'NF-e', color: 'var(--chart-1)' },
     valorTotal: { label: 'Valor', color: 'var(--chart-3)' },
+    canceladas: { label: 'Canceladas', color: 'var(--status-cancelada)' },
 } satisfies ChartConfig;
 
 type Gran = 'dia' | 'semana' | 'mes';
@@ -113,7 +114,7 @@ function OverviewContent({
     taxTotals,
 }: {
     o: NonNullable<OverviewData>;
-    volumeSeries: { periodo: string; totalNFs: number; valorTotal: number }[];
+    volumeSeries: { periodo: string; totalNFs: number; valorTotal: number; canceladas?: number }[];
     ranking: { cnpj: string; razaoSocial: string; valorTotal: number }[];
     byUf: ByUfQuery;
     taxTotals?: TaxTotals;
@@ -199,6 +200,7 @@ function OverviewContent({
                         <YAxis yAxisId="r" orientation="right" tickLine={false} axisLine={false} fontSize={11} width={44} tickFormatter={(v: number) => (v >= 1000 ? `${v / 1000}k` : String(v))} />
                         <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
                         <Bar yAxisId="l" dataKey="totalNFs" fill="var(--color-totalNFs)" radius={[3, 3, 0, 0]} maxBarSize={22} />
+                        <Bar yAxisId="l" dataKey="canceladas" fill="var(--color-canceladas)" radius={[3, 3, 0, 0]} maxBarSize={22} />
                         <Line yAxisId="r" dataKey="valorTotal" type="monotone" stroke="var(--color-valorTotal)" strokeWidth={2} dot={false} />
                     </ComposedChart>
                 </ChartCard>

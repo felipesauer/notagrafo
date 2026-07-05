@@ -2,8 +2,8 @@ import { type JSX, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from '@tanstack/react-router';
 import { toast } from 'sonner';
-import { Building2, Download, FileText, Network } from 'lucide-react';
-import { useNFDetail } from '../api/hooks.js';
+import { Activity, Building2, Download, FileText, Network } from 'lucide-react';
+import { useNFDetail, useNFEvents } from '../api/hooks.js';
 import { downloadFile } from '../api/api.client.js';
 import { useThemeStore } from '../stores/theme.store.js';
 import { NFStatusBadge, CopyableKey, CurrencyValue, DateDisplay, LoadingSkeleton, InlineError } from '../components/shared.js';
@@ -213,7 +213,7 @@ export function NFDetailPage(): JSX.Element {
                     </Card>
                 </div>
 
-                {/* Coluna lateral: grafo (os eventos foram para a tela /eventos) */}
+                {/* Coluna lateral: mini-grafo + timeline de eventos (auditoria da NF) */}
                 <aside className="space-y-6">
                     <Card className="py-4">
                         <CardHeader className="px-4 pb-0"><CardTitle className="text-sm">{t('nf.miniGrafo')}</CardTitle></CardHeader>
@@ -226,6 +226,7 @@ export function NFDetailPage(): JSX.Element {
                             )}
                         </CardContent>
                     </Card>
+                    <EventosTimeline chave={chave} />
                 </aside>
             </div>
 
@@ -233,5 +234,50 @@ export function NFDetailPage(): JSX.Element {
                 <GraphDrawer cnpj={nf.emitente.cnpj} open={grafoAberto} onOpenChange={setGrafoAberto} dark={tema === 'escuro'} />
             )}
         </div>
+    );
+}
+
+/** Cor do ponto por tipo de evento (auditoria). Desconhecido → cinza. */
+const EVENTO_COR: Record<string, string> = {
+    importada: 'var(--chart-1)',
+    processada: 'var(--status-ativa)',
+    consultada: 'var(--chart-5)',
+    exportada: 'var(--chart-3)',
+    cancelada: 'var(--status-cancelada)',
+    erro: 'var(--status-cancelada)',
+};
+
+/**
+ * Timeline de eventos da NF (redesign BI / NOTA-125 C): consome useNFEvents (hook
+ * que existia mas estava órfão — a auditoria dos eventos por-NF vinha sendo perdida
+ * no detalhe). Some quando não há eventos.
+ */
+function EventosTimeline({ chave }: { chave: string }): JSX.Element | null {
+    const { t } = useTranslation();
+    const { data } = useNFEvents(chave);
+    const eventos = data?.eventos ?? [];
+    if (eventos.length === 0) return null;
+    return (
+        <Card className="py-4">
+            <CardHeader className="px-4 pb-0">
+                <CardTitle className="flex items-center gap-2 text-sm"><Activity className="size-4 text-muted-foreground" /> {t('nf.eventos')}</CardTitle>
+            </CardHeader>
+            <CardContent className="px-4">
+                <ol className="space-y-0">
+                    {eventos.map((e, i) => (
+                        <li key={`${e.tipo}-${e.timestamp}-${i}`} className="flex gap-3">
+                            <div className="flex flex-col items-center">
+                                <span className="mt-1.5 size-2.5 shrink-0 rounded-full" style={{ background: EVENTO_COR[e.tipo] ?? 'var(--muted-foreground)' }} />
+                                {i < eventos.length - 1 && <span className="w-px flex-1 bg-border" />}
+                            </div>
+                            <div className="pb-3">
+                                <p className="text-[13px] font-medium capitalize leading-tight">{t(`eventos.tipo.${e.tipo}`, { defaultValue: e.tipo })}</p>
+                                <p className="text-[11px] text-muted-foreground tabular-nums"><DateDisplay value={e.timestamp} />{e.autor ? ` · ${e.autor}` : ''}</p>
+                            </div>
+                        </li>
+                    ))}
+                </ol>
+            </CardContent>
+        </Card>
     );
 }

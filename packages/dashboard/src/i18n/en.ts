@@ -114,7 +114,7 @@ export const en = {
         icmsSt: 'ICMS-ST', fcp: 'FCP',
         serieTitulo: 'Tax burden per month',
         topNcm: 'Top NCM by tax', topCfop: 'Top CFOP by tax',
-        totalImposto: 'Total tax',
+        totalImposto: 'Total tax', serieMensal: 'Monthly trend',
     },
     grafo: {
         buscarEmpresa: 'Search company (Tax ID)', profundidade: 'Depth',

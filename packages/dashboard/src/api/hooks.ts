@@ -73,7 +73,7 @@ export function useByUf(tipo: 'emitente' | 'destinatario' = 'emitente') {
 export function useVolume(granularidade = 'dia') {
     return useQuery({
         queryKey: ['stats', 'volume', granularidade],
-        queryFn: () => apiFetch<{ serie: Array<{ periodo: string; totalNFs: number; valorTotal: number }> }>(`/stats/volume${qs({ granularidade })}`),
+        queryFn: () => apiFetch<{ serie: Array<{ periodo: string; totalNFs: number; valorTotal: number; canceladas: number }> }>(`/stats/volume${qs({ granularidade })}`),
     });
 }
 

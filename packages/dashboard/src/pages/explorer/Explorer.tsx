@@ -2,13 +2,15 @@ import { type JSX, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import {
-    Activity, Bookmark, Building2, FileText, type LucideIcon,
+    Activity, Bookmark, Building2, FileText, Filter, type LucideIcon,
     Network, Package, ReceiptText, Search, Star, Upload, X,
 } from 'lucide-react';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue.js';
 import { Button } from '../../components/ui/button.js';
 import { Input } from '../../components/ui/input.js';
+import { Label } from '../../components/ui/label.js';
 import { NativeSelect } from '../../components/ui/native-select.js';
+import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover.js';
 import {
     DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
     DropdownMenuSeparator, DropdownMenuTrigger,
@@ -55,6 +57,8 @@ export function ExplorerPage(): JSX.Element {
     const search = useSearch({ strict: false }) as {
         entity?: string; peek?: string; q?: string; status?: string;
         ufEmitente?: string; cnpjEmitente?: string; ncm?: string; comImposto?: boolean;
+        dataEmissaoInicio?: string; dataEmissaoFim?: string; valorTotalMin?: string;
+        valorTotalMax?: string; tipoNF?: string; finalidade?: string; cfop?: string;
     };
 
     const entity: EntityKey = (search.entity && ENTITY_KEYS.has(search.entity) ? search.entity : 'notas') as EntityKey;
@@ -64,6 +68,13 @@ export function ExplorerPage(): JSX.Element {
         ...(search.cnpjEmitente ? { cnpjEmitente: search.cnpjEmitente } : {}),
         ...(search.ncm ? { ncm: search.ncm } : {}),
         ...(search.comImposto ? { comImposto: search.comImposto } : {}),
+        ...(search.dataEmissaoInicio ? { dataEmissaoInicio: search.dataEmissaoInicio } : {}),
+        ...(search.dataEmissaoFim ? { dataEmissaoFim: search.dataEmissaoFim } : {}),
+        ...(search.valorTotalMin ? { valorTotalMin: search.valorTotalMin } : {}),
+        ...(search.valorTotalMax ? { valorTotalMax: search.valorTotalMax } : {}),
+        ...(search.tipoNF ? { tipoNF: search.tipoNF } : {}),
+        ...(search.finalidade ? { finalidade: search.finalidade } : {}),
+        ...(search.cfop ? { cfop: search.cfop } : {}),
     };
     const temRecorte = Object.keys(recorte).length > 0;
     const [qInput, setQInput] = useState(search.q ?? '');
@@ -79,6 +90,10 @@ export function ExplorerPage(): JSX.Element {
     }
     function setStatus(s: string): void {
         void navigate({ to: '/explorar' as string, search: { ...search, status: s || undefined } as never });
+    }
+    /** Atualiza um campo de filtro avançado no search (string vazia limpa). */
+    function setFiltro(campo: string, valor: string): void {
+        void navigate({ to: '/explorar' as string, search: { ...search, [campo]: valor || undefined } as never });
     }
     function setPeek(chave: string | undefined): void {
         void navigate({ to: '/explorar' as string, search: { ...search, peek: chave } as never });
@@ -128,7 +143,9 @@ export function ExplorerPage(): JSX.Element {
                                 <option value="ativa">{t('nf.statusAtiva')}</option>
                                 <option value="cancelada">{t('nf.statusCancelada')}</option>
                                 <option value="denegada">{t('nf.statusDenegada')}</option>
+                                <option value="inutilizada">{t('nf.statusInutilizada')}</option>
                             </NativeSelect>
+                            <NFFilters search={search} onChange={setFiltro} t={t} />
                             {podeSalvar && (
                                 <Button type="button" variant="outline" size="sm" onClick={salvarView}><Bookmark /> {t('explorer.salvarView')}</Button>
                             )}
@@ -177,6 +194,75 @@ export function ExplorerPage(): JSX.Element {
 /** Formata um CNPJ (14 dígitos) para o chip; devolve intacto se não for. */
 function cnpjChip(c: string): string {
     return c.length === 14 ? c.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : c;
+}
+
+interface NFSearch {
+    dataEmissaoInicio?: string; dataEmissaoFim?: string; valorTotalMin?: string;
+    valorTotalMax?: string; tipoNF?: string; finalidade?: string; cfop?: string; ncm?: string;
+}
+
+/**
+ * Painel de filtros avançados de NF (redesign BI / NOTA-125 D): expõe os filtros
+ * que a API /nf já aceita e a UI escondia (datas, valor min/max, tipo, finalidade,
+ * CFOP, NCM). Escreve no search da URL (linkável). O nº de filtros ativos aparece
+ * no botão. Selects nativos (ADR-10). Comprovante do que a API oferece em uso.
+ */
+function NFFilters({ search, onChange, t }: { search: NFSearch; onChange: (campo: string, valor: string) => void; t: (k: string) => string }): JSX.Element {
+    const campos: (keyof NFSearch)[] = ['dataEmissaoInicio', 'dataEmissaoFim', 'valorTotalMin', 'valorTotalMax', 'tipoNF', 'finalidade', 'cfop', 'ncm'];
+    const ativos = campos.filter((c) => search[c]).length;
+    return (
+        <Popover>
+            <PopoverTrigger asChild>
+                <Button type="button" variant={ativos > 0 ? 'default' : 'outline'} size="sm">
+                    <Filter /> {t('nf.filtros.titulo')}{ativos > 0 ? ` · ${ativos}` : ''}
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-80 space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                    <FiltroCampo label={t('nf.filtros.emissaoInicio')} type="date" value={search.dataEmissaoInicio} onChange={(v) => onChange('dataEmissaoInicio', v)} />
+                    <FiltroCampo label={t('nf.filtros.emissaoFim')} type="date" value={search.dataEmissaoFim} onChange={(v) => onChange('dataEmissaoFim', v)} />
+                    <FiltroCampo label={t('nf.filtros.valorMin')} type="number" value={search.valorTotalMin} onChange={(v) => onChange('valorTotalMin', v)} />
+                    <FiltroCampo label={t('nf.filtros.valorMax')} type="number" value={search.valorTotalMax} onChange={(v) => onChange('valorTotalMax', v)} />
+                    <FiltroCampo label="CFOP" value={search.cfop} onChange={(v) => onChange('cfop', v)} />
+                    <FiltroCampo label="NCM" value={search.ncm} onChange={(v) => onChange('ncm', v)} />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                    <div className="grid gap-1">
+                        <Label className="text-[11px] text-muted-foreground">{t('nf.filtros.tipoNF')}</Label>
+                        <NativeSelect value={search.tipoNF ?? ''} onChange={(e) => onChange('tipoNF', e.target.value)} wrapperClassName="w-full">
+                            <option value="">{t('nf.filtros.todos')}</option>
+                            <option value="entrada">{t('nf.filtros.tipoEntrada')}</option>
+                            <option value="saida">{t('nf.filtros.tipoSaida')}</option>
+                        </NativeSelect>
+                    </div>
+                    <div className="grid gap-1">
+                        <Label className="text-[11px] text-muted-foreground">{t('nf.filtros.finalidade')}</Label>
+                        <NativeSelect value={search.finalidade ?? ''} onChange={(e) => onChange('finalidade', e.target.value)} wrapperClassName="w-full">
+                            <option value="">{t('nf.filtros.todos')}</option>
+                            <option value="normal">{t('nf.filtros.finNormal')}</option>
+                            <option value="complementar">{t('nf.filtros.finComplementar')}</option>
+                            <option value="ajuste">{t('nf.filtros.finAjuste')}</option>
+                            <option value="devolucao">{t('nf.filtros.finDevolucao')}</option>
+                        </NativeSelect>
+                    </div>
+                </div>
+                {ativos > 0 && (
+                    <Button type="button" variant="ghost" size="sm" className="w-full" onClick={() => campos.forEach((c) => onChange(c, ''))}>
+                        <X /> {t('nf.filtros.limparTudo')}
+                    </Button>
+                )}
+            </PopoverContent>
+        </Popover>
+    );
+}
+
+function FiltroCampo({ label, type = 'text', value, onChange }: { label: string; type?: string; value?: string; onChange: (v: string) => void }): JSX.Element {
+    return (
+        <div className="grid gap-1">
+            <Label className="text-[11px] text-muted-foreground">{label}</Label>
+            <Input type={type} value={value ?? ''} onChange={(e) => onChange(e.target.value)} className="h-8" />
+        </div>
+    );
 }
 
 /** Chip somente-leitura de um filtro de recorte ativo (rótulo + valor). */

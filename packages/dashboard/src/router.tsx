@@ -71,6 +71,8 @@ const explorarRoute = createRoute({
     validateSearch: (search: Record<string, unknown>): {
         entity?: string; peek?: string; q?: string; status?: string;
         ufEmitente?: string; cnpjEmitente?: string; ncm?: string; comImposto?: boolean;
+        dataEmissaoInicio?: string; dataEmissaoFim?: string;
+        valorTotalMin?: string; valorTotalMax?: string; tipoNF?: string; finalidade?: string; cfop?: string;
     } => ({
         entity: typeof search.entity === 'string' ? search.entity : undefined,
         peek: typeof search.peek === 'string' ? search.peek : undefined,
@@ -80,6 +82,14 @@ const explorarRoute = createRoute({
         cnpjEmitente: typeof search.cnpjEmitente === 'string' ? search.cnpjEmitente : undefined,
         ncm: typeof search.ncm === 'string' ? search.ncm : undefined,
         comImposto: search.comImposto === true || search.comImposto === 'true' ? true : undefined,
+        // Filtros avançados de NF (NOTA-125 D) — mantidos como string na URL.
+        dataEmissaoInicio: typeof search.dataEmissaoInicio === 'string' ? search.dataEmissaoInicio : undefined,
+        dataEmissaoFim: typeof search.dataEmissaoFim === 'string' ? search.dataEmissaoFim : undefined,
+        valorTotalMin: typeof search.valorTotalMin === 'string' ? search.valorTotalMin : undefined,
+        valorTotalMax: typeof search.valorTotalMax === 'string' ? search.valorTotalMax : undefined,
+        tipoNF: typeof search.tipoNF === 'string' ? search.tipoNF : undefined,
+        finalidade: typeof search.finalidade === 'string' ? search.finalidade : undefined,
+        cfop: typeof search.cfop === 'string' ? search.cfop : undefined,
     }),
     component: ExplorerPage,
 });
