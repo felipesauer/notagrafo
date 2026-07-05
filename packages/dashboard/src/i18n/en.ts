@@ -108,6 +108,7 @@ export const en = {
         titulo: 'Products', descricao: 'Description', ncm: 'NCM', totalNFs: 'Invoices',
         quantidade: 'Quantity', valorTotal: 'Total value', precoMedio: 'Average price',
         historicoPreco: 'Average price history', semHistorico: 'No price history.',
+        empresasLigadas: 'Linked companies',
     },
     impostos: {
         titulo: 'Taxes', vazio: 'No taxes recorded in the dataset.',

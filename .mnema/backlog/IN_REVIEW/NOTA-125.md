@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-125
-  state: IN_PROGRESS
+  state: IN_REVIEW
   title: >-
     Fase 7 — Correções da auditoria: mobile/sidebar, grafo rico, telas que
     subutilizam a API, filtros
@@ -51,6 +51,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-05T04:04:23.310Z'
+  updated_at: '2026-07-05T04:38:58.609Z'
 ---
 # Fase 7 — Correções da auditoria: mobile/sidebar, grafo rico, telas que subutilizam a API, filtros

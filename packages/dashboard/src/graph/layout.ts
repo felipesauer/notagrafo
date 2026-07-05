@@ -48,27 +48,40 @@ const withSize = (nodes: GraphNode[], pos: (id: string) => { x: number; y: numbe
 export function applyLayout(nodes: GraphNode[], edges: Edge[]): GraphNode[] {
     const root = nodes.find((n) => (n.data as NodeData).relacao === 'raiz');
     const outros = nodes.filter((n) => n !== root);
-    // radial só quando é ego-graph raso: 1 raiz + vizinhos, sem cadeias
-    const isEgoRaso = root && outros.length >= 1 && outros.length <= 24
-        && outros.every((n) => edges.some((e) => (e.source === root.id && e.target === n.id) || (e.target === root.id && e.source === n.id)));
+    // radial quando é ego-graph: 1 raiz + vizinhos diretos (sem cadeias profundas).
+    // Não há mais teto de 24 — para muitos nós usamos ANÉIS CONCÊNTRICOS por tipo
+    // (empresas no anel interno; produtos/notas nos externos), evitando a coluna
+    // densa que o dagre LR produzia com dezenas de nós.
+    const vizinhosDiretos = outros.every((n) => edges.some((e) => (e.source === root?.id && e.target === n.id) || (e.target === root?.id && e.source === n.id)));
+    const isEgo = root && outros.length >= 1 && vizinhosDiretos;
 
-    if (isEgoRaso && root) {
-        // raio cresce com a quantidade de vizinhos para não colarem
-        const R = Math.max(300, 90 + outros.length * 46);
+    if (isEgo && root) {
         const cx = 0, cy = 0;
         const pos = new Map<string, { x: number; y: number }>([[root.id, { x: cx, y: cy }]]);
-        // handle do vizinho voltado para o centro (lado oposto à sua posição):
-        // à direita da raiz → conecta pela esquerda; acima → por baixo; etc.
+        const handles = new Map<string, { source: Position; target: Position }>();
         const sideFor = (dx: number, dy: number): Position =>
             Math.abs(dx) >= Math.abs(dy) ? (dx >= 0 ? Position.Left : Position.Right) : (dy >= 0 ? Position.Top : Position.Bottom);
-        const handles = new Map<string, { source: Position; target: Position }>();
-        outros.forEach((n, i) => {
-            const ang = (i / outros.length) * Math.PI * 2 - Math.PI / 2 + 0.0001;
-            const dx = Math.cos(ang), dy = Math.sin(ang);
-            pos.set(n.id, { x: cx + dx * R, y: cy + dy * R });
-            const side = sideFor(dx, dy);
-            handles.set(n.id, { source: side, target: side });
+
+        // Agrupa por tipo em anéis: empresas (interno) → produtos → notas (externo).
+        const porTipo = (t: NodeType): GraphNode[] => outros.filter((n) => (n.data as NodeData).tipo === t);
+        const aneis = [porTipo('empresa'), porTipo('produto'), porTipo('notafiscal')].filter((a) => a.length > 0);
+
+        aneis.forEach((anel, idx) => {
+            // raio do anel cresce com o índice e com o tamanho do MAIOR anel (evita
+            // sobreposição entre anéis quando um deles tem muitos nós).
+            const maxAnel = Math.max(...aneis.map((a) => a.length));
+            const R = 300 + idx * Math.max(220, maxAnel * 12);
+            // desloca o ângulo inicial de cada anel para os nós não alinharem radialmente
+            const off = (idx * Math.PI) / aneis.length;
+            anel.forEach((n, i) => {
+                const ang = (i / anel.length) * Math.PI * 2 - Math.PI / 2 + off + 0.0001;
+                const dx = Math.cos(ang), dy = Math.sin(ang);
+                pos.set(n.id, { x: cx + dx * R, y: cy + dy * R });
+                const side = sideFor(dx, dy);
+                handles.set(n.id, { source: side, target: side });
+            });
         });
+
         return nodes.map((n) => {
             const p = pos.get(n.id) ?? { x: 0, y: 0 };
             const h = handles.get(n.id);

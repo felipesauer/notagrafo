@@ -137,6 +137,24 @@ export function usePriceHistory(idUnico: string) {
     });
 }
 
+export interface ProdutoEmpresa {
+    cnpj: string;
+    razaoSocial: string;
+    papel: 'emitente' | 'destinatario';
+    totalNFs: number;
+    /** Soma do valorTotal dos itens (aresta CONTÉM) desse produto. */
+    valor: number;
+}
+
+/** Empresas ligadas a um produto (emitentes/destinatários) — /stats/produto/:id/empresas. */
+export function useProductCompanies(idUnico: string) {
+    return useQuery({
+        queryKey: ['stats', 'produto-empresas', idUnico],
+        queryFn: () => apiFetch<{ idUnico: string; empresas: ProdutoEmpresa[] }>(`/stats/produto/${encodeURIComponent(idUnico)}/empresas`),
+        enabled: !!idUnico,
+    });
+}
+
 export interface TaxStats {
     totais: { vICMS: number; vICMSST: number; vIPI: number; vPIS: number; vCOFINS: number; vII: number; vFCP: number };
     serie: Array<{ periodo: string; vICMS: number; vIPI: number; vPIS: number; vCOFINS: number }>;

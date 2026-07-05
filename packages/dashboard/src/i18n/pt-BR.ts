@@ -91,6 +91,7 @@ export const ptBR = {
         titulo: 'Produtos', descricao: 'Descrição', ncm: 'NCM', totalNFs: 'NFs',
         quantidade: 'Quantidade', valorTotal: 'Valor total', precoMedio: 'Preço médio',
         historicoPreco: 'Histórico de preço médio', semHistorico: 'Sem histórico de preço.',
+        empresasLigadas: 'Empresas ligadas',
     },
     impostos: {
         titulo: 'Impostos', vazio: 'Nenhum imposto registrado na base.',

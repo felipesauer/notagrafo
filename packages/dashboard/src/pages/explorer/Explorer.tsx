@@ -176,7 +176,7 @@ export function ExplorerPage(): JSX.Element {
                 ) : entity === 'empresas' ? (
                     <ExplorerEmpresas peek={search.peek} onPeek={setPeek} />
                 ) : entity === 'produtos' ? (
-                    <ExplorerProdutos />
+                    <ExplorerProdutos peek={search.peek} onPeek={setPeek} />
                 ) : entity === 'impostos' ? (
                     <ExplorerImpostos />
                 ) : entity === 'rede' ? (

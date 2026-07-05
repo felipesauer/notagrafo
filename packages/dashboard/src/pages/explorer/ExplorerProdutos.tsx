@@ -1,17 +1,30 @@
 import { type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from '@tanstack/react-router';
-import { useTopProducts } from '../../api/hooks.js';
+import { Area, AreaChart, XAxis, YAxis } from 'recharts';
+import { X } from 'lucide-react';
+import { useTopProducts, usePriceHistory, useProductCompanies } from '../../api/hooks.js';
 import { LoadingSkeleton, InlineError, EmptyState } from '../../components/shared.js';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table.js';
 import { Card } from '../../components/ui/card.js';
+import { Sheet, SheetContent } from '../../components/ui/sheet.js';
+import { Button } from '../../components/ui/button.js';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '../../components/ui/chart.js';
 import { useDensityStore, densityClass } from '../../stores/density.store.js';
 
 interface Produto { idUnico: string; descricao?: string; ncm?: string; totalNFs?: number; valorTotal?: number }
 const brlK = (n: number): string => (n >= 1000 ? `R$ ${(n / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mil` : `R$ ${n.toFixed(2)}`);
+const cnpjFmt = (c: string): string => (c.length === 14 ? c.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : c);
 
-/** Explorador da entidade Produtos: ranking por volume, com deep-link para as NF-e do NCM. */
-export function ExplorerProdutos(): JSX.Element {
+const precoConfig = { precoMedio: { label: 'Preço médio', color: 'var(--chart-3)' } } satisfies ChartConfig;
+
+/**
+ * Explorador da entidade Produtos: ranking por volume, deep-link por NCM e — ao
+ * clicar na linha — um Peek lateral com o histórico de preço (usePriceHistory) e
+ * as empresas ligadas (useProductCompanies). Aproveita endpoints que existiam mas
+ * não tinham tela (NOTA-125 polish).
+ */
+export function ExplorerProdutos({ peek, onPeek }: { peek?: string; onPeek: (id: string | undefined) => void }): JSX.Element {
     const { t } = useTranslation();
     const density = useDensityStore((s) => s.density);
     const { data, isLoading, isError, refetch } = useTopProducts();
@@ -20,6 +33,8 @@ export function ExplorerProdutos(): JSX.Element {
     if (isLoading) return <LoadingSkeleton variant="table" linhas={8} colunas={4} />;
     if (isError) return <InlineError onRetry={() => void refetch()} />;
     if (rows.length === 0) return <EmptyState />;
+
+    const sel = peek ? rows.find((p) => p.idUnico === peek) : undefined;
 
     return (
         <>
@@ -35,9 +50,13 @@ export function ExplorerProdutos(): JSX.Element {
                     </TableHeader>
                     <TableBody>
                         {rows.map((p) => (
-                            <TableRow key={p.idUnico}>
+                            <TableRow
+                                key={p.idUnico}
+                                className={`cursor-pointer ${sel?.idUnico === p.idUnico ? 'bg-primary/10 shadow-[inset_2px_0_0_var(--primary)]' : ''}`}
+                                onClick={() => onPeek(p.idUnico)}
+                            >
                                 <TableCell className="font-medium">{p.descricao || '—'}</TableCell>
-                                <TableCell>
+                                <TableCell onClick={(e) => e.stopPropagation()}>
                                     {p.ncm ? <Link className="font-mono text-[12px] text-primary hover:underline" to={'/explorar' as string} search={{ entity: 'notas', ncm: p.ncm } as never}>{p.ncm}</Link> : <span className="text-muted-foreground">—</span>}
                                 </TableCell>
                                 <TableCell className="text-right font-mono tabular-nums">{p.totalNFs ?? 0}</TableCell>
@@ -48,17 +67,85 @@ export function ExplorerProdutos(): JSX.Element {
                 </Table>
             </div>
 
-            <div className="grid gap-2.5 p-3 md:hidden">
+            <div className="grid gap-2.5 p-3 md:hidden" data-testid="data-cards">
                 {rows.map((p) => (
-                    <Card key={p.idUnico} className="gap-0 p-3.5">
+                    <Card key={p.idUnico} className="cursor-pointer gap-0 p-3.5" onClick={() => onPeek(p.idUnico)}>
                         <p className="font-medium leading-tight">{p.descricao || '—'}</p>
                         <div className="mt-2 flex items-center justify-between border-t pt-2 text-xs">
-                            {p.ncm ? <Link className="font-mono text-primary" to={'/explorar' as string} search={{ entity: 'notas', ncm: p.ncm } as never}>NCM {p.ncm}</Link> : <span className="text-muted-foreground">—</span>}
+                            {p.ncm ? <Link className="font-mono text-primary" to={'/explorar' as string} search={{ entity: 'notas', ncm: p.ncm } as never} onClick={(e) => e.stopPropagation()}>NCM {p.ncm}</Link> : <span className="text-muted-foreground">—</span>}
                             <span className="font-mono font-medium tabular-nums">{brlK(p.valorTotal ?? 0)} · {p.totalNFs ?? 0} NF-e</span>
                         </div>
                     </Card>
                 ))}
             </div>
+
+            <ProdutoPeek produto={sel} onClose={() => onPeek(undefined)} />
         </>
+    );
+}
+
+/** Peek lateral do produto: histórico de preço (área) + empresas ligadas. */
+function ProdutoPeek({ produto, onClose }: { produto?: Produto; onClose: () => void }): JSX.Element {
+    const { t } = useTranslation();
+    const id = produto?.idUnico ?? '';
+    const historico = usePriceHistory(id).data?.historico ?? [];
+    const empresas = useProductCompanies(id).data?.empresas ?? [];
+
+    return (
+        <Sheet open={!!produto} onOpenChange={(o) => !o && onClose()}>
+            <SheetContent side="right" className="flex w-[440px] max-w-[92vw] flex-col gap-0 p-0" data-testid="produto-peek">
+                {produto && (
+                    <>
+                        <div className="flex items-start gap-2 border-b px-4 py-3">
+                            <div className="min-w-0">
+                                <h4 className="truncate text-base font-semibold" title={produto.descricao}>{produto.descricao || produto.idUnico}</h4>
+                                <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">{produto.ncm ? `NCM ${produto.ncm} · ` : ''}{brlK(produto.valorTotal ?? 0)} · {produto.totalNFs ?? 0} NF-e</p>
+                            </div>
+                            <Button type="button" variant="ghost" size="icon-sm" className="ml-auto" onClick={onClose} aria-label={t('comum.fechar')}><X /></Button>
+                        </div>
+                        <div className="flex flex-col gap-5 overflow-y-auto p-4">
+                            <div>
+                                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{t('produtos.historicoPreco')}</p>
+                                {historico.length === 0 ? <EmptyState /> : (
+                                    <ChartContainer config={precoConfig} className="h-[150px] w-full">
+                                        <AreaChart data={historico} margin={{ left: 4, right: 8, top: 8 }}>
+                                            <defs>
+                                                <linearGradient id="prod-preco" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="0%" stopColor="var(--color-precoMedio)" stopOpacity={0.3} />
+                                                    <stop offset="100%" stopColor="var(--color-precoMedio)" stopOpacity={0} />
+                                                </linearGradient>
+                                            </defs>
+                                            <XAxis dataKey="periodo" tickLine={false} axisLine={false} fontSize={10} minTickGap={24} />
+                                            <YAxis tickLine={false} axisLine={false} fontSize={10} width={40} tickFormatter={(v: number) => (v >= 1000 ? `${Math.round(v / 1000)}k` : String(v))} />
+                                            <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
+                                            <Area dataKey="precoMedio" type="monotone" stroke="var(--color-precoMedio)" fill="url(#prod-preco)" strokeWidth={2} />
+                                        </AreaChart>
+                                    </ChartContainer>
+                                )}
+                            </div>
+                            <div>
+                                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{t('produtos.empresasLigadas')}</p>
+                                {empresas.length === 0 ? <EmptyState /> : (
+                                    <ul className="space-y-1.5">
+                                        {empresas.slice(0, 10).map((e) => (
+                                            <li key={`${e.cnpj}-${e.papel}`} className="flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs">
+                                                <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${e.papel === 'emitente' ? 'bg-chart-1/10 text-chart-1' : 'bg-chart-2/10 text-chart-2'}`}>
+                                                    {t(e.papel === 'emitente' ? 'nf.emitente' : 'nf.destinatario')}
+                                                </span>
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="truncate font-medium">{e.razaoSocial}</p>
+                                                    <p className="font-mono text-[10px] text-muted-foreground">{cnpjFmt(e.cnpj)}</p>
+                                                </div>
+                                                <span className="font-mono tabular-nums text-muted-foreground">{brlK(e.valor)}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+                        </div>
+                    </>
+                )}
+            </SheetContent>
+        </Sheet>
     );
 }
