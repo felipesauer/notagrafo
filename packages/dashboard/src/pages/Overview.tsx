@@ -143,9 +143,9 @@ function OverviewContent({
         : [];
 
     return (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-12">
             {/* ── KPIs headline (topo, zona F) — entram em stagger sutil ── */}
-            <FadeIn className="lg:col-span-3" delay={0}>
+            <FadeIn className="sm:col-span-6 lg:col-span-3" delay={0}>
                 <KpiCard
                     label={t('overview.totalNFs')}
                     value={o.totalNFs.toLocaleString('pt-BR')}
@@ -156,7 +156,7 @@ function OverviewContent({
                     sparkColor="var(--chart-1)"
                 />
             </FadeIn>
-            <FadeIn className="lg:col-span-3" delay={0.05}>
+            <FadeIn className="sm:col-span-6 lg:col-span-3" delay={0.05}>
                 <KpiCard
                     label={t('overview.valorTotal')}
                     value={brlCompact(o.valorTotalProcessado)}
@@ -167,7 +167,7 @@ function OverviewContent({
                     sparkColor="var(--chart-3)"
                 />
             </FadeIn>
-            <FadeIn className="lg:col-span-3" delay={0.1}>
+            <FadeIn className="sm:col-span-6 lg:col-span-3" delay={0.1}>
                 <KpiCard
                     label={t('overview.totalEmpresas')}
                     value={o.totalEmpresas.toLocaleString('pt-BR')}
@@ -175,7 +175,7 @@ function OverviewContent({
                     hint={t('overview.empresasHint', { count: o.totalEmpresas })}
                 />
             </FadeIn>
-            <FadeIn className="lg:col-span-3" delay={0.15}>
+            <FadeIn className="sm:col-span-6 lg:col-span-3" delay={0.15}>
                 <KpiCard
                     label={t('overview.totalProdutos')}
                     value={o.totalProdutos.toLocaleString('pt-BR')}
@@ -185,7 +185,7 @@ function OverviewContent({
             </FadeIn>
 
             {/* ── Área grande: volume + valor (8 col) ── */}
-            <FadeIn className="lg:col-span-8" delay={0.2}>
+            <FadeIn className="sm:col-span-12 lg:col-span-8" delay={0.2}>
                 <ChartCard title={t('overview.volumeTitulo')} config={volumeConfig} className="h-[280px] w-full">
                     <ComposedChart data={volumeSeries} margin={{ left: 4, right: 8, top: 8 }}>
                         <defs>
@@ -207,7 +207,7 @@ function OverviewContent({
             </FadeIn>
 
             {/* ── Donut composição tributária (4 col) ── */}
-            <FadeIn className="lg:col-span-4" delay={0.25}>
+            <FadeIn className="sm:col-span-12 lg:col-span-4" delay={0.25}>
                 <Card data-testid="chart" className="gap-4">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0">
                         <h3 className="text-base leading-none font-semibold">{t('overview.composicaoTributaria')}</h3>
@@ -243,7 +243,7 @@ function OverviewContent({
 
             {/* ── Ranking fornecedores (5 col) — cada linha faz drill-through para
                    o Explorer filtrado pelo CNPJ do emitente ── */}
-            <FadeIn className="lg:col-span-5" delay={0.3}>
+            <FadeIn className="sm:col-span-12 lg:col-span-5" delay={0.3}>
                 <Card data-testid="chart" className="gap-4">
                     <CardHeader className="space-y-0"><h3 className="text-base leading-none font-semibold">{t('overview.topFornecedores')}</h3></CardHeader>
                     <CardContent>
@@ -266,7 +266,7 @@ function OverviewContent({
             </FadeIn>
 
             {/* ── Distribuição por UF — treemap denso (7 col) ── */}
-            <FadeIn className="lg:col-span-7" delay={0.35}>
+            <FadeIn className="sm:col-span-12 lg:col-span-7" delay={0.35}>
                 <Card data-testid="chart" className="gap-4">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0">
                         <h3 className="text-base leading-none font-semibold">{t('overview.distribuicaoUf')}</h3>
@@ -300,7 +300,7 @@ function OverviewContent({
             </FadeIn>
 
             {/* ── Últimas NFs (largura total) ── */}
-            <FadeIn className="lg:col-span-12" delay={0.4}>
+            <FadeIn className="sm:col-span-12 lg:col-span-12" delay={0.4}>
                 <Card className="py-4">
                     <CardContent className="px-4">
                         <h3 className="mb-3 text-base font-semibold">{t('overview.ultimasNFs')}</h3>

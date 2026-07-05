@@ -50,11 +50,12 @@ export function Topbar(): JSX.Element {
                 <span>{t(pageLabelKey(pathname))}</span>
             </div>
 
-            {/* busca centralizada (dispara Cmd+K) */}
+            {/* busca centralizada (dispara Cmd+K) — só de md pra cima (no mobile a
+                barra absoluta colidia com o breadcrumb; lá vira uma lupa compacta). */}
             <button
                 type="button"
                 onClick={openCommand}
-                className="absolute left-1/2 top-1/2 flex w-[340px] max-w-[38vw] -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-lg border bg-muted/60 px-3 py-1.5 text-[13px] text-muted-foreground transition-colors hover:border-border hover:bg-muted"
+                className="absolute left-1/2 top-1/2 hidden w-[340px] max-w-[38vw] -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-lg border bg-muted/60 px-3 py-1.5 text-[13px] text-muted-foreground transition-colors hover:border-border hover:bg-muted md:flex"
             >
                 <Search className="size-4" />
                 <span className="truncate">{t('comando.placeholder')}</span>
@@ -62,6 +63,10 @@ export function Topbar(): JSX.Element {
             </button>
 
             <div className="ml-auto flex items-center gap-1">
+                {/* busca compacta no mobile */}
+                <Button type="button" variant="ghost" size="icon" className="md:hidden" onClick={openCommand} aria-label={t('comando.placeholder')}>
+                    <Search />
+                </Button>
                 <Button type="button" variant="ghost" size="icon" onClick={toggleTema} aria-label={t('header.alternarTema')}>
                     {tema === 'claro' ? <Moon /> : <Sun />}
                 </Button>
