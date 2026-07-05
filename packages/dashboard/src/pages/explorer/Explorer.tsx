@@ -95,6 +95,16 @@ export function ExplorerPage(): JSX.Element {
     function setFiltro(campo: string, valor: string): void {
         void navigate({ to: '/explorar' as string, search: { ...search, [campo]: valor || undefined } as never });
     }
+    /** Limpa TODOS os filtros avançados de uma vez (um único navigate — chamar
+     *  setFiltro em loop não funciona: as navegações partem do mesmo snapshot de
+     *  search e se sobrescrevem, restando só a última). */
+    function limparFiltros(): void {
+        const limpo = { ...search };
+        for (const c of ['dataEmissaoInicio', 'dataEmissaoFim', 'valorTotalMin', 'valorTotalMax', 'tipoNF', 'finalidade', 'cfop', 'ncm']) {
+            delete (limpo as Record<string, unknown>)[c];
+        }
+        void navigate({ to: '/explorar' as string, search: limpo as never });
+    }
     function setPeek(chave: string | undefined): void {
         void navigate({ to: '/explorar' as string, search: { ...search, peek: chave } as never });
     }
@@ -145,7 +155,7 @@ export function ExplorerPage(): JSX.Element {
                                 <option value="denegada">{t('nf.statusDenegada')}</option>
                                 <option value="inutilizada">{t('nf.statusInutilizada')}</option>
                             </NativeSelect>
-                            <NFFilters search={search} onChange={setFiltro} t={t} />
+                            <NFFilters search={search} onChange={setFiltro} onClearAll={limparFiltros} t={t} />
                             {podeSalvar && (
                                 <Button type="button" variant="outline" size="sm" onClick={salvarView}><Bookmark /> {t('explorer.salvarView')}</Button>
                             )}
@@ -207,7 +217,7 @@ interface NFSearch {
  * CFOP, NCM). Escreve no search da URL (linkável). O nº de filtros ativos aparece
  * no botão. Selects nativos (ADR-10). Comprovante do que a API oferece em uso.
  */
-function NFFilters({ search, onChange, t }: { search: NFSearch; onChange: (campo: string, valor: string) => void; t: (k: string) => string }): JSX.Element {
+function NFFilters({ search, onChange, onClearAll, t }: { search: NFSearch; onChange: (campo: string, valor: string) => void; onClearAll: () => void; t: (k: string) => string }): JSX.Element {
     const campos: (keyof NFSearch)[] = ['dataEmissaoInicio', 'dataEmissaoFim', 'valorTotalMin', 'valorTotalMax', 'tipoNF', 'finalidade', 'cfop', 'ncm'];
     const ativos = campos.filter((c) => search[c]).length;
     return (
@@ -247,7 +257,7 @@ function NFFilters({ search, onChange, t }: { search: NFSearch; onChange: (campo
                     </div>
                 </div>
                 {ativos > 0 && (
-                    <Button type="button" variant="ghost" size="sm" className="w-full" onClick={() => campos.forEach((c) => onChange(c, ''))}>
+                    <Button type="button" variant="ghost" size="sm" className="w-full" onClick={onClearAll}>
                         <X /> {t('nf.filtros.limparTudo')}
                     </Button>
                 )}

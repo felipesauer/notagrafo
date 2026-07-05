@@ -2,13 +2,11 @@ import { type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from '@tanstack/react-router';
 import { Area, AreaChart, XAxis, YAxis } from 'recharts';
-import { X } from 'lucide-react';
 import { useTopProducts, usePriceHistory, useProductCompanies } from '../../api/hooks.js';
 import { LoadingSkeleton, InlineError, EmptyState } from '../../components/shared.js';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table.js';
 import { Card } from '../../components/ui/card.js';
-import { Sheet, SheetContent } from '../../components/ui/sheet.js';
-import { Button } from '../../components/ui/button.js';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '../../components/ui/sheet.js';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '../../components/ui/chart.js';
 import { useDensityStore, densityClass } from '../../stores/density.store.js';
 
@@ -96,13 +94,10 @@ function ProdutoPeek({ produto, onClose }: { produto?: Produto; onClose: () => v
             <SheetContent side="right" className="flex w-[440px] max-w-[92vw] flex-col gap-0 p-0" data-testid="produto-peek">
                 {produto && (
                     <>
-                        <div className="flex items-start gap-2 border-b px-4 py-3">
-                            <div className="min-w-0">
-                                <h4 className="truncate text-base font-semibold" title={produto.descricao}>{produto.descricao || produto.idUnico}</h4>
-                                <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">{produto.ncm ? `NCM ${produto.ncm} · ` : ''}{brlK(produto.valorTotal ?? 0)} · {produto.totalNFs ?? 0} NF-e</p>
-                            </div>
-                            <Button type="button" variant="ghost" size="icon-sm" className="ml-auto" onClick={onClose} aria-label={t('comum.fechar')}><X /></Button>
-                        </div>
+                        <SheetHeader className="border-b px-4 py-3">
+                            <SheetTitle className="truncate text-base" title={produto.descricao}>{produto.descricao || produto.idUnico}</SheetTitle>
+                            <p className="font-mono text-[11px] text-muted-foreground">{produto.ncm ? `NCM ${produto.ncm} · ` : ''}{brlK(produto.valorTotal ?? 0)} · {produto.totalNFs ?? 0} NF-e</p>
+                        </SheetHeader>
                         <div className="flex flex-col gap-5 overflow-y-auto p-4">
                             <div>
                                 <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{t('produtos.historicoPreco')}</p>

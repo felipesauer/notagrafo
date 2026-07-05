@@ -207,8 +207,12 @@ export async function getCompanyGraph(
         if (opts.includeNotas) {
             const notasLimit = opts.notasLimit ?? 30;
             const notasRes = await session.run(
+                // Exclui stubs (status IS NULL) e devoluções (finalidade='devolucao'),
+                // consistente com product/tax.queries — senão o grafo mostraria NF-e
+                // que não aparecem em nenhum agregado.
                 `MATCH (e:Empresa)-[:EMITIU]->(nf:NotaFiscal)-[:DESTINADA_A]->(d:Empresa)
                  WHERE (e.cnpj = $cnpj OR d.cnpj = $cnpj) AND nf.status IS NOT NULL
+                       AND coalesce(nf.finalidade, '') <> 'devolucao'
                  RETURN nf.chaveAcesso AS chaveAcesso, nf.numero AS numero,
                         nf.valorTotal AS valorTotal, nf.status AS status,
                         e.cnpj AS cnpjEmitente, d.cnpj AS cnpjDestinatario
