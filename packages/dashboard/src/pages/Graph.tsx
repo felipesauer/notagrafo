@@ -71,9 +71,11 @@ function GraphInner(): JSX.Element {
     const depth = useGraphStore((s) => s.depth);
     const direction = useGraphStore((s) => s.direction);
     const includeProdutos = useGraphStore((s) => s.includeProdutos);
+    const includeNotas = useGraphStore((s) => s.includeNotas);
     const setDepth = useGraphStore((s) => s.setDepth);
     const setDirection = useGraphStore((s) => s.setDirection);
     const setIncludeProdutos = useGraphStore((s) => s.setIncludeProdutos);
+    const setIncludeNotas = useGraphStore((s) => s.setIncludeNotas);
 
     const [graph, setGraph] = useState<{ nodes: GraphNode[]; edges: GraphEdge[] }>({ nodes: [], edges: [] });
     const [selected, setSelected] = useState<NodeData | null>(null);
@@ -82,15 +84,16 @@ function GraphInner(): JSX.Element {
     const [hovered, setHovered] = useState<string | null>(null);
     const { nodes, edges } = graph;
 
-    const load = useCallback(async (cnpj: string, degree: number, dir: GraphDirection, merge: boolean, produtos = false) => {
+    const load = useCallback(async (cnpj: string, degree: number, dir: GraphDirection, merge: boolean, produtos = false, notas = false) => {
         const prodParam = produtos ? '&includeProdutos=true' : '';
+        const notasParam = notas ? '&includeNotas=true' : '';
         setLoading(true);
         try {
             // Busca o grafo e, em paralelo, os dados da empresa-raiz (a API do
             // grafo não inclui a própria raiz em `nos`, então o nó raiz ficaria
             // só com o CNPJ). Falha do /empresa não derruba o grafo.
             const [api, rootMeta] = await Promise.all([
-                apiFetch<ApiGraph>(`/empresa/${cnpj}/grafo?depth=${degree}&direction=${dir}${prodParam}`),
+                apiFetch<ApiGraph>(`/empresa/${cnpj}/grafo?depth=${degree}&direction=${dir}${prodParam}${notasParam}`),
                 apiFetch<{ razaoSocial?: string; uf?: string; stats?: { totalNFsEmitidas?: number; totalNFsRecebidas?: number } }>(`/empresa/${cnpj}`).catch(() => null),
             ]);
             const meta = rootMeta
@@ -103,8 +106,8 @@ function GraphInner(): JSX.Element {
     }, []);
 
     useEffect(() => {
-        if (search.cnpj) void load(search.cnpj, depth, direction, false, includeProdutos);
-    }, [search.cnpj, depth, direction, includeProdutos, load]);
+        if (search.cnpj) void load(search.cnpj, depth, direction, false, includeProdutos, includeNotas);
+    }, [search.cnpj, depth, direction, includeProdutos, includeNotas, load]);
 
     // Re-enquadra sempre que o CONJUNTO de nós muda (busca, merge, expansão),
     // não só quando a contagem muda. O timeout dá ao React Flow tempo de medir
@@ -116,9 +119,9 @@ function GraphInner(): JSX.Element {
         (_e: unknown, node: Node) => {
             const data = node.data as NodeData;
             setSelected(data);
-            if (data.cnpj) void load(data.cnpj, 1, direction, true, includeProdutos);
+            if (data.cnpj) void load(data.cnpj, 1, direction, true, includeProdutos, includeNotas);
         },
-        [load, direction, includeProdutos],
+        [load, direction, includeProdutos, includeNotas],
     );
 
     function runSearch(): void {
@@ -215,6 +218,10 @@ function GraphInner(): JSX.Element {
                 <Label className="flex items-center gap-2 text-xs">
                     <Switch checked={includeProdutos} onCheckedChange={setIncludeProdutos} />
                     {t('grafo.incluirProdutos')}
+                </Label>
+                <Label className="flex items-center gap-2 text-xs">
+                    <Switch checked={includeNotas} onCheckedChange={setIncludeNotas} />
+                    {t('grafo.incluirNotas')}
                 </Label>
             </Card>
 

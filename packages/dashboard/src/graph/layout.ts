@@ -110,12 +110,22 @@ interface ApiProduto {
     totalNFs: number;
     valorTotal: number;
 }
+interface ApiNota {
+    chaveAcesso: string;
+    numero: string;
+    valorTotal: number;
+    status: string;
+    cnpjEmitente: string;
+    cnpjDestinatario: string;
+}
 export interface ApiGraph {
     cnpj: string;
     nos: ApiNode[];
     arestas: ApiEdge[];
     /** Presente quando a consulta usa includeProdutos=true (produtos da empresa-raiz). */
     produtos?: ApiProduto[];
+    /** Presente quando a consulta usa includeNotas=true (NF-e trocadas com vizinhos). */
+    notas?: ApiNota[];
 }
 
 /** Iniciais da razão social para o avatar do nó Empresa. */
@@ -207,6 +217,36 @@ export function mergeGraph(
         const edgeId = `${rootCnpj}->${id}`;
         if (!edgesById.has(edgeId)) {
             edgesById.set(edgeId, { id: edgeId, source: rootCnpj, target: id, type: 'weighted', data: { valorTotal: p.valorTotal, totalNFs: p.totalNFs } } as GraphEdge);
+        }
+    }
+
+    // NF-e trocadas (quando includeNotas): nó NotaFiscal entre emitente→NF→destinatário.
+    // Só cria a nota se pelo menos uma das pontas já é um nó de empresa no grafo,
+    // ligando a nota às empresas que existem (evita nós órfãos soltos).
+    for (const nf of api.notas ?? []) {
+        const emitOk = nodesById.has(nf.cnpjEmitente);
+        const destOk = nodesById.has(nf.cnpjDestinatario);
+        if (!emitOk && !destOk) continue;
+        const id = `nf:${nf.chaveAcesso}`;
+        if (!nodesById.has(id)) {
+            nodesById.set(id, {
+                id,
+                position: { x: 0, y: 0 },
+                data: {
+                    tipo: 'notafiscal',
+                    label: `NF ${nf.numero}`,
+                    totalNFs: 1,
+                    detalhes: { ...nf },
+                },
+            });
+        }
+        if (emitOk) {
+            const e1 = `${nf.cnpjEmitente}->${id}`;
+            if (!edgesById.has(e1)) edgesById.set(e1, { id: e1, source: nf.cnpjEmitente, target: id, type: 'weighted', data: { valorTotal: nf.valorTotal, totalNFs: 1 } } as GraphEdge);
+        }
+        if (destOk) {
+            const e2 = `${id}->${nf.cnpjDestinatario}`;
+            if (!edgesById.has(e2)) edgesById.set(e2, { id: e2, source: id, target: nf.cnpjDestinatario, type: 'weighted', data: { valorTotal: nf.valorTotal, totalNFs: 1 } } as GraphEdge);
         }
     }
 

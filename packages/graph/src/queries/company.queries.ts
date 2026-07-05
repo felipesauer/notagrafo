@@ -7,6 +7,8 @@ export interface GrafoOptions {
     direction?: Direction; // padrão 'both'
     limit?: number; // padrão 100
     includeProdutos?: boolean; // inclui os produtos emitidos pela empresa-raiz (padrão false)
+    includeNotas?: boolean; // inclui as NF-e trocadas entre a raiz e os vizinhos (padrão false)
+    notasLimit?: number; // teto de nós de NF-e (anti-hairball; padrão 30)
 }
 
 export interface NoVizinho {
@@ -34,6 +36,17 @@ export interface ProdutoNoGrafo {
     valorTotal: number;
 }
 
+/** NF-e trocada entre a raiz e um vizinho (nó de nota opcional no grafo visual). */
+export interface NotaNoGrafo {
+    chaveAcesso: string;
+    numero: string;
+    valorTotal: number;
+    status: string;
+    /** CNPJ do emitente e do destinatário — para ligar a nota às duas empresas. */
+    cnpjEmitente: string;
+    cnpjDestinatario: string;
+}
+
 export interface EmpresaGrafo {
     cnpj: string;
     depth: number;
@@ -41,6 +54,8 @@ export interface EmpresaGrafo {
     arestas: ArestaGrafo[];
     /** Presente apenas quando includeProdutos=true. Produtos emitidos pela empresa-raiz. */
     produtos?: ProdutoNoGrafo[];
+    /** Presente apenas quando includeNotas=true. NF-e trocadas com os vizinhos. */
+    notas?: NotaNoGrafo[];
 }
 
 export interface EmpresaStats {
@@ -185,7 +200,33 @@ export async function getCompanyGraph(
             }));
         }
 
-        return { cnpj, depth, nos, arestas, ...(produtos ? { produtos } : {}) };
+        // NF-e trocadas entre a raiz e os vizinhos (opcional): nós de NotaFiscal
+        // para o grafo visual. Limitado por notasLimit (anti-hairball) — as maiores
+        // por valor. Cada nota liga o emitente ao destinatário.
+        let notas: NotaNoGrafo[] | undefined;
+        if (opts.includeNotas) {
+            const notasLimit = opts.notasLimit ?? 30;
+            const notasRes = await session.run(
+                `MATCH (e:Empresa)-[:EMITIU]->(nf:NotaFiscal)-[:DESTINADA_A]->(d:Empresa)
+                 WHERE (e.cnpj = $cnpj OR d.cnpj = $cnpj) AND nf.status IS NOT NULL
+                 RETURN nf.chaveAcesso AS chaveAcesso, nf.numero AS numero,
+                        nf.valorTotal AS valorTotal, nf.status AS status,
+                        e.cnpj AS cnpjEmitente, d.cnpj AS cnpjDestinatario
+                 ORDER BY nf.valorTotal DESC
+                 LIMIT $notasLimit`,
+                { cnpj, notasLimit: neo4j.int(notasLimit) },
+            );
+            notas = notasRes.records.map((r) => ({
+                chaveAcesso: r.get('chaveAcesso') as string,
+                numero: (r.get('numero') as string) ?? '',
+                valorTotal: toNum(r.get('valorTotal')),
+                status: (r.get('status') as string) ?? '',
+                cnpjEmitente: r.get('cnpjEmitente') as string,
+                cnpjDestinatario: r.get('cnpjDestinatario') as string,
+            }));
+        }
+
+        return { cnpj, depth, nos, arestas, ...(produtos ? { produtos } : {}), ...(notas ? { notas } : {}) };
     } finally {
         await session.close();
     }

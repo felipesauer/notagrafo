@@ -106,6 +106,7 @@ export const ptBR = {
         tituloDrawer: 'Grafo de relações', subtituloDrawer: 'Parceiros comerciais desta empresa', abrirCompleto: 'Abrir completo',
         vazio: 'Busque uma empresa para começar.',
         incluirProdutos: 'Incluir produtos',
+        incluirNotas: 'Incluir notas',
         nfsComImposto: 'NFs com ICMS', nfsDoNcm: 'NFs deste NCM',
     },
     explorer: {

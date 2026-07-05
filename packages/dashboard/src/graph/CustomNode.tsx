@@ -39,8 +39,8 @@ export function CustomNode({ data, selected, sourcePosition, targetPosition }: N
             <Handle type="source" position={sourcePosition ?? Position.Right} className="!border-0 !bg-transparent" />
             <BaseNodeContent className="flex-row items-center gap-2.5 p-2.5">
                 <span
-                    className="flex size-9 shrink-0 items-center justify-center rounded-md text-white [&>svg]:size-4.5"
-                    style={{ background: color }}
+                    className="flex shrink-0 items-center justify-center rounded-md text-white [&>svg]:size-4.5"
+                    style={{ background: color, width: avatarSize(d.totalNFs), height: avatarSize(d.totalNFs) }}
                 >
                     <Icon />
                 </span>
@@ -51,7 +51,15 @@ export function CustomNode({ data, selected, sourcePosition, targetPosition }: N
                     {contexto && <p className="truncate text-[11px] text-muted-foreground">{contexto}</p>}
                 </div>
             </BaseNodeContent>
-            <Handle type="source" position={Position.Right} className="!bg-border" />
         </BaseNode>
     );
+}
+
+/** Tamanho do avatar por atividade (proxy de centralidade): 32→48px conforme totalNFs. */
+function avatarSize(totalNFs?: number): number {
+    const n = totalNFs ?? 0;
+    if (n >= 30) return 48;
+    if (n >= 15) return 42;
+    if (n >= 5) return 38;
+    return 32;
 }

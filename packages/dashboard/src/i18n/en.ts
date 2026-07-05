@@ -123,6 +123,7 @@ export const en = {
         tituloDrawer: 'Relationship graph', subtituloDrawer: 'This company’s trade partners', abrirCompleto: 'Open full',
         vazio: 'Search a company to start.',
         incluirProdutos: 'Include products',
+        incluirNotas: 'Include invoices',
         nfsComImposto: 'Invoices with ICMS', nfsDoNcm: 'Invoices of this NCM',
     },
     explorer: {
