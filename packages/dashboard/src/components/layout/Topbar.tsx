@@ -1,8 +1,9 @@
 import { type JSX } from 'react';
 import { useRouterState } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
-import { ChevronRight, Languages, Lightbulb, Moon, Search, Sun } from 'lucide-react';
+import { ChevronRight, Languages, Lightbulb, Menu, Moon, Search, Sun } from 'lucide-react';
 import { useThemeStore } from '../../stores/theme.store.js';
+import { useUIStore } from '../../stores/ui.store.js';
 import { setIdioma, type Idioma } from '../../i18n/index.js';
 import { Button } from '../ui/button.js';
 
@@ -28,14 +29,21 @@ function openCommand(): void {
  * Insights e o avatar. Absorve os controles de tema/idioma que antes viviam no
  * rail do Explorer e no header secundário (removidos nesta fase).
  */
-export function Topbar({ insightsOpen, onToggleInsights }: { insightsOpen: boolean; onToggleInsights: () => void }): JSX.Element {
+export function Topbar(): JSX.Element {
     const { t, i18n } = useTranslation();
     const tema = useThemeStore((s) => s.tema);
     const toggleTema = useThemeStore((s) => s.toggle);
+    const insightsOpen = useUIStore((s) => s.insightsOpen);
+    const toggleInsights = useUIStore((s) => s.toggleInsights);
+    const openMobileNav = useUIStore((s) => s.setMobileNav);
     const pathname = useRouterState({ select: (s) => s.location.pathname });
 
     return (
         <header className="relative flex h-14 shrink-0 items-center gap-3 border-b bg-background/80 px-4 backdrop-blur">
+            {/* Hambúrguer só no mobile (o rail lateral some abaixo de md). */}
+            <Button type="button" variant="ghost" size="icon" className="md:hidden" onClick={() => openMobileNav(true)} aria-label={t('sidebar.grupoGeral')}>
+                <Menu />
+            </Button>
             <div className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
                 <span className="font-semibold text-foreground">notagrafo</span>
                 <ChevronRight className="size-3.5 text-muted-foreground/60" />
@@ -61,10 +69,10 @@ export function Topbar({ insightsOpen, onToggleInsights }: { insightsOpen: boole
                     type="button"
                     variant="ghost"
                     size="icon"
-                    onClick={onToggleInsights}
+                    onClick={toggleInsights}
                     aria-label={t('sidebar.insights')}
                     aria-pressed={insightsOpen}
-                    className={insightsOpen ? 'text-primary' : undefined}
+                    className={`hidden xl:inline-flex ${insightsOpen ? 'text-primary' : ''}`}
                 >
                     <Lightbulb />
                 </Button>

@@ -171,6 +171,8 @@ export const ptBR = {
         exportacoes: 'Exportações',
         configuracoes: 'Configurações',
         sair: 'Sair',
+        expandir: 'Expandir menu',
+        colapsar: 'Recolher menu',
     },
     export: {
         pronta: 'Sua exportação está pronta.',

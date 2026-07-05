@@ -33,6 +33,8 @@ export const en = {
         exportacoes: 'Exports',
         configuracoes: 'Settings',
         sair: 'Sign out',
+        expandir: 'Expand menu',
+        colapsar: 'Collapse menu',
     },
     overview: {
         titulo: 'Overview',

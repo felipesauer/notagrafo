@@ -18,9 +18,10 @@ test.describe('upload de NFe', () => {
         await page.getByRole('button', { name: /^enviar$|^upload$/i }).click();
 
         // Após o 202: ou processa e mostra o resumo (Processadas/Duplicatas/Erros) via polling,
-        // ou a NF já existe (duplicata) — ambos confirmam o fluxo de feedback.
+        // ou a NF já existe (duplicata) — ambos confirmam o fluxo de feedback. Escopado ao
+        // dialog para não colidir com o painel de Insights ("Last processed invoice").
         await expect(
-            page.getByText(/processadas|processed|duplicat|enfileirada|queued|já foi processada|already/i),
+            page.getByRole('dialog').getByText(/processadas|processed|duplicat|enfileirada|queued|já foi processada|already/i),
         ).toBeVisible({ timeout: 20_000 });
     });
 });
