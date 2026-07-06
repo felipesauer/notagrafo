@@ -96,9 +96,12 @@ export function ExplorerImpostos(): JSX.Element {
                 </CardContent>
             </Card>
 
-            {/* Top NCM / Top CFOP por imposto — tabelas ordenáveis e paginadas (client) */}
-            <div className="lg:col-span-6"><TopNcmTable rows={topNcm} density={density} t={t} /></div>
-            <div className="lg:col-span-6"><TopCfopTable rows={topCfop} density={density} t={t} /></div>
+            {/* Top NCM / Top CFOP por imposto — tabelas ordenáveis e paginadas (client).
+                self-start: cada card tem a altura do seu conteúdo (o CFOP costuma ter
+                menos linhas que o NCM; sem isso o grid os esticava iguais, deixando um
+                vazio grande sob o menor). */}
+            <div className="self-start lg:col-span-6"><TopNcmTable rows={topNcm} density={density} t={t} /></div>
+            <div className="self-start lg:col-span-6"><TopCfopTable rows={topCfop} density={density} t={t} /></div>
         </div>
     );
 }
@@ -111,7 +114,7 @@ function TopNcmTable({ rows, density, t }: { rows: TaxStats['topNcm']; density: 
         totalNFs: (n) => n.totalNFs,
     }, { initialSort: { key: 'totalImposto', direction: 'desc' }, initialPageSize: 10 });
     return (
-        <Card data-testid="chart" className="h-full gap-4">
+        <Card data-testid="chart" className="gap-4">
             <CardHeader className="space-y-0"><h3 className="text-base font-semibold leading-none">{t('impostos.topNcm')}</h3></CardHeader>
             <CardContent className="px-0">
                 {rows.length === 0 ? <div className="px-6"><EmptyState /></div> : (<>
@@ -152,7 +155,7 @@ function TopCfopTable({ rows, density, t }: { rows: TaxStats['topCfop']; density
         totalNFs: (c) => c.totalNFs,
     }, { initialSort: { key: 'vICMS', direction: 'desc' }, initialPageSize: 10 });
     return (
-        <Card data-testid="chart" className="h-full gap-4">
+        <Card data-testid="chart" className="gap-4">
             <CardHeader className="space-y-0"><h3 className="text-base font-semibold leading-none">{t('impostos.topCfop')}</h3></CardHeader>
             <CardContent className="px-0">
                 {rows.length === 0 ? <div className="px-6"><EmptyState /></div> : (<>

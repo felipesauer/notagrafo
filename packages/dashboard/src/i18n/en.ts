@@ -130,6 +130,8 @@ export const en = {
         resetar: 'Reset', exportPng: 'Export PNG',
         tituloDrawer: 'Relationship graph', subtituloDrawer: 'This company’s trade partners', abrirCompleto: 'Open full',
         vazio: 'Search a company to start.',
+        vazioTitulo: 'Explore the relationship network',
+        vazioDescricao: 'Search a company by Tax ID above to see its trade partners, connected invoices and products.',
         incluirProdutos: 'Include products',
         incluirNotas: 'Include invoices',
         nfsComImposto: 'Invoices with ICMS', nfsDoNcm: 'Invoices of this NCM',

@@ -113,6 +113,8 @@ export const ptBR = {
         resetar: 'Resetar', exportPng: 'Exportar PNG',
         tituloDrawer: 'Grafo de relações', subtituloDrawer: 'Parceiros comerciais desta empresa', abrirCompleto: 'Abrir completo',
         vazio: 'Busque uma empresa para começar.',
+        vazioTitulo: 'Explore a rede de relações',
+        vazioDescricao: 'Busque uma empresa pelo CNPJ acima para ver seus parceiros comerciais, notas e produtos conectados.',
         incluirProdutos: 'Incluir produtos',
         incluirNotas: 'Incluir notas',
         nfsComImposto: 'NFs com ICMS', nfsDoNcm: 'NFs deste NCM',
