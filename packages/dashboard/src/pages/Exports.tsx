@@ -13,6 +13,11 @@ import { Checkbox } from '../components/ui/checkbox.js';
 import { Label } from '../components/ui/label.js';
 import { NativeSelect } from '../components/ui/native-select.js';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table.js';
+import { SortableHead } from '../components/SortableHead.js';
+import { TablePagination } from '../components/TablePagination.js';
+import { useClientTable } from '../hooks/useClientTable.js';
+import { type Density } from '../stores/density.store.js';
+import { type TFunction } from 'i18next';
 
 /** KB/MB humano para o tamanho do arquivo de export. */
 const fmtBytes = (b?: number): string => {
@@ -131,22 +136,7 @@ export function ExportsPage(): JSX.Element {
                                 />
                             </div>
                         ) : (
-                            <Table data-testid="data-table" className={densityClass(density)}>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>{t('exportacoes.formato')}</TableHead>
-                                        <TableHead>{t('nf.status')}</TableHead>
-                                        <TableHead className="text-right">{t('exportacoes.registros')}</TableHead>
-                                        <TableHead className="text-right">{t('exportacoes.tamanho')}</TableHead>
-                                        <TableHead className="text-right">{t('exportacoes.acoes')}</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {registros.map((r) => (
-                                        <ExportRow key={r.exportId} registro={r} onUpdate={atualizarRegistro} />
-                                    ))}
-                                </TableBody>
-                            </Table>
+                            <HistoricoTable registros={registros} density={density} onUpdate={atualizarRegistro} t={t} />
                         )}
                     </CardContent>
                 </Card>
@@ -189,5 +179,36 @@ function ExportRow({ registro, onUpdate }: { registro: ExportRegistro; onUpdate:
                 )}
             </TableCell>
         </TableRow>
+    );
+}
+
+/** Histórico de exports — ordenável (formato/status/registros/tamanho) + paginação client. */
+function HistoricoTable({ registros, density, onUpdate, t }: { registros: ExportRegistro[]; density: Density; onUpdate: (r: ExportRegistro) => void; t: TFunction }): JSX.Element {
+    const { pageRows, toggle, ariaSort, pagination } = useClientTable(registros, {
+        formato: (r) => r.formato,
+        status: (r) => r.status,
+        totalRegistros: (r) => r.totalRegistros ?? 0,
+        tamanhoBytes: (r) => r.tamanhoBytes ?? 0,
+    }, { initialPageSize: 25 });
+    return (
+        <>
+            <Table data-testid="data-table" data-zebra className={densityClass(density)}>
+                <TableHeader>
+                    <TableRow>
+                        <SortableHead sortKey="formato" ariaSort={ariaSort} onToggle={toggle}>{t('exportacoes.formato')}</SortableHead>
+                        <SortableHead sortKey="status" ariaSort={ariaSort} onToggle={toggle}>{t('nf.status')}</SortableHead>
+                        <SortableHead sortKey="totalRegistros" ariaSort={ariaSort} onToggle={toggle} align="right" className="text-right">{t('exportacoes.registros')}</SortableHead>
+                        <SortableHead sortKey="tamanhoBytes" ariaSort={ariaSort} onToggle={toggle} align="right" className="text-right">{t('exportacoes.tamanho')}</SortableHead>
+                        <TableHead className="text-right">{t('exportacoes.acoes')}</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {pageRows.map((r) => (
+                        <ExportRow key={r.exportId} registro={r} onUpdate={onUpdate} />
+                    ))}
+                </TableBody>
+            </Table>
+            <TablePagination {...pagination} />
+        </>
     );
 }

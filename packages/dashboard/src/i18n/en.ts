@@ -11,6 +11,13 @@ export const en = {
         fechar: 'Close',
         voltar: 'Back',
         erroFatal: 'Something went wrong. Please reload the page.',
+        paginacao: {
+            porPagina: 'per page',
+            intervalo: '{{from}}–{{to}} of {{total}}',
+            anterior: 'Previous',
+            proxima: 'Next',
+            ordenarPor: 'Sort by {{coluna}}',
+        },
     },
     login: {
         titulo: 'Sign in',

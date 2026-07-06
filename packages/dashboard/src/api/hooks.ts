@@ -53,7 +53,7 @@ export function useOverview() {
 export function useTopCompanies() {
     return useQuery({
         queryKey: ['stats', 'top-empresas'],
-        queryFn: () => apiFetch<{ ranking: TopEmpresa[] }>('/stats/top-empresas?metrica=valor&limit=10'),
+        queryFn: () => apiFetch<{ ranking: TopEmpresa[] }>('/stats/top-empresas?metrica=valor&limit=50'),
     });
 }
 
@@ -118,7 +118,7 @@ export function useCompany(cnpj: string) {
 export function useTopProducts() {
     return useQuery({
         queryKey: ['stats', 'top-produtos'],
-        queryFn: () => apiFetch<{ ranking: Array<Record<string, unknown>> }>('/stats/top-produtos?limit=20'),
+        queryFn: () => apiFetch<{ ranking: Array<Record<string, unknown>> }>('/stats/top-produtos?limit=50'),
     });
 }
 

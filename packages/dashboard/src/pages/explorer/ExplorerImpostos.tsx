@@ -1,14 +1,18 @@
 import { type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Link } from '@tanstack/react-router';
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-import { useTaxStats } from '../../api/hooks.js';
+import { useTaxStats, type TaxStats } from '../../api/hooks.js';
 import { LoadingSkeleton, InlineError, EmptyState } from '../../components/shared.js';
 import { chartColor } from '../../components/charts/palette.js';
 import { Card, CardContent, CardHeader } from '../../components/ui/card.js';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '../../components/ui/chart.js';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table.js';
-import { useDensityStore, densityClass } from '../../stores/density.store.js';
+import { Table, TableBody, TableCell, TableHeader, TableRow } from '../../components/ui/table.js';
+import { SortableHead } from '../../components/SortableHead.js';
+import { TablePagination } from '../../components/TablePagination.js';
+import { useClientTable } from '../../hooks/useClientTable.js';
+import { useDensityStore, densityClass, type Density } from '../../stores/density.store.js';
 
 const brlK = (n: number): string => (n >= 1000 ? `R$ ${(n / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mil` : `R$ ${n.toFixed(2)}`);
 
@@ -92,67 +96,92 @@ export function ExplorerImpostos(): JSX.Element {
                 </CardContent>
             </Card>
 
-            {/* Top NCM por imposto (drill-through) */}
-            <Card data-testid="chart" className="gap-4 lg:col-span-6">
-                <CardHeader className="space-y-0"><h3 className="text-base font-semibold leading-none">{t('impostos.topNcm')}</h3></CardHeader>
-                <CardContent>
-                    {topNcm.length === 0 ? <EmptyState /> : (
-                            <Table data-testid="data-table" className={densityClass(density)}>
-                                <TableHeader><TableRow>
-                                    <TableHead>{t('nf.ncm')}</TableHead>
-                                    <TableHead className="text-right">{t('impostos.totalImposto')}</TableHead>
-                                    <TableHead className="text-right">NF-e</TableHead>
-                                </TableRow></TableHeader>
-                                <TableBody>
-                                    {topNcm.slice(0, 8).map((n) => (
-                                        <TableRow key={n.ncm}>
-                                            <TableCell className="max-w-0">
-                                                <div className="flex items-baseline gap-2">
-                                                    <Link className="font-mono text-[12px] text-primary hover:underline shrink-0" to={'/explorar' as string} search={{ entity: 'notas', ncm: n.ncm } as never}>{n.ncm}</Link>
-                                                    {n.descricao && <span className="truncate text-xs text-muted-foreground" title={n.descricao}>{n.descricao}</span>}
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="text-right font-mono tabular-nums">{brlK(n.totalImposto)}</TableCell>
-                                            <TableCell className="text-right font-mono tabular-nums text-muted-foreground">{n.totalNFs}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                    )}
-                </CardContent>
-            </Card>
-
-            {/* Top CFOP por imposto */}
-            <Card data-testid="chart" className="gap-4 lg:col-span-6">
-                <CardHeader className="space-y-0"><h3 className="text-base font-semibold leading-none">{t('impostos.topCfop')}</h3></CardHeader>
-                <CardContent>
-                    {topCfop.length === 0 ? <EmptyState /> : (
-                            <Table data-testid="data-table" className={densityClass(density)}>
-                                <TableHeader><TableRow>
-                                    <TableHead>CFOP</TableHead>
-                                    <TableHead className="text-right">ICMS</TableHead>
-                                    <TableHead className="text-right">IPI</TableHead>
-                                    <TableHead className="text-right">NF-e</TableHead>
-                                </TableRow></TableHeader>
-                                <TableBody>
-                                    {topCfop.slice(0, 8).map((c) => (
-                                        <TableRow key={c.cfop}>
-                                            <TableCell className="max-w-0">
-                                                <div className="flex items-baseline gap-2">
-                                                    <span className="font-mono text-[12px] shrink-0">{c.cfop}</span>
-                                                    {c.descricao && <span className="truncate text-xs text-muted-foreground" title={c.descricao}>{c.descricao}</span>}
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="text-right font-mono tabular-nums">{brlK(c.vICMS)}</TableCell>
-                                            <TableCell className="text-right font-mono tabular-nums">{brlK(c.vIPI)}</TableCell>
-                                            <TableCell className="text-right font-mono tabular-nums text-muted-foreground">{c.totalNFs}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                    )}
-                </CardContent>
-            </Card>
+            {/* Top NCM / Top CFOP por imposto — tabelas ordenáveis e paginadas (client) */}
+            <div className="lg:col-span-6"><TopNcmTable rows={topNcm} density={density} t={t} /></div>
+            <div className="lg:col-span-6"><TopCfopTable rows={topCfop} density={density} t={t} /></div>
         </div>
+    );
+}
+
+/** Top NCM por imposto — ordenável (NCM/imposto/NF-e) + paginação client. */
+function TopNcmTable({ rows, density, t }: { rows: TaxStats['topNcm']; density: Density; t: TFunction }): JSX.Element {
+    const { pageRows, toggle, ariaSort, pagination } = useClientTable(rows, {
+        ncm: (n) => n.ncm,
+        totalImposto: (n) => n.totalImposto,
+        totalNFs: (n) => n.totalNFs,
+    }, { initialSort: { key: 'totalImposto', direction: 'desc' }, initialPageSize: 10 });
+    return (
+        <Card data-testid="chart" className="h-full gap-4">
+            <CardHeader className="space-y-0"><h3 className="text-base font-semibold leading-none">{t('impostos.topNcm')}</h3></CardHeader>
+            <CardContent className="px-0">
+                {rows.length === 0 ? <div className="px-6"><EmptyState /></div> : (<>
+                    <Table data-testid="data-table" data-zebra className={densityClass(density)}>
+                        <TableHeader><TableRow>
+                            <SortableHead sortKey="ncm" ariaSort={ariaSort} onToggle={toggle} className="pl-6">{t('nf.ncm')}</SortableHead>
+                            <SortableHead sortKey="totalImposto" ariaSort={ariaSort} onToggle={toggle} align="right" className="text-right">{t('impostos.totalImposto')}</SortableHead>
+                            <SortableHead sortKey="totalNFs" ariaSort={ariaSort} onToggle={toggle} align="right" className="pr-6 text-right">NF-e</SortableHead>
+                        </TableRow></TableHeader>
+                        <TableBody>
+                            {pageRows.map((n) => (
+                                <TableRow key={n.ncm}>
+                                    <TableCell className="max-w-0 pl-6">
+                                        <div className="flex items-baseline gap-2">
+                                            <Link className="font-mono text-[12px] text-primary hover:underline shrink-0" to={'/explorar' as string} search={{ entity: 'notas', ncm: n.ncm } as never}>{n.ncm}</Link>
+                                            {n.descricao && <span className="truncate text-xs text-muted-foreground" title={n.descricao}>{n.descricao}</span>}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-right font-mono tabular-nums">{brlK(n.totalImposto)}</TableCell>
+                                    <TableCell className="pr-6 text-right font-mono tabular-nums text-muted-foreground">{n.totalNFs}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                    <TablePagination {...pagination} />
+                </>)}
+            </CardContent>
+        </Card>
+    );
+}
+
+/** Top CFOP por imposto — ordenável (CFOP/ICMS/IPI/NF-e) + paginação client. */
+function TopCfopTable({ rows, density, t }: { rows: TaxStats['topCfop']; density: Density; t: TFunction }): JSX.Element {
+    const { pageRows, toggle, ariaSort, pagination } = useClientTable(rows, {
+        cfop: (c) => c.cfop,
+        vICMS: (c) => c.vICMS,
+        vIPI: (c) => c.vIPI,
+        totalNFs: (c) => c.totalNFs,
+    }, { initialSort: { key: 'vICMS', direction: 'desc' }, initialPageSize: 10 });
+    return (
+        <Card data-testid="chart" className="h-full gap-4">
+            <CardHeader className="space-y-0"><h3 className="text-base font-semibold leading-none">{t('impostos.topCfop')}</h3></CardHeader>
+            <CardContent className="px-0">
+                {rows.length === 0 ? <div className="px-6"><EmptyState /></div> : (<>
+                    <Table data-testid="data-table" data-zebra className={densityClass(density)}>
+                        <TableHeader><TableRow>
+                            <SortableHead sortKey="cfop" ariaSort={ariaSort} onToggle={toggle} className="pl-6">CFOP</SortableHead>
+                            <SortableHead sortKey="vICMS" ariaSort={ariaSort} onToggle={toggle} align="right" className="text-right">ICMS</SortableHead>
+                            <SortableHead sortKey="vIPI" ariaSort={ariaSort} onToggle={toggle} align="right" className="text-right">IPI</SortableHead>
+                            <SortableHead sortKey="totalNFs" ariaSort={ariaSort} onToggle={toggle} align="right" className="pr-6 text-right">NF-e</SortableHead>
+                        </TableRow></TableHeader>
+                        <TableBody>
+                            {pageRows.map((c) => (
+                                <TableRow key={c.cfop}>
+                                    <TableCell className="max-w-0 pl-6">
+                                        <div className="flex items-baseline gap-2">
+                                            <span className="font-mono text-[12px] shrink-0">{c.cfop}</span>
+                                            {c.descricao && <span className="truncate text-xs text-muted-foreground" title={c.descricao}>{c.descricao}</span>}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-right font-mono tabular-nums">{brlK(c.vICMS)}</TableCell>
+                                    <TableCell className="text-right font-mono tabular-nums">{brlK(c.vIPI)}</TableCell>
+                                    <TableCell className="pr-6 text-right font-mono tabular-nums text-muted-foreground">{c.totalNFs}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                    <TablePagination {...pagination} />
+                </>)}
+            </CardContent>
+        </Card>
     );
 }

@@ -11,6 +11,13 @@ export const ptBR = {
         fechar: 'Fechar',
         voltar: 'Voltar',
         erroFatal: 'Algo deu errado. Recarregue a página.',
+        paginacao: {
+            porPagina: 'por página',
+            intervalo: '{{from}}–{{to}} de {{total}}',
+            anterior: 'Anterior',
+            proxima: 'Próxima',
+            ordenarPor: 'Ordenar por {{coluna}}',
+        },
     },
     login: {
         titulo: 'Entrar',

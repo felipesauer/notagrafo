@@ -39,8 +39,9 @@ export function sortRows<T, K extends string>(
 
 /**
  * Ordenação client-side de tabelas top-N totalmente carregadas (Empresas,
- * Produtos, rankings de Impostos — NOTA-ADR-9). A lista de NFs NÃO usa isto:
- * pagina por cursor e a API não expõe parâmetro de ordenação.
+ * Produtos, rankings de Impostos, Últimas NFs, itens da NF — NOTA-ADR-9/16).
+ * A lista de NFs NÃO usa isto: pagina por cursor e ordena SERVER-SIDE via
+ * orderBy/order (que o /nf aceita) — ordenar só o buffer local seria enganoso.
  *
  * `accessors` mapeia cada chave de coluna ordenável ao valor comparável da linha.
  * Clicar na mesma coluna alterna asc→desc; clicar em outra começa em asc.
@@ -49,7 +50,7 @@ export function sortRows<T, K extends string>(
 export function useTableSort<T, K extends string>(
     rows: readonly T[],
     accessors: Record<K, (row: T) => string | number | null | undefined>,
-    initial: SortState<K> = { key: null, direction: 'asc' },
+    initial: SortState<NoInfer<K>> = { key: null, direction: 'asc' },
 ) {
     const [sort, setSort] = useState<SortState<K>>(initial);
 

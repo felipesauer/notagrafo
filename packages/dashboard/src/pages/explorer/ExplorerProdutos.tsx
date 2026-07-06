@@ -5,6 +5,9 @@ import { Area, AreaChart, XAxis, YAxis } from 'recharts';
 import { useTopProducts, usePriceHistory, useProductCompanies } from '../../api/hooks.js';
 import { LoadingSkeleton, InlineError, EmptyState } from '../../components/shared.js';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table.js';
+import { SortableHead } from '../../components/SortableHead.js';
+import { TablePagination } from '../../components/TablePagination.js';
+import { useClientTable } from '../../hooks/useClientTable.js';
 import { Card } from '../../components/ui/card.js';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '../../components/ui/sheet.js';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '../../components/ui/chart.js';
@@ -42,6 +45,13 @@ export function ExplorerProdutos({ peek, onPeek, busca }: { peek?: string; onPee
     const rows = termo
         ? todos.filter((p) => (p.descricao ?? '').toLowerCase().includes(termo) || (p.ncm ?? '').includes(termo))
         : todos;
+    // hook antes dos early-returns (regras de hooks); opera sobre [] enquanto carrega.
+    const { pageRows, toggle, ariaSort, pagination } = useClientTable(rows, {
+        descricao: (p) => p.descricao ?? '',
+        ncm: (p) => p.ncm ?? '',
+        totalNFs: (p) => p.totalNFs ?? 0,
+        valorTotal: (p) => p.valorTotal ?? 0,
+    }, { initialSort: { key: 'valorTotal', direction: 'desc' } });
 
     if (isLoading) return <LoadingSkeleton variant="table" linhas={8} colunas={4} />;
     if (isError) return <InlineError onRetry={() => void refetch()} />;
@@ -53,18 +63,18 @@ export function ExplorerProdutos({ peek, onPeek, busca }: { peek?: string; onPee
     return (
         <>
             <div className="hidden h-full md:block">
-                <Table data-testid="data-table" data-sticky className={densityClass(density)}>
+                <Table data-testid="data-table" data-sticky data-zebra className={densityClass(density)}>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>{t('produtos.descricao')}</TableHead>
+                            <SortableHead sortKey="descricao" ariaSort={ariaSort} onToggle={toggle}>{t('produtos.descricao')}</SortableHead>
                             <TableHead className="w-40">{t('produtos.codigo')}</TableHead>
-                            <TableHead className="w-28">{t('produtos.ncm')}</TableHead>
-                            <TableHead className="w-20 text-right">{t('produtos.totalNFs')}</TableHead>
-                            <TableHead className="w-32 text-right">{t('overview.valorTotal')}</TableHead>
+                            <SortableHead sortKey="ncm" ariaSort={ariaSort} onToggle={toggle} className="w-28">{t('produtos.ncm')}</SortableHead>
+                            <SortableHead sortKey="totalNFs" ariaSort={ariaSort} onToggle={toggle} align="right" className="w-20 text-right">{t('produtos.totalNFs')}</SortableHead>
+                            <SortableHead sortKey="valorTotal" ariaSort={ariaSort} onToggle={toggle} align="right" className="w-32 text-right">{t('overview.valorTotal')}</SortableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {rows.map((p) => {
+                        {pageRows.map((p) => {
                             const { codigo, cnpj } = parseIdUnico(p.idUnico);
                             return (
                             <TableRow
@@ -86,10 +96,11 @@ export function ExplorerProdutos({ peek, onPeek, busca }: { peek?: string; onPee
                         })}
                     </TableBody>
                 </Table>
+                <TablePagination {...pagination} />
             </div>
 
             <div className="grid gap-2.5 p-3 md:hidden" data-testid="data-cards">
-                {rows.map((p) => (
+                {pageRows.map((p) => (
                     <Card key={p.idUnico} className="cursor-pointer gap-0 p-3.5" onClick={() => onPeek(p.idUnico)}>
                         <p className="font-medium leading-tight">{p.descricao || '—'}</p>
                         <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">{parseIdUnico(p.idUnico).codigo}{parseIdUnico(p.idUnico).cnpj ? ` · ${cnpjFmt(parseIdUnico(p.idUnico).cnpj!)}` : ''}</p>

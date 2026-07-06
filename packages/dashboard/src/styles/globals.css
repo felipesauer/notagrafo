@@ -272,6 +272,13 @@ table.d-relaxed [data-slot='table-head'] {
     height: auto;
 }
 
+/* Zebra opt-in (NOTA-EPIC-21): listras alternadas nas linhas do corpo para
+   separar visualmente do fundo. Marcado por [data-zebra] no <table>; o hover
+   (hover:bg-muted/50 do TableRow) vence a zebra por vir depois na cascata. */
+table[data-zebra] tbody tr:nth-child(even) {
+    background: color-mix(in oklab, var(--muted) 35%, transparent);
+}
+
 /* Cabeçalho fixo nas tabelas de dados do Explorer: o thead cola no topo enquanto
    as linhas rolam. O shadcn <Table> embrulha o <table> num div[data-slot=
    table-container] com overflow-x-auto — esse container PRECISA ser o scrollport

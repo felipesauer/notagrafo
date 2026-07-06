@@ -7,7 +7,7 @@ import { DateDisplay, LoadingSkeleton, InlineError, EmptyState } from '../compon
 import { PageHeader } from '../components/PageHeader.js';
 import { FadeIn } from '../components/Motion.js';
 import { Card, CardContent } from '../components/ui/card.js';
-import { Button } from '../components/ui/button.js';
+import { TablePagination } from '../components/TablePagination.js';
 import { NativeSelect } from '../components/ui/native-select.js';
 
 /** Ícone lucide por tipo de evento (fallback genérico). */
@@ -20,19 +20,18 @@ const EVENTO_ICONE: Record<string, LucideIcon> = {
     erro: CircleAlert,
 };
 
-const PAGE = 50;
-
 /** Feed global de eventos de auditoria de todas as NFs, agrupado por dia. */
 /** Conteúdo do feed de eventos sem PageHeader — reutilizado na página standalone e no explorador. */
 export function EventsContent(): JSX.Element {
     const { t } = useTranslation();
     const [tipo, setTipo] = useState('');
     const [pagina, setPagina] = useState(0);
-    const query = useEventos({ limit: PAGE, offset: pagina * PAGE, ...(tipo ? { tipo } : {}) });
+    const [pageSize, setPageSize] = useState(50); // paginação offset/limit server-side (NOTA-150)
+    const query = useEventos({ limit: pageSize, offset: pagina * pageSize, ...(tipo ? { tipo } : {}) });
 
     const eventos = query.data?.eventos ?? [];
     const total = query.data?.total ?? 0;
-    const ultimaPagina = Math.max(0, Math.ceil(total / PAGE) - 1);
+    const ultimaPagina = Math.max(0, Math.ceil(total / pageSize) - 1);
 
     function mudarTipo(v: string): void {
         setTipo(v);
@@ -92,12 +91,17 @@ export function EventsContent(): JSX.Element {
                         </CardContent>
                     </Card>
 
-                    <div className="mt-4 flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground tabular-nums">{t('eventos.paginaDe', { page: pagina + 1, total: ultimaPagina + 1 })}</span>
-                        <div className="flex gap-2">
-                            <Button type="button" variant="outline" size="sm" disabled={pagina === 0} onClick={() => setPagina((p) => Math.max(0, p - 1))}>{t('nf.anterior')}</Button>
-                            <Button type="button" variant="outline" size="sm" disabled={pagina >= ultimaPagina} onClick={() => setPagina((p) => p + 1)}>{t('nf.proxima')}</Button>
-                        </div>
+                    <div className="mt-2 rounded-lg border">
+                        <TablePagination
+                            page={pagina}
+                            pageSize={pageSize}
+                            total={total}
+                            hasPrev={pagina > 0}
+                            hasNext={pagina < ultimaPagina}
+                            onPrev={() => setPagina((p) => Math.max(0, p - 1))}
+                            onNext={() => setPagina((p) => p + 1)}
+                            onPageSize={(n) => { setPageSize(n); setPagina(0); }}
+                        />
                     </div>
                 </FadeIn>
             )}

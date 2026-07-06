@@ -1,12 +1,18 @@
-import { type JSX } from 'react';
+import { type JSX, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNFList, type NFListItem } from '../../api/hooks.js';
 import { NFStatusBadge, CurrencyValue, DateDisplay, LoadingSkeleton, InlineError, EmptyState } from '../../components/shared.js';
 import { NFRowActions } from '../../components/NFRowActions.js';
+import { SortableHead } from '../../components/SortableHead.js';
+import { TablePagination } from '../../components/TablePagination.js';
+import { ariaSortFor, type SortState } from '../../hooks/useTableSort.js';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table.js';
 import { useDensityStore, densityClass } from '../../stores/density.store.js';
 import { Card } from '../../components/ui/card.js';
 import { NFPeek } from './NFPeek.js';
+
+/** Colunas que o /nf aceita ordenar (ORDERABLE no backend). */
+type NfSortKey = 'numero' | 'valorTotal' | 'dataEmissao';
 
 const cnpjFmt = (c: string): string =>
     c.length === 14 ? c.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : c;
@@ -31,8 +37,32 @@ function Parte({ p }: { p?: { cnpj: string; razaoSocial: string; uf: string } })
 export function ExplorerNotas({ q, status, recorte, peek, onPeek }: { q?: string; status?: string; recorte?: Record<string, string | boolean>; peek?: string; onPeek: (chave: string | undefined) => void }): JSX.Element {
     const { t } = useTranslation();
     const density = useDensityStore((s) => s.density);
-    const query = useNFList({ limit: 50, orderBy: 'dataEmissao', order: 'desc', ...(q ? { q } : {}), ...(status ? { status } : {}), ...recorte });
+    // Ordenação e paginação SERVER-SIDE (ADR-16): orderBy/order via query; a
+    // paginação é por cursor keyset (não permite salto p/ página N, só Ant/Próx).
+    const [sort, setSort] = useState<SortState<NfSortKey>>({ key: 'dataEmissao', direction: 'desc' });
+    const [pageSize, setPageSize] = useState(50);
+    const [cursorStack, setCursorStack] = useState<string[]>([]); // cursores das páginas anteriores
+    const cursor = cursorStack[cursorStack.length - 1];
+    // Filtros/ordenação mudaram → volta para a 1ª página (zera a pilha de cursores).
+    const filtrosKey = JSON.stringify({ q, status, recorte, sort, pageSize });
+    useEffect(() => { setCursorStack([]); }, [filtrosKey]);
+
+    const query = useNFList({
+        limit: pageSize,
+        orderBy: sort.key ?? 'dataEmissao',
+        order: sort.direction,
+        ...(cursor ? { cursor } : {}),
+        ...(q ? { q } : {}),
+        ...(status ? { status } : {}),
+        ...recorte,
+    });
     const rows = query.data?.data ?? [];
+    const nextCursor = query.data?.pagination?.nextCursor ?? null;
+
+    const ariaSort = (key: NfSortKey) => ariaSortFor(sort, key);
+    const toggleSort = (key: NfSortKey): void => {
+        setSort((prev) => (prev.key === key ? { key, direction: prev.direction === 'asc' ? 'desc' : 'asc' } : { key, direction: 'desc' }));
+    };
 
     if (query.isLoading) return <LoadingSkeleton variant="table" linhas={10} colunas={6} />;
     if (query.isError) return <InlineError onRetry={() => void query.refetch()} />;
@@ -49,16 +79,16 @@ export function ExplorerNotas({ q, status, recorte, peek, onPeek }: { q?: string
                 vertical + max-height vivem no container interno do <Table> via CSS
                 [data-slot=table-container]:has(> [data-sticky]) — ver globals.css. */}
             <div className="hidden h-full md:block">
-                <Table data-testid="data-table" data-sticky className={densityClass(density)}>
+                <Table data-testid="data-table" data-sticky data-zebra className={densityClass(density)}>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-16">{t('nf.numero')}</TableHead>
+                            <SortableHead sortKey="numero" ariaSort={ariaSort} onToggle={toggleSort} className="w-16">{t('nf.numero')}</SortableHead>
                             <TableHead className="w-28">{t('nf.chave')}</TableHead>
                             <TableHead>{t('nf.emitente')}</TableHead>
                             <TableHead>{t('nf.destinatario')}</TableHead>
-                            <TableHead className="w-32 text-right">{t('nf.valor')}</TableHead>
+                            <SortableHead sortKey="valorTotal" ariaSort={ariaSort} onToggle={toggleSort} align="right" className="w-32 text-right">{t('nf.valor')}</SortableHead>
                             <TableHead className="w-28">{t('nf.status')}</TableHead>
-                            <TableHead className="w-44">{t('nf.emissao')}</TableHead>
+                            <SortableHead sortKey="dataEmissao" ariaSort={ariaSort} onToggle={toggleSort} className="w-44">{t('nf.emissao')}</SortableHead>
                             <TableHead className="w-[116px] text-right">{t('nf.acoes')}</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -82,6 +112,15 @@ export function ExplorerNotas({ q, status, recorte, peek, onPeek }: { q?: string
                         ))}
                     </TableBody>
                 </Table>
+                <TablePagination
+                    page={cursorStack.length}
+                    pageSize={pageSize}
+                    hasPrev={cursorStack.length > 0}
+                    hasNext={!!nextCursor}
+                    onPrev={() => setCursorStack((s) => s.slice(0, -1))}
+                    onNext={() => nextCursor && setCursorStack((s) => [...s, nextCursor])}
+                    onPageSize={setPageSize}
+                />
             </div>
 
             {/* Mobile: cards empilhados (sem scroll lateral) */}

@@ -7,7 +7,10 @@ import { useNFDetail } from '../api/hooks.js';
 import { downloadFile } from '../api/api.client.js';
 import { useThemeStore } from '../stores/theme.store.js';
 import { NFStatusBadge, CopyableKey, CurrencyValue, DateDisplay, LoadingSkeleton, InlineError } from '../components/shared.js';
-import { useDensityStore, densityClass } from '../stores/density.store.js';
+import { useDensityStore, densityClass, type Density } from '../stores/density.store.js';
+import { SortableHead } from '../components/SortableHead.js';
+import { useTableSort } from '../hooks/useTableSort.js';
+import { type TFunction } from 'i18next';
 import { PageHeader } from '../components/PageHeader.js';
 import { GraphDrawer } from '../graph/GraphDrawer.js';
 import { Button } from '../components/ui/button.js';
@@ -163,54 +166,7 @@ export function NFDetailPage(): JSX.Element {
                     </div>
 
                     {/* Itens */}
-                    <Card className="py-4">
-                        <CardHeader className="px-4 pb-0"><CardTitle className="text-base"><h3>{t('nf.itens')}</h3></CardTitle></CardHeader>
-                        <CardContent className="px-0">
-                                <Table data-testid="data-table" className={densityClass(density)}>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead className="pl-4">#</TableHead>
-                                            <TableHead>{t('nf.produto')}</TableHead>
-                                            <TableHead>{t('nf.ncm')}</TableHead>
-                                            <TableHead className="text-right">{t('nf.qtd')}</TableHead>
-                                            <TableHead className="text-right">{t('nf.valor')}</TableHead>
-                                            <TableHead className="text-right">{t('nf.icms')}</TableHead>
-                                            <TableHead className="text-right">{t('nf.ipi')}</TableHead>
-                                            <TableHead className="text-right">{t('nf.pis')}</TableHead>
-                                            <TableHead className="pr-4 text-right">{t('nf.cofins')}</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {itens.map((item, i) => (
-                                            <TableRow key={i}>
-                                                <TableCell className="pl-4">{item.numeroItem ?? i + 1}</TableCell>
-                                                <TableCell>{item.produto?.descricao ?? '—'}</TableCell>
-                                                <TableCell title={item.produto?.ncm?.descricao ?? ''} className="tabular-nums">{item.produto?.ncm?.codigo ?? '—'}</TableCell>
-                                                <TableCell className="text-right tabular-nums">{item.quantidade ?? 0}</TableCell>
-                                                <TableCell className="text-right"><CurrencyValue value={item.valorTotal ?? 0} /></TableCell>
-                                                <TableCell className="text-right"><Money value={item.tributos?.vICMS} /></TableCell>
-                                                <TableCell className="text-right"><Money value={item.tributos?.vIPI} /></TableCell>
-                                                <TableCell className="text-right"><Money value={item.tributos?.vPIS} /></TableCell>
-                                                <TableCell className="pr-4 text-right"><Money value={item.tributos?.vCOFINS} /></TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                    {(totais.vNF !== undefined || totais.vICMS !== undefined) && (
-                                        <TableFooter>
-                                            <TableRow>
-                                                <TableCell colSpan={5} className="pl-4">
-                                                    {t('nf.totais')} · {t('nf.valorNF')}: <CurrencyValue value={totais.vNF ?? nf.valorTotal ?? 0} />
-                                                </TableCell>
-                                                <TableCell className="text-right"><Money value={totais.vICMS} /></TableCell>
-                                                <TableCell className="text-right"><Money value={totais.vIPI} /></TableCell>
-                                                <TableCell className="text-right"><Money value={totais.vPIS} /></TableCell>
-                                                <TableCell className="pr-4 text-right"><Money value={totais.vCOFINS} /></TableCell>
-                                            </TableRow>
-                                        </TableFooter>
-                                    )}
-                                </Table>
-                        </CardContent>
-                    </Card>
+                    <ItensTable itens={itens} totais={totais} density={density} valorNF={nf.valorTotal} t={t} />
                 </div>
 
                 {/* Coluna lateral: mini-grafo do fluxo (eventos removidos do detalhe,
@@ -234,6 +190,67 @@ export function NFDetailPage(): JSX.Element {
                 <GraphDrawer cnpj={nf.emitente.cnpj} open={grafoAberto} onOpenChange={setGrafoAberto} dark={tema === 'escuro'} />
             )}
         </div>
+    );
+}
+
+/** Tabela de itens da NF — ordenável (produto/NCM/qtd/valor) client-side, com
+ *  o rodapé de totais preservado. Sem paginação (itens de uma nota são poucos). */
+function ItensTable({ itens, totais, density, valorNF, t }: { itens: Item[]; totais: Totais; density: Density; valorNF?: number; t: TFunction }): JSX.Element {
+    const { sorted, toggle, ariaSort } = useTableSort(itens, {
+        produto: (i) => i.produto?.descricao ?? '',
+        ncm: (i) => i.produto?.ncm?.codigo ?? '',
+        quantidade: (i) => i.quantidade ?? 0,
+        valorTotal: (i) => i.valorTotal ?? 0,
+    });
+    return (
+        <Card className="py-4">
+            <CardHeader className="px-4 pb-0"><CardTitle className="text-base"><h3>{t('nf.itens')}</h3></CardTitle></CardHeader>
+            <CardContent className="px-0">
+                <Table data-testid="data-table" data-zebra className={densityClass(density)}>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className="pl-4">#</TableHead>
+                            <SortableHead sortKey="produto" ariaSort={ariaSort} onToggle={toggle}>{t('nf.produto')}</SortableHead>
+                            <SortableHead sortKey="ncm" ariaSort={ariaSort} onToggle={toggle}>{t('nf.ncm')}</SortableHead>
+                            <SortableHead sortKey="quantidade" ariaSort={ariaSort} onToggle={toggle} align="right" className="text-right">{t('nf.qtd')}</SortableHead>
+                            <SortableHead sortKey="valorTotal" ariaSort={ariaSort} onToggle={toggle} align="right" className="text-right">{t('nf.valor')}</SortableHead>
+                            <TableHead className="text-right">{t('nf.icms')}</TableHead>
+                            <TableHead className="text-right">{t('nf.ipi')}</TableHead>
+                            <TableHead className="text-right">{t('nf.pis')}</TableHead>
+                            <TableHead className="pr-4 text-right">{t('nf.cofins')}</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {sorted.map((item, i) => (
+                            <TableRow key={i}>
+                                <TableCell className="pl-4">{item.numeroItem ?? i + 1}</TableCell>
+                                <TableCell>{item.produto?.descricao ?? '—'}</TableCell>
+                                <TableCell title={item.produto?.ncm?.descricao ?? ''} className="tabular-nums">{item.produto?.ncm?.codigo ?? '—'}</TableCell>
+                                <TableCell className="text-right tabular-nums">{item.quantidade ?? 0}</TableCell>
+                                <TableCell className="text-right"><CurrencyValue value={item.valorTotal ?? 0} /></TableCell>
+                                <TableCell className="text-right"><Money value={item.tributos?.vICMS} /></TableCell>
+                                <TableCell className="text-right"><Money value={item.tributos?.vIPI} /></TableCell>
+                                <TableCell className="text-right"><Money value={item.tributos?.vPIS} /></TableCell>
+                                <TableCell className="pr-4 text-right"><Money value={item.tributos?.vCOFINS} /></TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                    {(totais.vNF !== undefined || totais.vICMS !== undefined) && (
+                        <TableFooter>
+                            <TableRow>
+                                <TableCell colSpan={5} className="pl-4">
+                                    {t('nf.totais')} · {t('nf.valorNF')}: <CurrencyValue value={totais.vNF ?? valorNF ?? 0} />
+                                </TableCell>
+                                <TableCell className="text-right"><Money value={totais.vICMS} /></TableCell>
+                                <TableCell className="text-right"><Money value={totais.vIPI} /></TableCell>
+                                <TableCell className="text-right"><Money value={totais.vPIS} /></TableCell>
+                                <TableCell className="pr-4 text-right"><Money value={totais.vCOFINS} /></TableCell>
+                            </TableRow>
+                        </TableFooter>
+                    )}
+                </Table>
+            </CardContent>
+        </Card>
     );
 }
 

@@ -16,6 +16,8 @@ import { Building2, FileText, Package, Receipt } from 'lucide-react';
 import { useOverview, useVolume, useTopCompanies, useByUf, useTaxStats } from '../api/hooks.js';
 import { NFStatusBadge, CurrencyValue, DateDisplay, LoadingSkeleton, InlineError, EmptyState } from '../components/shared.js';
 import { NFRowActions } from '../components/NFRowActions.js';
+import { SortableHead } from '../components/SortableHead.js';
+import { useTableSort } from '../hooks/useTableSort.js';
 import { useDensityStore, densityClass } from '../stores/density.store.js';
 import { KpiCard } from '../components/KpiCard.js';
 import { FadeIn } from '../components/Motion.js';
@@ -124,6 +126,14 @@ function OverviewContent({
     const { t } = useTranslation();
     const navigate = useNavigate();
     const density = useDensityStore((s) => s.density);
+    // Ordenação client-side das Últimas NFs (dataset fixo de 10 — sem paginação).
+    const ultimasSort = useTableSort(o.ultimasProcessadas, {
+        numero: (nf) => nf.numero,
+        emitente: (nf) => nf.emitente?.razaoSocial ?? '',
+        valorTotal: (nf) => nf.valorTotal,
+        status: (nf) => nf.status ?? '',
+        processadaEm: (nf) => nf.processadaEm,
+    });
 
     const nfSpark = useMemo(() => volumeSeries.map((s) => s.totalNFs), [volumeSeries]);
     const valSpark = useMemo(() => volumeSeries.map((s) => s.valorTotal), [volumeSeries]);
@@ -189,7 +199,7 @@ function OverviewContent({
             </FadeIn>
 
             {/* ── Área grande: volume + valor (8 col) ── */}
-            <FadeIn className="sm:col-span-12 lg:col-span-8" delay={0.2}>
+            <FadeIn className="h-full sm:col-span-12 lg:col-span-8" delay={0.2}>
                 <ChartCard title={t('overview.volumeTitulo')} config={volumeConfig} className="h-[280px] w-full">
                     <ComposedChart data={volumeSeries} margin={{ left: 4, right: 8, top: 8 }}>
                         <defs>
@@ -211,8 +221,8 @@ function OverviewContent({
             </FadeIn>
 
             {/* ── Donut composição tributária (4 col) ── */}
-            <FadeIn className="sm:col-span-12 lg:col-span-4" delay={0.25}>
-                <Card data-testid="chart" className="gap-4">
+            <FadeIn className="h-full sm:col-span-12 lg:col-span-4" delay={0.25}>
+                <Card data-testid="chart" className="h-full gap-4">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0">
                         <h3 className="text-base leading-none font-semibold">{t('overview.composicaoTributaria')}</h3>
                         <span className="text-xs text-muted-foreground tabular-nums">{brlCompact(cargaTotal)}</span>
@@ -247,8 +257,8 @@ function OverviewContent({
 
             {/* ── Ranking fornecedores (5 col) — cada linha faz drill-through para
                    o Explorer filtrado pelo CNPJ do emitente ── */}
-            <FadeIn className="sm:col-span-12 lg:col-span-5" delay={0.3}>
-                <Card data-testid="chart" className="gap-4">
+            <FadeIn className="h-full sm:col-span-12 lg:col-span-5" delay={0.3}>
+                <Card data-testid="chart" className="h-full gap-4">
                     <CardHeader className="space-y-0"><h3 className="text-base leading-none font-semibold">{t('overview.topFornecedores')}</h3></CardHeader>
                     <CardContent>
                         {rankTop.length === 0 ? <EmptyState /> : (
@@ -270,8 +280,8 @@ function OverviewContent({
             </FadeIn>
 
             {/* ── Distribuição por UF — treemap denso (7 col) ── */}
-            <FadeIn className="sm:col-span-12 lg:col-span-7" delay={0.35}>
-                <Card data-testid="chart" className="gap-4">
+            <FadeIn className="h-full sm:col-span-12 lg:col-span-7" delay={0.35}>
+                <Card data-testid="chart" className="h-full gap-4">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0">
                         <h3 className="text-base leading-none font-semibold">{t('overview.distribuicaoUf')}</h3>
                         <span className="text-xs text-muted-foreground">{t('overview.porUfHint')}</span>
@@ -311,19 +321,19 @@ function OverviewContent({
                         {o.ultimasProcessadas.length === 0 ? (
                             <EmptyState />
                         ) : (
-                            <Table data-testid="data-table" className={densityClass(density)}>
+                            <Table data-testid="data-table" data-zebra className={densityClass(density)}>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead className="w-16">{t('overview.numero')}</TableHead>
-                                        <TableHead>{t('nf.emitente')}</TableHead>
-                                        <TableHead className="text-right">{t('overview.valor')}</TableHead>
-                                        <TableHead>{t('nf.status')}</TableHead>
-                                        <TableHead>{t('overview.processadaEm')}</TableHead>
+                                        <SortableHead sortKey="numero" ariaSort={ultimasSort.ariaSort} onToggle={ultimasSort.toggle} className="w-16">{t('overview.numero')}</SortableHead>
+                                        <SortableHead sortKey="emitente" ariaSort={ultimasSort.ariaSort} onToggle={ultimasSort.toggle}>{t('nf.emitente')}</SortableHead>
+                                        <SortableHead sortKey="valorTotal" ariaSort={ultimasSort.ariaSort} onToggle={ultimasSort.toggle} align="right" className="text-right">{t('overview.valor')}</SortableHead>
+                                        <SortableHead sortKey="status" ariaSort={ultimasSort.ariaSort} onToggle={ultimasSort.toggle}>{t('nf.status')}</SortableHead>
+                                        <SortableHead sortKey="processadaEm" ariaSort={ultimasSort.ariaSort} onToggle={ultimasSort.toggle}>{t('overview.processadaEm')}</SortableHead>
                                         <TableHead className="w-[104px] text-right">{t('nf.acoes')}</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {o.ultimasProcessadas.map((nf) => (
+                                    {ultimasSort.sorted.map((nf) => (
                                         <TableRow
                                             key={nf.chaveAcesso}
                                             className="cursor-pointer"

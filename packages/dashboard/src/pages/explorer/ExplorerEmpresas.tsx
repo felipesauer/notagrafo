@@ -5,6 +5,9 @@ import { Network, X } from 'lucide-react';
 import { useTopCompanies, useCompany, type TopEmpresa } from '../../api/hooks.js';
 import { LoadingSkeleton, InlineError, EmptyState } from '../../components/shared.js';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table.js';
+import { SortableHead } from '../../components/SortableHead.js';
+import { TablePagination } from '../../components/TablePagination.js';
+import { useClientTable } from '../../hooks/useClientTable.js';
 import { Card } from '../../components/ui/card.js';
 import { Sheet, SheetContent } from '../../components/ui/sheet.js';
 import { Button } from '../../components/ui/button.js';
@@ -65,6 +68,15 @@ export function ExplorerEmpresas({ peek, onPeek, busca }: { peek?: string; onPee
     const rows = termo
         ? todas.filter((e) => e.razaoSocial.toLowerCase().includes(termo) || (digitos && e.cnpj.includes(digitos)))
         : todas;
+    // ordenação + paginação client-side (dados já carregados) — ADR-16. DEVE vir
+    // antes de qualquer early-return (regras de hooks); opera sobre [] enquanto carrega.
+    const { pageRows, toggle, ariaSort, pagination } = useClientTable(rows, {
+        posicao: (r) => r.posicao,
+        razaoSocial: (r) => r.razaoSocial,
+        uf: (r) => r.uf,
+        totalNFs: (r) => r.totalNFs,
+        valorTotal: (r) => r.valorTotal,
+    }, { initialSort: { key: 'valorTotal', direction: 'desc' } });
 
     if (isLoading) return <LoadingSkeleton variant="table" linhas={8} colunas={5} />;
     if (isError) return <InlineError onRetry={() => void refetch()} />;
@@ -78,19 +90,19 @@ export function ExplorerEmpresas({ peek, onPeek, busca }: { peek?: string; onPee
     return (
         <>
             <div className="hidden h-full md:block">
-                <Table data-testid="data-table" data-sticky className={densityClass(density)}>
+                <Table data-testid="data-table" data-sticky data-zebra className={densityClass(density)}>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-10 text-right">#</TableHead>
-                            <TableHead>{t('empresas.razaoSocial')}</TableHead>
+                            <SortableHead sortKey="posicao" ariaSort={ariaSort} onToggle={toggle} align="right" className="w-10 text-right">#</SortableHead>
+                            <SortableHead sortKey="razaoSocial" ariaSort={ariaSort} onToggle={toggle}>{t('empresas.razaoSocial')}</SortableHead>
                             <TableHead>{t('empresas.cnpj')}</TableHead>
-                            <TableHead>{t('empresas.uf')}</TableHead>
-                            <TableHead className="w-24 text-right">{t('empresas.nfsEmitidas')}</TableHead>
-                            <TableHead className="text-right">{t('overview.valorTotal')}</TableHead>
+                            <SortableHead sortKey="uf" ariaSort={ariaSort} onToggle={toggle}>{t('empresas.uf')}</SortableHead>
+                            <SortableHead sortKey="totalNFs" ariaSort={ariaSort} onToggle={toggle} align="right" className="w-24 text-right">{t('empresas.nfsEmitidas')}</SortableHead>
+                            <SortableHead sortKey="valorTotal" ariaSort={ariaSort} onToggle={toggle} align="right" className="text-right">{t('overview.valorTotal')}</SortableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {rows.map((e) => (
+                        {pageRows.map((e) => (
                             <TableRow key={e.cnpj} className={`cursor-pointer ${sel?.cnpj === e.cnpj ? 'bg-primary/10 shadow-[inset_2px_0_0_var(--primary)]' : ''}`} onClick={() => onPeek(e.cnpj)}>
                                 <TableCell className="text-right font-mono tabular-nums text-muted-foreground">{e.posicao}</TableCell>
                                 <TableCell className="font-medium">{e.razaoSocial}</TableCell>
@@ -109,10 +121,11 @@ export function ExplorerEmpresas({ peek, onPeek, busca }: { peek?: string; onPee
                         ))}
                     </TableBody>
                 </Table>
+                <TablePagination {...pagination} />
             </div>
 
             <div className="grid gap-2.5 p-3 md:hidden">
-                {rows.map((e) => (
+                {pageRows.map((e) => (
                     <Card key={e.cnpj} className="cursor-pointer gap-0 p-3.5" onClick={() => onPeek(e.cnpj)}>
                         <div className="flex items-start justify-between gap-2">
                             <p className="min-w-0 font-medium leading-tight">{e.razaoSocial}</p>
