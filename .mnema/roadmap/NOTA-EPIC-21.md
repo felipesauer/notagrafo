@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-EPIC-21
   kind: epic
-  state: OPEN
+  state: CLOSED
   title: >-
     DataTable padrão: ordenação, paginação configurável e destaque em todas as
     tabelas + alinhamento da Home
@@ -25,6 +25,6 @@ mnema:
     mergeados).
   metadata: {}
   created_at: '2026-07-06T20:03:42.684Z'
-  closed_at: null
+  closed_at: '2026-07-06T20:30:58.633Z'
 ---
 # DataTable padrão: ordenação, paginação configurável e destaque em todas as tabelas + alinhamento da Home
