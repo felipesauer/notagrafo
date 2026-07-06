@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-EPIC-20
   kind: epic
-  state: OPEN
+  state: CLOSED
   title: >-
     Consistência de tabelas/listagens + navegação do Explorer + ocupação de
     espaço
@@ -21,6 +21,6 @@ mnema:
     Base: branch feat/brand-logo (branding não mergeado na main).
   metadata: {}
   created_at: '2026-07-06T18:38:36.635Z'
-  closed_at: null
+  closed_at: '2026-07-06T19:01:46.160Z'
 ---
 # Consistência de tabelas/listagens + navegação do Explorer + ocupação de espaço

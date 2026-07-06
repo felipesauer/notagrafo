@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-143
-  state: READY
+  state: DONE
   title: 'Ocupação de espaço: donut + Top NCM/CFOP + itens da NF'
   description: >-
     Donut da Composição tributária maior (168px) + legenda distribuída.
@@ -17,12 +17,12 @@ mnema:
     - tipo:ux
   estimate: 3
   priority: 2
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
   epic_key: NOTA-EPIC-20
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-06T18:58:56.805Z'
+  updated_at: '2026-07-06T19:01:30.166Z'
 ---
 # Ocupação de espaço: donut da Home + Top NCM/CFOP + itens da NF

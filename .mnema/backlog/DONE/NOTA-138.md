@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-138
-  state: IN_PROGRESS
+  state: DONE
   title: Extrair RowActions (ver/baixar/grafo) para componente compartilhado
   description: >-
     Ações inline duplicadas em ExplorerNotas e Overview extraídas para
@@ -20,6 +20,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-06T18:59:11.175Z'
+  updated_at: '2026-07-06T19:01:18.225Z'
 ---
 # Extrair RowActions (ver/baixar/grafo) para componente compartilhado
