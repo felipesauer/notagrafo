@@ -166,7 +166,6 @@ export function NFDetailPage(): JSX.Element {
                     <Card className="py-4">
                         <CardHeader className="px-4 pb-0"><CardTitle className="text-base"><h3>{t('nf.itens')}</h3></CardTitle></CardHeader>
                         <CardContent className="px-0">
-                            <div className="overflow-x-auto">
                                 <Table data-testid="data-table" className={densityClass(density)}>
                                     <TableHeader>
                                         <TableRow>
@@ -210,7 +209,6 @@ export function NFDetailPage(): JSX.Element {
                                         </TableFooter>
                                     )}
                                 </Table>
-                            </div>
                         </CardContent>
                     </Card>
                 </div>

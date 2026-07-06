@@ -6,6 +6,7 @@ import { Download, FileDown } from 'lucide-react';
 import { apiFetch, downloadFile } from '../api/api.client.js';
 import { NFStatusBadge, InlineError, EmptyState, LoadingSkeleton } from '../components/shared.js';
 import { useExportStore } from '../stores/export.store.js';
+import { useDensityStore, densityClass } from '../stores/density.store.js';
 import { Button } from '../components/ui/button.js';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card.js';
 import { Checkbox } from '../components/ui/checkbox.js';
@@ -41,6 +42,7 @@ export function ExportsPage(): JSX.Element {
     const [campos, setCampos] = useState<string[]>(CAMPOS);
     const [registros, setRegistros] = useState<ExportRegistro[]>([]);
     const [erro, setErro] = useState<string | null>(null);
+    const density = useDensityStore((s) => s.density);
 
     const historico = useQuery({
         queryKey: ['export', 'list'],
@@ -129,7 +131,7 @@ export function ExportsPage(): JSX.Element {
                                 />
                             </div>
                         ) : (
-                            <Table data-testid="data-table">
+                            <Table data-testid="data-table" className={densityClass(density)}>
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>{t('exportacoes.formato')}</TableHead>

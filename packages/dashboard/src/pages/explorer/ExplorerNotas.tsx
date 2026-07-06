@@ -1,51 +1,16 @@
 import { type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from '@tanstack/react-router';
-import { Download, Eye, Waypoints } from 'lucide-react';
 import { useNFList, type NFListItem } from '../../api/hooks.js';
-import { downloadFile } from '../../api/api.client.js';
 import { NFStatusBadge, CurrencyValue, DateDisplay, LoadingSkeleton, InlineError, EmptyState } from '../../components/shared.js';
+import { NFRowActions } from '../../components/NFRowActions.js';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table.js';
 import { useDensityStore, densityClass } from '../../stores/density.store.js';
 import { Card } from '../../components/ui/card.js';
-import { Button } from '../../components/ui/button.js';
-import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/ui/tooltip.js';
 import { NFPeek } from './NFPeek.js';
 
 const cnpjFmt = (c: string): string =>
     c.length === 14 ? c.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : c;
 
-/** Ações inline da linha (ver/baixar/grafo) — não propagam o clique (que abre o peek). */
-function RowActions({ nf, onView }: { nf: NFListItem; onView: () => void }): JSX.Element {
-    const { t } = useTranslation();
-    const stop = (e: React.MouseEvent): void => e.stopPropagation();
-    return (
-        <div className="flex items-center justify-end gap-0.5" onClick={stop}>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button type="button" variant="ghost" size="icon-sm" aria-label={t('nf.verDetalhe')} onClick={onView}><Eye /></Button>
-                </TooltipTrigger>
-                <TooltipContent>{t('nf.verDetalhe')}</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button type="button" variant="ghost" size="icon-sm" aria-label={t('nf.baixarXml')} onClick={() => void downloadFile(`/nf/${nf.chaveAcesso}/xml`, `${nf.chaveAcesso}.xml`)}><Download /></Button>
-                </TooltipTrigger>
-                <TooltipContent>{t('nf.baixarXml')}</TooltipContent>
-            </Tooltip>
-            {nf.emitente?.cnpj && (
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button asChild type="button" variant="ghost" size="icon-sm" aria-label={t('nf.abrirGrafo')}>
-                            <Link to={'/grafo' as string} search={{ cnpj: nf.emitente.cnpj } as never}><Waypoints /></Link>
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>{t('nf.abrirGrafo')}</TooltipContent>
-                </Tooltip>
-            )}
-        </div>
-    );
-}
 
 /** Parte (emitente/destinatário): razão social + CNPJ pequeno mono. */
 function Parte({ p }: { p?: { cnpj: string; razaoSocial: string; uf: string } }): JSX.Element {
@@ -112,7 +77,7 @@ export function ExplorerNotas({ q, status, recorte, peek, onPeek }: { q?: string
                                 <TableCell className="text-right font-mono font-medium tabular-nums"><CurrencyValue value={nf.valorTotal} /></TableCell>
                                 <TableCell><NFStatusBadge status={nf.status} /></TableCell>
                                 <TableCell className="font-mono text-muted-foreground tabular-nums"><DateDisplay value={nf.dataEmissao} /></TableCell>
-                                <TableCell><RowActions nf={nf} onView={() => onPeek(nf.chaveAcesso)} /></TableCell>
+                                <TableCell><NFRowActions chave={nf.chaveAcesso} cnpjEmitente={nf.emitente?.cnpj} onView={() => onPeek(nf.chaveAcesso)} /></TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
