@@ -68,7 +68,7 @@ export function ExplorerEmpresas({ peek, onPeek }: { peek?: string; onPeek: (cnp
 
     return (
         <>
-            <div className="hidden md:block">
+            <div className="hidden h-full md:block">
                 <Table data-testid="data-table" data-sticky className={densityClass(density)}>
                     <TableHeader>
                         <TableRow>

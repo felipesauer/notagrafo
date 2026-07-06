@@ -179,8 +179,10 @@ export function ExplorerPage(): JSX.Element {
                 </div>
             )}
 
-            {/* Conteúdo da entidade */}
-            <div className="flex-1 overflow-auto">
+            {/* Conteúdo da entidade — container flex sem overflow próprio (a tabela
+                sticky faz o seu scroll; Rede/Eventos/Impostos rolam internamente).
+                Padding uniforme aqui = mesma margem das demais telas, um scroll só. */}
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-4 md:p-6">
                 {entity === 'notas' ? (
                     <ExplorerNotas q={q} status={status} recorte={recorte} peek={search.peek} onPeek={setPeek} />
                 ) : entity === 'empresas' ? (
@@ -188,11 +190,11 @@ export function ExplorerPage(): JSX.Element {
                 ) : entity === 'produtos' ? (
                     <ExplorerProdutos peek={search.peek} onPeek={setPeek} />
                 ) : entity === 'impostos' ? (
-                    <ExplorerImpostos />
+                    <div className="min-h-0 flex-1 overflow-auto"><ExplorerImpostos /></div>
                 ) : entity === 'rede' ? (
-                    <div className="p-4 md:p-6"><NetworkContent /></div>
+                    <div className="min-h-0 flex-1 overflow-auto"><NetworkContent /></div>
                 ) : (
-                    <div className="p-4 md:p-6"><EventsContent /></div>
+                    <div className="min-h-0 flex-1 overflow-auto"><EventsContent /></div>
                 )}
             </div>
 

@@ -83,7 +83,7 @@ export function ExplorerNotas({ q, status, recorte, peek, onPeek }: { q?: string
             {/* Desktop: tabela densa (sticky header; densidade via store). O scroll
                 vertical + max-height vivem no container interno do <Table> via CSS
                 [data-slot=table-container]:has(> [data-sticky]) — ver globals.css. */}
-            <div className="hidden md:block">
+            <div className="hidden h-full md:block">
                 <Table data-testid="data-table" data-sticky className={densityClass(density)}>
                     <TableHeader>
                         <TableRow>

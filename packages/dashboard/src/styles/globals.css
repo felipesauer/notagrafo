@@ -224,6 +224,33 @@
     table {
         font-variant-numeric: tabular-nums;
     }
+    /* Scrollbar temável (respeita claro/escuro via tokens) — antes usava a nativa
+       do SO, que destoava (branca no dark mode). Firefox via scrollbar-* ; Chrome/
+       Safari via ::-webkit-scrollbar. */
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) transparent;
+    }
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: color-mix(in oklch, var(--muted-foreground) 35%, transparent);
+        border: 2px solid transparent;
+        background-clip: padding-box;
+        border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: color-mix(in oklch, var(--muted-foreground) 55%, transparent);
+        background-clip: padding-box;
+    }
+    ::-webkit-scrollbar-corner {
+        background: transparent;
+    }
 }
 
 /* Densidade de tabela (NOTA-121): o DensityToggle põe d-compact/d-relaxed no
@@ -245,7 +272,10 @@ table.d-relaxed :where([data-slot='table-cell'], [data-slot='table-head']) {
    overflow-y quando a tabela é [data-sticky]. Marcado por [data-sticky] para não
    afetar tabelas de leitura (detalhe da NF). */
 [data-slot='table-container']:has(> table[data-sticky]) {
-    max-height: calc(100svh - 8.5rem);
+    /* herda a altura do container flex do Explorer (que já desconta topbar/tabs/
+       toolbar) em vez de um número mágico (100svh - 8.5rem) do shell antigo, que
+       criava um 2º scroll e altura errada. h-full vem do wrapper .md:block. */
+    max-height: 100%;
     overflow-y: auto;
 }
 table[data-sticky] thead th {

@@ -50,7 +50,7 @@ export function ExplorerImpostos(): JSX.Element {
     const topCfop = data?.topCfop ?? [];
 
     return (
-        <div className="grid grid-cols-1 gap-4 p-4 md:p-6 lg:grid-cols-12">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
             {/* Carga por tributo (barras) */}
             <Card data-testid="chart" className="gap-4 lg:col-span-5">
                 <CardHeader className="flex flex-row items-baseline justify-between space-y-0">

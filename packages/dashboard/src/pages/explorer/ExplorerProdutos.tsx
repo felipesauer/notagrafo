@@ -36,7 +36,7 @@ export function ExplorerProdutos({ peek, onPeek }: { peek?: string; onPeek: (id:
 
     return (
         <>
-            <div className="hidden md:block">
+            <div className="hidden h-full md:block">
                 <Table data-testid="data-table" data-sticky className={densityClass(density)}>
                     <TableHeader>
                         <TableRow>
