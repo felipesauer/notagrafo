@@ -7,7 +7,7 @@ export interface Overview {
     totalProdutos: number;
     valorTotalProcessado: number;
     nfsPorStatus: Record<string, number>;
-    ultimasProcessadas: Array<{ chaveAcesso: string; numero: string; valorTotal: number; processadaEm: string }>;
+    ultimasProcessadas: Array<{ chaveAcesso: string; numero: string; valorTotal: number; processadaEm: string; status?: string; emitente?: { cnpj: string; razaoSocial: string; uf: string } }>;
 }
 
 export interface NFListItem {

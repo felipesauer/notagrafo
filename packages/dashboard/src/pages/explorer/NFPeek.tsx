@@ -102,7 +102,9 @@ export function NFPeek({
                             <Button type="button" variant="outline" size="sm" onClick={() => void downloadFile(`/nf/${nf.chaveAcesso}/xml`, `${nf.chaveAcesso}.xml`)}><Download /> {t('nf.baixarXml')}</Button>
                             <Button type="button" variant="outline" size="sm" onClick={() => void navigator.clipboard?.writeText(nf.chaveAcesso)} aria-label={t('nf.copiarChave')}><Copy /></Button>
                             {nf.emitente?.cnpj && (
-                                <Button type="button" variant="outline" size="sm" aria-label={t('nf.abrirGrafo')}><Waypoints /></Button>
+                                <Button asChild type="button" variant="outline" size="sm" aria-label={t('nf.abrirGrafo')}>
+                                    <Link to={'/grafo' as string} search={{ cnpj: nf.emitente.cnpj } as never}><Waypoints /></Link>
+                                </Button>
                             )}
                             <Button asChild type="button" size="sm" className="ml-auto">
                                 <Link to={'/nf/$chave' as string} params={{ chave: nf.chaveAcesso } as never}>{t('nf.abrirDetalhe')} →</Link>

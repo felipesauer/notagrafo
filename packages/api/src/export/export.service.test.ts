@@ -97,6 +97,28 @@ function driverComRegistros(registros: Record<string, unknown>[]): Driver {
     return { session: () => ({ run, close: vi.fn(async () => {}) }) } as unknown as Driver;
 }
 
+/**
+ * Driver que devolve nós nf/emit/dest separados, como o Cypher real de
+ * listInvoices (que lê r.get('emit')/r.get('dest')). Usado para exercitar o
+ * achatamento de CNPJ aninhado no export.
+ */
+function driverComNos(linhas: { nf: Record<string, unknown>; emit?: Record<string, unknown>; dest?: Record<string, unknown> }[]): Driver {
+    const run = vi.fn(async (cypher: string) => {
+        if (cypher.includes('count(DISTINCT nf)')) return { records: [{ get: () => linhas.length }] };
+        return {
+            records: linhas.map((l) => ({
+                get: (k: string) => {
+                    if (k === 'nf') return { properties: l.nf };
+                    if (k === 'emit') return l.emit ? { properties: l.emit } : null;
+                    if (k === 'dest') return l.dest ? { properties: l.dest } : null;
+                    return null;
+                },
+            })),
+        };
+    });
+    return { session: () => ({ run, close: vi.fn(async () => {}) }) } as unknown as Driver;
+}
+
 describe('ExportService — serialização', () => {
     // naturezaOp sobrevive ao mapeamento NFListItem como string (testa o escape do CSV).
     const registros = [
@@ -127,9 +149,41 @@ describe('ExportService — serialização', () => {
         const job = service.create('csv');
         await vi.waitFor(() => expect(job.status).toBe('ready'));
         const csv = (await service.read(job)).toString();
-        const linhas = csv.split('\n');
+        const linhas = csv.split('\r\n');
         expect(linhas[0]).toContain('chaveAcesso'); // header com as colunas do NFListItem
         expect(csv).toContain('"tem,vírgula"'); // célula com vírgula entre aspas
+    });
+
+    // Regressão do bug: listInvoices devolve o CNPJ ANINHADO (via nós emit/dest),
+    // então cnpjEmitente/cnpjDestinatario saíam vazios no export. flattenRow os
+    // achata para chave plana. Estes testes usam o shape de nós REAL do Cypher.
+    it('preenche cnpjEmitente/cnpjDestinatario a partir dos nós emit/dest (csv)', async () => {
+        const service = new ExportService(driverComNos([
+            { nf: { chaveAcesso: 'k1', numero: '7' }, emit: { cnpj: '11222333000144', razaoSocial: 'Emit LTDA', uf: 'SP' }, dest: { cnpj: '55666777000188', razaoSocial: 'Dest SA', uf: 'RJ' } },
+        ]));
+        const job = service.create('csv', undefined, ['chaveAcesso', 'cnpjEmitente', 'cnpjDestinatario']);
+        await vi.waitFor(() => expect(job.status).toBe('ready'));
+        const linhas = (await service.read(job)).toString().split('\r\n');
+        expect(linhas[0]).toBe('chaveAcesso,cnpjEmitente,cnpjDestinatario');
+        expect(linhas[1]).toBe('k1,11222333000144,55666777000188'); // antes: 'k1,,'
+    });
+
+    it('json com nós aninhados exporta cnpjEmitente/cnpjDestinatario preenchidos', async () => {
+        const service = new ExportService(driverComNos([
+            { nf: { chaveAcesso: 'k1' }, emit: { cnpj: '11222333000144', razaoSocial: 'Emit LTDA', uf: 'SP' }, dest: { cnpj: '55666777000188', razaoSocial: 'Dest SA', uf: 'RJ' } },
+        ]));
+        const job = service.create('json', undefined, ['cnpjEmitente', 'cnpjDestinatario']);
+        await vi.waitFor(() => expect(job.status).toBe('ready'));
+        const parsed = JSON.parse((await service.read(job)).toString()) as Array<Record<string, unknown>>;
+        expect(parsed[0]).toEqual({ cnpjEmitente: '11222333000144', cnpjDestinatario: '55666777000188' });
+    });
+
+    it('xlsx prefixa diretiva sep= + BOM para o Excel abrir em colunas', async () => {
+        const service = new ExportService(driverComRegistros(registros));
+        const job = service.create('xlsx');
+        await vi.waitFor(() => expect(job.status).toBe('ready'));
+        const out = (await service.read(job)).toString();
+        expect(out.startsWith('﻿sep=,\r\n')).toBe(true);
     });
 
     it('falha na geração marca status failed com erro', async () => {

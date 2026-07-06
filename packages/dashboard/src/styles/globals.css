@@ -253,16 +253,23 @@
     }
 }
 
-/* Densidade de tabela (NOTA-121): o DensityToggle põe d-compact/d-relaxed no
-   <table>; o padrão (sem classe) usa o p-2 do shadcn. Aplica só às células de
-   dados (data-slot), não a inputs internos. */
-table.d-compact :where([data-slot='table-cell'], [data-slot='table-head']) {
-    padding-top: 0.25rem;
-    padding-bottom: 0.25rem;
+/* Densidade de tabela (NOTA-121 / NOTA-136): o DensityToggle põe d-compact/
+   d-relaxed no <table>; o padrão (sem classe) usa o p-2 do shadcn. As células do
+   shadcn têm `p-2` e o head `h-10 px-2` (classes utilitárias) — para a densidade
+   surtir efeito é preciso VENCER esse utilitário: sem :where (que zera a
+   especificidade) e neutralizando a altura fixa do head. Diferença ampliada para
+   ser perceptível (compacta 2px / padrão 8px / espaçada 14px). */
+table.d-compact [data-slot='table-cell'],
+table.d-compact [data-slot='table-head'] {
+    padding-top: 0.125rem;
+    padding-bottom: 0.125rem;
+    height: auto;
 }
-table.d-relaxed :where([data-slot='table-cell'], [data-slot='table-head']) {
-    padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
+table.d-relaxed [data-slot='table-cell'],
+table.d-relaxed [data-slot='table-head'] {
+    padding-top: 0.875rem;
+    padding-bottom: 0.875rem;
+    height: auto;
 }
 
 /* Cabeçalho fixo nas tabelas de dados do Explorer: o thead cola no topo enquanto

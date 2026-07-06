@@ -12,9 +12,12 @@ import {
     XAxis,
     YAxis,
 } from 'recharts';
-import { Building2, FileText, Package, Receipt } from 'lucide-react';
+import { Building2, Download, Eye, FileText, Package, Receipt, Waypoints } from 'lucide-react';
 import { useOverview, useVolume, useTopCompanies, useByUf, useTaxStats } from '../api/hooks.js';
-import { CurrencyValue, DateDisplay, LoadingSkeleton, InlineError, EmptyState } from '../components/shared.js';
+import { downloadFile } from '../api/api.client.js';
+import { NFStatusBadge, CurrencyValue, DateDisplay, LoadingSkeleton, InlineError, EmptyState } from '../components/shared.js';
+import { Button } from '../components/ui/button.js';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../components/ui/tooltip.js';
 import { KpiCard } from '../components/KpiCard.js';
 import { FadeIn } from '../components/Motion.js';
 import { ChartCard } from '../components/charts/ChartCard.js';
@@ -311,19 +314,29 @@ function OverviewContent({
                             <Table data-testid="data-table">
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>{t('overview.numero')}</TableHead>
+                                        <TableHead className="w-16">{t('overview.numero')}</TableHead>
+                                        <TableHead>{t('nf.emitente')}</TableHead>
                                         <TableHead className="text-right">{t('overview.valor')}</TableHead>
+                                        <TableHead>{t('nf.status')}</TableHead>
                                         <TableHead>{t('overview.processadaEm')}</TableHead>
+                                        <TableHead className="w-[104px] text-right">{t('nf.acoes')}</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {o.ultimasProcessadas.map((nf) => (
                                         <TableRow key={nf.chaveAcesso}>
                                             <TableCell>
-                                                <Link className="font-medium text-primary hover:underline" to={'/nf/$chave' as string} params={{ chave: nf.chaveAcesso } as never}>{nf.numero}</Link>
+                                                <Link className="font-mono font-medium tabular-nums text-primary hover:underline" to={'/nf/$chave' as string} params={{ chave: nf.chaveAcesso } as never}>{nf.numero}</Link>
                                             </TableCell>
-                                            <TableCell className="text-right"><CurrencyValue value={nf.valorTotal} /></TableCell>
-                                            <TableCell><DateDisplay value={nf.processadaEm} /></TableCell>
+                                            <TableCell>
+                                                {nf.emitente
+                                                    ? <span className="truncate">{nf.emitente.razaoSocial || '—'}{nf.emitente.uf ? <span className="ml-1 font-mono text-[11px] text-muted-foreground">· {nf.emitente.uf}</span> : null}</span>
+                                                    : <span className="text-muted-foreground">—</span>}
+                                            </TableCell>
+                                            <TableCell className="text-right font-mono tabular-nums"><CurrencyValue value={nf.valorTotal} /></TableCell>
+                                            <TableCell>{nf.status ? <NFStatusBadge status={nf.status} /> : '—'}</TableCell>
+                                            <TableCell className="font-mono text-muted-foreground tabular-nums"><DateDisplay value={nf.processadaEm} /></TableCell>
+                                            <TableCell><UltimaNFActions chave={nf.chaveAcesso} cnpjEmitente={nf.emitente?.cnpj} t={t} /></TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -333,6 +346,39 @@ function OverviewContent({
                     </CardContent>
                 </Card>
             </FadeIn>
+        </div>
+    );
+}
+
+/** Ações inline das Últimas NFs (ver detalhe / baixar XML / abrir no grafo),
+ *  no mesmo padrão da listagem do Explorer. O grafo só aparece com cnpj do emitente. */
+function UltimaNFActions({ chave, cnpjEmitente, t }: { chave: string; cnpjEmitente?: string; t: (k: string) => string }): JSX.Element {
+    return (
+        <div className="flex items-center justify-end gap-0.5">
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button asChild type="button" variant="ghost" size="icon-sm" aria-label={t('nf.verDetalhe')}>
+                        <Link to={'/nf/$chave' as string} params={{ chave } as never}><Eye /></Link>
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t('nf.verDetalhe')}</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button type="button" variant="ghost" size="icon-sm" aria-label={t('nf.baixarXml')} onClick={() => void downloadFile(`/nf/${chave}/xml`, `${chave}.xml`)}><Download /></Button>
+                </TooltipTrigger>
+                <TooltipContent>{t('nf.baixarXml')}</TooltipContent>
+            </Tooltip>
+            {cnpjEmitente && (
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button asChild type="button" variant="ghost" size="icon-sm" aria-label={t('nf.abrirGrafo')}>
+                            <Link to={'/grafo' as string} search={{ cnpj: cnpjEmitente } as never}><Waypoints /></Link>
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{t('nf.abrirGrafo')}</TooltipContent>
+                </Tooltip>
+            )}
         </div>
     );
 }

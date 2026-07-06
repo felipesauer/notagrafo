@@ -32,7 +32,7 @@ export function MobileNav(): JSX.Element {
                                     key={r.to + (r.search?.entity ?? '')}
                                     to={r.to as never}
                                     search={(r.search ?? undefined) as never}
-                                    activeOptions={{ exact: r.exact ?? false }}
+                                    activeOptions={{ exact: r.exact ?? false, includeSearch: r.search ? true : false }}
                                     onClick={() => setOpen(false)}
                                     className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground/70 transition-colors hover:bg-accent hover:text-foreground [&.active]:bg-primary/12 [&.active]:font-medium [&.active]:text-primary [&>svg]:size-[18px]"
                                 >

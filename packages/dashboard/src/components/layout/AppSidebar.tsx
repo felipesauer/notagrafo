@@ -2,8 +2,8 @@ import { type JSX } from 'react';
 import { Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import {
-    Activity, Download, Home, Landmark, type LucideIcon, Network, PanelLeftClose, PanelLeftOpen,
-    ReceiptText, Search, Settings, Waypoints,
+    Activity, Building2, Download, FileText, Home, Landmark, type LucideIcon, Network, Package,
+    PanelLeftClose, PanelLeftOpen, ReceiptText, Settings, Waypoints,
 } from 'lucide-react';
 import { useUIStore } from '../../stores/ui.store.js';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip.js';
@@ -31,21 +31,25 @@ export const RAIL_GROUPS: RailGroup[] = [
         labelKey: 'sidebar.grupoGeral',
         items: [
             { to: '/', icon: Home, labelKey: 'sidebar.inicio', exact: true },
-            { to: '/explorar', icon: Search, labelKey: 'sidebar.explorar' },
+            { to: '/grafo', icon: Waypoints, labelKey: 'sidebar.grafo' },
         ],
     },
     {
+        // ANÁLISE é o hub do Explorer: cada entidade é um item direto no rail,
+        // navegando para /explorar?entity=… (ADR NOTA-ADR-14).
         labelKey: 'sidebar.grupoAnalise',
         items: [
-            { to: '/grafo', icon: Waypoints, labelKey: 'sidebar.grafo' },
-            { to: '/explorar', search: { entity: 'rede' }, icon: Network, labelKey: 'sidebar.rede' },
+            { to: '/explorar', search: { entity: 'notas' }, icon: FileText, labelKey: 'sidebar.nfs' },
+            { to: '/explorar', search: { entity: 'empresas' }, icon: Building2, labelKey: 'sidebar.empresas' },
+            { to: '/explorar', search: { entity: 'produtos' }, icon: Package, labelKey: 'sidebar.produtos' },
             { to: '/explorar', search: { entity: 'impostos' }, icon: Landmark, labelKey: 'sidebar.impostos' },
-            { to: '/explorar', search: { entity: 'eventos' }, icon: Activity, labelKey: 'sidebar.eventos' },
+            { to: '/explorar', search: { entity: 'rede' }, icon: Network, labelKey: 'sidebar.rede' },
         ],
     },
     {
         labelKey: 'sidebar.grupoSistema',
         items: [
+            { to: '/explorar', search: { entity: 'eventos' }, icon: Activity, labelKey: 'sidebar.eventos' },
             { to: '/exportacoes', icon: Download, labelKey: 'sidebar.exportacoes' },
             { to: '/configuracoes', icon: Settings, labelKey: 'sidebar.configuracoes' },
         ],
@@ -69,17 +73,20 @@ export function AppSidebar(): JSX.Element {
             data-testid="app-sidebar"
             data-expanded={expanded}
             aria-label={t('sidebar.grupoGeral')}
-            className={`hidden shrink-0 flex-col gap-1 border-r bg-sidebar py-3 transition-[width] duration-200 md:flex ${expanded ? 'w-60 px-3' : 'w-[64px] items-center px-2'}`}
+            className={`relative hidden shrink-0 flex-col gap-1 border-r bg-sidebar py-3 transition-[width] duration-200 md:flex ${expanded ? 'w-60 px-3' : 'w-[64px] items-center px-2'}`}
         >
-            {/* Marca + toggle no topo */}
-            <div className={`mb-2 flex items-center ${expanded ? 'justify-between' : 'flex-col gap-1'}`}>
+            {/* Toggle flutuante na borda direita (NOTA-135): meia-pílula ancorada
+                na divisa rail/conteúdo, verticalmente no topo, em ambos os estados. */}
+            <ToggleBtn expanded={expanded} onClick={toggle} t={t} />
+
+            {/* Marca no topo */}
+            <div className={`mb-2 flex h-9 items-center ${expanded ? '' : 'justify-center'}`}>
                 <Link to={'/' as string} aria-label="notagrafo" className="flex items-center gap-2 rounded-[10px]">
                     <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-primary text-primary-foreground [&>svg]:size-[19px]">
                         <ReceiptText />
                     </span>
                     {expanded && <span className="text-[15px] font-semibold tracking-tight">notagrafo</span>}
                 </Link>
-                <ToggleBtn expanded={expanded} onClick={toggle} t={t} />
             </div>
 
             <div className="flex flex-1 flex-col gap-4 overflow-y-auto">
@@ -107,7 +114,7 @@ function ToggleBtn({ expanded, onClick, t }: { expanded: boolean; onClick: () =>
             onClick={onClick}
             aria-label={t(expanded ? 'sidebar.colapsar' : 'sidebar.expandir')}
             aria-pressed={expanded}
-            className="flex size-8 items-center justify-center rounded-lg text-sidebar-foreground/50 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground [&>svg]:size-[18px]"
+            className="absolute -right-3 top-5 z-20 flex size-6 items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&>svg]:size-[13px]"
         >
             {expanded ? <PanelLeftClose /> : <PanelLeftOpen />}
         </button>
@@ -120,7 +127,9 @@ function RailIcon({ def, expanded, t }: { def: RailDef; expanded: boolean; t: (k
         <Link
             to={to as never}
             search={(search ?? undefined) as never}
-            activeOptions={{ exact: exact ?? false }}
+            // Itens que diferem só pelo search (entidades do Explorer) precisam
+            // casar o search para não ficarem todos ativos em /explorar ao mesmo tempo.
+            activeOptions={{ exact: exact ?? false, includeSearch: search ? true : false }}
             aria-label={t(labelKey)}
             className={`flex h-9 items-center rounded-[10px] text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground [&.active]:bg-primary/12 [&.active]:font-medium [&.active]:text-primary [&>svg]:size-[18px] ${expanded ? 'gap-2.5 px-2.5' : 'w-10 justify-center'}`}
         >

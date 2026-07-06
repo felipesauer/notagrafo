@@ -22,6 +22,10 @@ interface Health {
 
 async function fetchHealth(): Promise<Health> {
     const res = await fetch('/health');
+    // A API responde 503 quando algum serviço está "degraded" — ainda é um
+    // corpo JSON válido que queremos exibir. Só tratamos como erro real fora
+    // de 2xx/503 (ex.: HTML do dev-server se o proxy /health faltar).
+    if (!res.ok && res.status !== 503) throw new Error(`health ${res.status}`);
     return (await res.json()) as Health;
 }
 
