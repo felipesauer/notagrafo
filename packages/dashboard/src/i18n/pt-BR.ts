@@ -88,7 +88,7 @@ export const ptBR = {
         nfsEmitidas: 'NFs emitidas', nfsRecebidas: 'NFs recebidas', verGrafo: 'Ver no grafo',
     },
     produtos: {
-        titulo: 'Produtos', descricao: 'Descrição', ncm: 'NCM', totalNFs: 'NFs',
+        titulo: 'Produtos', descricao: 'Descrição', codigo: 'Código / Emitente', ncm: 'NCM', totalNFs: 'NFs',
         quantidade: 'Quantidade', valorTotal: 'Valor total', precoMedio: 'Preço médio',
         historicoPreco: 'Histórico de preço médio', semHistorico: 'Sem histórico de preço.',
         empresasLigadas: 'Empresas ligadas',

@@ -14,6 +14,16 @@ interface Produto { idUnico: string; descricao?: string; ncm?: string; totalNFs?
 const brlK = (n: number): string => (n >= 1000 ? `R$ ${(n / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mil` : `R$ ${n.toFixed(2)}`);
 const cnpjFmt = (c: string): string => (c.length === 14 ? c.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : c);
 
+/**
+ * O idUnico é `EAN` ou `codigo::cnpjEmitente` (produtos sem EAN). Extrai as partes
+ * para DIFERENCIAR linhas com a mesma descrição/NCM (ex.: 'Notebook 15 polegadas'
+ * de 5 emitentes eram idênticas na tabela — pareciam duplicatas).
+ */
+function parseIdUnico(id: string): { codigo: string; cnpj?: string } {
+    const i = id.indexOf('::');
+    return i === -1 ? { codigo: id } : { codigo: id.slice(0, i), cnpj: id.slice(i + 2) };
+}
+
 const precoConfig = { precoMedio: { label: 'Preço médio', color: 'var(--chart-3)' } } satisfies ChartConfig;
 
 /**
@@ -47,26 +57,33 @@ export function ExplorerProdutos({ peek, onPeek, busca }: { peek?: string; onPee
                     <TableHeader>
                         <TableRow>
                             <TableHead>{t('produtos.descricao')}</TableHead>
-                            <TableHead>{t('produtos.ncm')}</TableHead>
-                            <TableHead className="text-right">{t('produtos.totalNFs')}</TableHead>
-                            <TableHead className="text-right">{t('overview.valorTotal')}</TableHead>
+                            <TableHead className="w-40">{t('produtos.codigo')}</TableHead>
+                            <TableHead className="w-28">{t('produtos.ncm')}</TableHead>
+                            <TableHead className="w-20 text-right">{t('produtos.totalNFs')}</TableHead>
+                            <TableHead className="w-32 text-right">{t('overview.valorTotal')}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {rows.map((p) => (
+                        {rows.map((p) => {
+                            const { codigo, cnpj } = parseIdUnico(p.idUnico);
+                            return (
                             <TableRow
                                 key={p.idUnico}
                                 className={`cursor-pointer ${sel?.idUnico === p.idUnico ? 'bg-primary/10 shadow-[inset_2px_0_0_var(--primary)]' : ''}`}
                                 onClick={() => onPeek(p.idUnico)}
                             >
                                 <TableCell className="font-medium">{p.descricao || '—'}</TableCell>
+                                <TableCell className="font-mono text-[11px] text-muted-foreground">
+                                    {codigo}{cnpj && <span className="block text-muted-foreground/70">{cnpjFmt(cnpj)}</span>}
+                                </TableCell>
                                 <TableCell onClick={(e) => e.stopPropagation()}>
                                     {p.ncm ? <Link className="font-mono text-[12px] text-primary hover:underline" to={'/explorar' as string} search={{ entity: 'notas', ncm: p.ncm } as never}>{p.ncm}</Link> : <span className="text-muted-foreground">—</span>}
                                 </TableCell>
                                 <TableCell className="text-right font-mono tabular-nums">{p.totalNFs ?? 0}</TableCell>
                                 <TableCell className="text-right font-mono font-medium tabular-nums">{brlK(p.valorTotal ?? 0)}</TableCell>
                             </TableRow>
-                        ))}
+                            );
+                        })}
                     </TableBody>
                 </Table>
             </div>
@@ -75,6 +92,7 @@ export function ExplorerProdutos({ peek, onPeek, busca }: { peek?: string; onPee
                 {rows.map((p) => (
                     <Card key={p.idUnico} className="cursor-pointer gap-0 p-3.5" onClick={() => onPeek(p.idUnico)}>
                         <p className="font-medium leading-tight">{p.descricao || '—'}</p>
+                        <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">{parseIdUnico(p.idUnico).codigo}{parseIdUnico(p.idUnico).cnpj ? ` · ${cnpjFmt(parseIdUnico(p.idUnico).cnpj!)}` : ''}</p>
                         <div className="mt-2 flex items-center justify-between border-t pt-2 text-xs">
                             {p.ncm ? <Link className="font-mono text-primary" to={'/explorar' as string} search={{ entity: 'notas', ncm: p.ncm } as never} onClick={(e) => e.stopPropagation()}>NCM {p.ncm}</Link> : <span className="text-muted-foreground">—</span>}
                             <span className="font-mono font-medium tabular-nums">{brlK(p.valorTotal ?? 0)} · {p.totalNFs ?? 0} NF-e</span>

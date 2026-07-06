@@ -72,6 +72,8 @@ export function ExplorerEmpresas({ peek, onPeek, busca }: { peek?: string; onPee
     if (rows.length === 0) return <EmptyState mensagem={t('explorer.semResultados')} />;
 
     const sel = peek ? rows.find((r) => r.cnpj === peek) : undefined;
+    // maior valor faturado → escala a barra de proporção (ranking visual denso).
+    const maxValor = Math.max(...rows.map((r) => r.valorTotal), 1);
 
     return (
         <>
@@ -83,7 +85,7 @@ export function ExplorerEmpresas({ peek, onPeek, busca }: { peek?: string; onPee
                             <TableHead>{t('empresas.razaoSocial')}</TableHead>
                             <TableHead>{t('empresas.cnpj')}</TableHead>
                             <TableHead>{t('empresas.uf')}</TableHead>
-                            <TableHead className="text-right">{t('empresas.nfsEmitidas')}</TableHead>
+                            <TableHead className="w-24 text-right">{t('empresas.nfsEmitidas')}</TableHead>
                             <TableHead className="text-right">{t('overview.valorTotal')}</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -95,7 +97,14 @@ export function ExplorerEmpresas({ peek, onPeek, busca }: { peek?: string; onPee
                                 <TableCell className="font-mono text-[11px] text-muted-foreground">{cnpjFmt(e.cnpj)}</TableCell>
                                 <TableCell><span className="rounded border bg-muted px-1.5 py-0.5 font-mono text-[11px]">{e.uf}</span></TableCell>
                                 <TableCell className="text-right font-mono tabular-nums">{e.totalNFs}</TableCell>
-                                <TableCell className="text-right font-mono font-medium tabular-nums">{brlK(e.valorTotal)}</TableCell>
+                                <TableCell>
+                                    <div className="flex items-center justify-end gap-2">
+                                        <div className="hidden h-1.5 w-16 overflow-hidden rounded-full bg-muted lg:block">
+                                            <div className="h-full rounded-full bg-[var(--chart-1)]" style={{ width: `${Math.max((e.valorTotal / maxValor) * 100, 3)}%` }} />
+                                        </div>
+                                        <span className="w-24 text-right font-mono font-medium tabular-nums">{brlK(e.valorTotal)}</span>
+                                    </div>
+                                </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>

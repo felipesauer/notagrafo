@@ -105,7 +105,7 @@ export const en = {
         nfsEmitidas: 'Issued invoices', nfsRecebidas: 'Received invoices', verGrafo: 'View in graph',
     },
     produtos: {
-        titulo: 'Products', descricao: 'Description', ncm: 'NCM', totalNFs: 'Invoices',
+        titulo: 'Products', descricao: 'Description', codigo: 'Code / Issuer', ncm: 'NCM', totalNFs: 'Invoices',
         quantidade: 'Quantity', valorTotal: 'Total value', precoMedio: 'Average price',
         historicoPreco: 'Average price history', semHistorico: 'No price history.',
         empresasLigadas: 'Linked companies',
