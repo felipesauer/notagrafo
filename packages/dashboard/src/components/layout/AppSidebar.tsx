@@ -152,7 +152,7 @@ function RailIcon({ def, expanded, t, entityAtiva }: { def: RailDef; expanded: b
             className={`flex h-9 items-center rounded-[10px] text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground [&>svg]:size-[18px] ${expanded ? 'gap-2.5 px-2.5' : 'w-10 justify-center'} ${isEntity ? (entityActive ? activeClasses : '') : '[&.active]:bg-primary/12 [&.active]:font-medium [&.active]:text-primary'}`}
         >
             <Icon />
-            {expanded && <span className="text-[13px]">{t(labelKey)}</span>}
+            {expanded && <span className="text-2sm">{t(labelKey)}</span>}
         </Link>
     );
     if (expanded) return link;

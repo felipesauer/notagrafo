@@ -21,12 +21,19 @@ const FULL_BLEED = ['/explorar', '/grafo'];
  * (Outlet) com coluna de Insights colapsável à direita. Mobile (<md): o rail some
  * e a navegação vem do MobileNav (Sheet via hambúrguer na Topbar); o grid colapsa
  * para uma coluna única. Transversais: Toaster, ExportWatcher, Command Palette.
+ *
+ * Enquadramento (ADR-17): o padding lateral vive AQUI (p-4 md:p-6 lg:p-8), uniforme
+ * entre telas; o teto de largura de cada página vem do PageContainer. O painel
+ * Insights só aparece na Home (`/`) — nas demais telas seria ruído (Grafo/Explorer/
+ * Config/Exports têm seus próprios contextos e ganham a largura toda).
  */
 export function AppShell(): JSX.Element {
     const tema = useThemeStore((s) => s.tema);
     const insightsOpen = useUIStore((s) => s.insightsOpen);
     const pathname = useRouterState({ select: (s) => s.location.pathname });
     const fullBleed = FULL_BLEED.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+    const isHome = pathname === '/';
+    const showInsights = isHome && insightsOpen;
 
     return (
         <TooltipProvider delayDuration={300}>
@@ -37,19 +44,19 @@ export function AppShell(): JSX.Element {
                 <AppSidebar />
                 <div className="flex min-h-0 min-w-0 flex-col overflow-hidden">
                     <Topbar />
-                    <div className={`grid min-h-0 flex-1 grid-rows-1 overflow-hidden ${insightsOpen ? 'grid-cols-1 xl:grid-cols-[1fr_320px]' : 'grid-cols-1'}`}>
+                    <div className={`grid min-h-0 flex-1 grid-rows-1 overflow-hidden ${showInsights ? 'grid-cols-1 xl:grid-cols-[1fr_320px]' : 'grid-cols-1'}`}>
                         {fullBleed ? (
                             <div className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden">
                                 <Outlet />
                             </div>
                         ) : (
-                            <div className="h-full min-w-0 overflow-auto p-4 md:p-6">
+                            <div className="h-full min-w-0 overflow-auto p-4 md:p-6 lg:p-8">
                                 <Outlet />
                             </div>
                         )}
                         {/* Insights só ocupa coluna a partir de xl; abaixo disso fica oculto
-                            (evita espremer o conteúdo em telas médias). */}
-                        {insightsOpen && (
+                            (evita espremer o conteúdo em telas médias). Só na Home. */}
+                        {showInsights && (
                             <div className="hidden xl:block">
                                 <InsightsPanel />
                             </div>

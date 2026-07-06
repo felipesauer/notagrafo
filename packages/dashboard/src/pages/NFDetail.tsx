@@ -26,7 +26,7 @@ function FluxoNo({ icon, papel, nome, color }: { icon: JSX.Element; papel: strin
                 {icon}
             </span>
             <div className="min-w-0">
-                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{papel}</p>
+                <p className="text-2xs uppercase tracking-wide text-muted-foreground">{papel}</p>
                 <p className="truncate text-sm font-medium" title={nome}>{nome}</p>
             </div>
         </div>

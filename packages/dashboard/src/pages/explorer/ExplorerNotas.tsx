@@ -1,5 +1,6 @@
 import { type JSX, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { FileText, Search } from 'lucide-react';
 import { useNFList, type NFListItem } from '../../api/hooks.js';
 import { NFStatusBadge, CurrencyValue, DateDisplay, LoadingSkeleton, InlineError, EmptyState } from '../../components/shared.js';
 import { NFRowActions } from '../../components/NFRowActions.js';
@@ -24,7 +25,7 @@ function Parte({ p }: { p?: { cnpj: string; razaoSocial: string; uf: string } })
     return (
         <div className="flex flex-col leading-tight">
             <span className="truncate font-medium">{p.razaoSocial || '—'}</span>
-            <span className="font-mono text-[11px] tabular-nums text-muted-foreground">{cnpjFmt(p.cnpj)}{p.uf ? ` · ${p.uf}` : ''}</span>
+            <span className="font-mono text-2xs tabular-nums text-muted-foreground">{cnpjFmt(p.cnpj)}{p.uf ? ` · ${p.uf}` : ''}</span>
         </div>
     );
 }
@@ -66,7 +67,14 @@ export function ExplorerNotas({ q, status, recorte, peek, onPeek }: { q?: string
 
     if (query.isLoading) return <LoadingSkeleton variant="table" linhas={10} colunas={6} />;
     if (query.isError) return <InlineError onRetry={() => void query.refetch()} />;
-    if (rows.length === 0) return <EmptyState />;
+    if (rows.length === 0) {
+        // Distingue "base vazia" (sem filtros → oriente a enviar NF-e) de "busca
+        // sem resultado" (há filtros → oriente a ajustar). Título+descrição ricos.
+        const filtrando = !!q || !!status || Object.keys(recorte ?? {}).length > 0;
+        return filtrando
+            ? <EmptyState icon={Search} titulo={t('explorer.semResultadosTitulo')} descricao={t('explorer.semResultadosDescricao')} />
+            : <EmptyState icon={FileText} titulo={t('explorer.vazioNotasTitulo')} descricao={t('explorer.vazioNotasDescricao')} />;
+    }
 
     // seleção derivada da URL (peek = chave) → o peek é linkável e o voltar funciona
     const sel = peek ? rows.findIndex((r) => r.chaveAcesso === peek) : -1;
@@ -108,7 +116,7 @@ export function ExplorerNotas({ q, status, recorte, peek, onPeek }: { q?: string
                                 onClick={() => onPeek(nf.chaveAcesso)}
                             >
                                 <TableCell className="font-mono font-medium tabular-nums">{nf.numero}</TableCell>
-                                <TableCell className="font-mono text-[11px] text-muted-foreground">…{nf.chaveAcesso.slice(-8)}</TableCell>
+                                <TableCell className="font-mono text-2xs text-muted-foreground">…{nf.chaveAcesso.slice(-8)}</TableCell>
                                 <TableCell><Parte p={nf.emitente} /></TableCell>
                                 <TableCell><Parte p={nf.destinatario} /></TableCell>
                                 <TableCell className="text-right font-mono font-medium tabular-nums"><CurrencyValue value={nf.valorTotal} /></TableCell>

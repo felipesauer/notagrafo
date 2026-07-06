@@ -48,7 +48,7 @@ export function BarList({
                     <>
                         <span className="text-xs font-medium tabular-nums text-muted-foreground">{it.tag}</span>
                         <div className="h-6 overflow-hidden rounded bg-muted/50">
-                            <div className="flex h-full items-center justify-end rounded pr-2 text-[11px] font-semibold tabular-nums text-white" style={{ width: w, background: color }}>
+                            <div className="flex h-full items-center justify-end rounded pr-2 text-2xs font-semibold tabular-nums text-white" style={{ width: w, background: color }}>
                                 {formatValue ? formatValue(it.value) : it.value}
                             </div>
                         </div>

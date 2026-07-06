@@ -122,6 +122,11 @@ export const ptBR = {
         salvarView: 'Salvar view', semViews: 'Salve um filtro como view.',
         filtrandoPor: 'Filtrando por:', filtrar: 'Filtrar…', semResultados: 'Nenhum resultado para a busca.',
         densidade: 'Densidade', densidadeCompacta: 'Compacta', densidadePadrao: 'Padrão', densidadeEspacada: 'Espaçada',
+        enviarNfe: 'Enviar NF-e',
+        vazioNotasTitulo: 'Nenhuma NF-e ainda', vazioNotasDescricao: 'Envie um XML de NF-e para começar a explorar notas, emitentes e destinatários.',
+        vazioEmpresasTitulo: 'Nenhuma empresa ainda', vazioEmpresasDescricao: 'As empresas aparecem aqui automaticamente conforme você importa NF-e.',
+        vazioProdutosTitulo: 'Nenhum produto ainda', vazioProdutosDescricao: 'Os produtos são extraídos dos itens das NF-e importadas.',
+        semResultadosTitulo: 'Nenhum resultado', semResultadosDescricao: 'Ajuste a busca ou os filtros para ver mais.',
     },
     rede: {
         titulo: 'Rede', subtitulo: 'Análise das relações comerciais entre empresas',
@@ -145,13 +150,14 @@ export const ptBR = {
         historico: 'Histórico', acoes: 'Ações', baixar: 'Baixar', vazio: 'Nenhuma exportação ainda.',
         subtitulo: 'Gere extrações da base de NF-e em CSV, XLSX ou JSON.',
         registros: 'Registros', tamanho: 'Tamanho', selecioneCampos: 'Selecione os campos a exportar.',
-        primeira: 'Criar a primeira',
+        primeira: 'Criar a primeira', vazioDescricao: 'Escolha o formato e os campos ao lado e gere sua primeira extração.',
         campo: {
             chaveAcesso: 'Chave de acesso', numero: 'Número', dataEmissao: 'Data de emissão',
             valorTotal: 'Valor total', cnpjEmitente: 'CNPJ emitente', cnpjDestinatario: 'CNPJ destinatário',
         },
     },
     config: {
+        subtitulo: 'Preferências de aparência, perfil e saúde do sistema',
         aparencia: 'Aparência', tema: 'Tema', temaClaro: 'Claro', temaEscuro: 'Escuro', idioma: 'Idioma',
         perfil: 'Perfil', alterarSenha: 'Alterar senha', usuarios: 'Usuários', convidar: 'Convidar usuário',
         armazenamento: 'Armazenamento', driver: 'Driver', sistema: 'Sistema', sobre: 'Sobre',

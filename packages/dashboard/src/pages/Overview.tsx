@@ -86,8 +86,10 @@ export function OverviewPage(): JSX.Element {
     return (
         // canvas: moldura de report (estilo Power BI). Um gradiente sutil +
         // inset ring dá separação dos cartões nos DOIS temas — no claro o
-        // bg-muted/20 chapado quase sumia contra os cartões brancos.
-        <div className="-m-4 min-h-[calc(100svh-3rem)] bg-gradient-to-b from-muted/50 to-muted/20 p-4 shadow-[inset_0_1px_0_0_hsl(0_0%_100%/0.04),inset_0_0_0_1px_var(--border)] md:-m-6 md:p-6">
+        // bg-muted/20 chapado quase sumia contra os cartões brancos. A margem
+        // negativa anula o padding do <main> (p-4 md:p-6 lg:p-8) para o canvas
+        // sangrar até as bordas; deve acompanhar o padding do shell (ADR-17).
+        <div className="-m-4 min-h-[calc(100svh-3rem)] bg-gradient-to-b from-muted/50 to-muted/20 p-4 shadow-[inset_0_1px_0_0_hsl(0_0%_100%/0.04),inset_0_0_0_1px_var(--border)] md:-m-6 md:p-6 lg:-m-8 lg:p-8">
             <ReportBar gran={gran} onGran={setGran} />
             {overview.isLoading ? (
                 <LoadingSkeleton variant="kpis" linhas={4} />
@@ -242,7 +244,7 @@ function OverviewContent({
                                 </ChartContainer>
                                 <ul className="flex flex-1 flex-col justify-center gap-2">
                                     {taxPie.map((d, i) => (
-                                        <li key={d.key} className="grid grid-cols-[10px_1fr_auto] items-center gap-2.5 text-[13px]">
+                                        <li key={d.key} className="grid grid-cols-[10px_1fr_auto] items-center gap-2.5 text-2sm">
                                             <span className="size-2.5 rounded-[3px]" style={{ background: chartColor(i) }} />
                                             <span className="text-muted-foreground">{d.key}</span>
                                             <span className="font-medium tabular-nums">{brlCompact(d.valor)}</span>
@@ -342,7 +344,7 @@ function OverviewContent({
                                             <TableCell className="font-mono font-medium tabular-nums text-primary">{nf.numero}</TableCell>
                                             <TableCell>
                                                 {nf.emitente
-                                                    ? <span className="truncate">{nf.emitente.razaoSocial || '—'}{nf.emitente.uf ? <span className="ml-1 font-mono text-[11px] text-muted-foreground">· {nf.emitente.uf}</span> : null}</span>
+                                                    ? <span className="truncate">{nf.emitente.razaoSocial || '—'}{nf.emitente.uf ? <span className="ml-1 font-mono text-2xs text-muted-foreground">· {nf.emitente.uf}</span> : null}</span>
                                                     : <span className="text-muted-foreground">—</span>}
                                             </TableCell>
                                             <TableCell className="text-right font-mono tabular-nums"><CurrencyValue value={nf.valorTotal} /></TableCell>

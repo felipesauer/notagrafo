@@ -45,10 +45,10 @@ export function CustomNode({ data, selected, sourcePosition, targetPosition }: N
                     <Icon />
                 </span>
                 <div className="min-w-0 leading-tight">
-                    <p className="truncate text-[13px] font-semibold" title={d.razaoSocial ?? d.label}>
+                    <p className="truncate text-2sm font-semibold" title={d.razaoSocial ?? d.label}>
                         {d.razaoSocial ?? d.label}
                     </p>
-                    {contexto && <p className="truncate text-[11px] text-muted-foreground">{contexto}</p>}
+                    {contexto && <p className="truncate text-2xs text-muted-foreground">{contexto}</p>}
                 </div>
             </BaseNodeContent>
         </BaseNode>

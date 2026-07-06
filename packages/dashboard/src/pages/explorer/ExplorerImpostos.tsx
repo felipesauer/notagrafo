@@ -126,7 +126,7 @@ function TopNcmTable({ rows, density, t }: { rows: TaxStats['topNcm']; density: 
                                 <TableRow key={n.ncm}>
                                     <TableCell className="max-w-0 pl-6">
                                         <div className="flex items-baseline gap-2">
-                                            <Link className="font-mono text-[12px] text-primary hover:underline shrink-0" to={'/explorar' as string} search={{ entity: 'notas', ncm: n.ncm } as never}>{n.ncm}</Link>
+                                            <Link className="font-mono text-xs text-primary hover:underline shrink-0" to={'/explorar' as string} search={{ entity: 'notas', ncm: n.ncm } as never}>{n.ncm}</Link>
                                             {n.descricao && <span className="truncate text-xs text-muted-foreground" title={n.descricao}>{n.descricao}</span>}
                                         </div>
                                     </TableCell>
@@ -168,7 +168,7 @@ function TopCfopTable({ rows, density, t }: { rows: TaxStats['topCfop']; density
                                 <TableRow key={c.cfop}>
                                     <TableCell className="max-w-0 pl-6">
                                         <div className="flex items-baseline gap-2">
-                                            <span className="font-mono text-[12px] shrink-0">{c.cfop}</span>
+                                            <span className="font-mono text-xs shrink-0">{c.cfop}</span>
                                             {c.descricao && <span className="truncate text-xs text-muted-foreground" title={c.descricao}>{c.descricao}</span>}
                                         </div>
                                     </TableCell>

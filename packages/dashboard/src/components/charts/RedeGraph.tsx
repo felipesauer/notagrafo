@@ -109,14 +109,14 @@ export function RedeGraph({ nos, arestas }: { nos: RedeNo[]; arestas: RedeAresta
                     {t('rede.limparSelecao')}
                 </button>
             ) : (
-                <div className="pointer-events-none absolute left-3 top-3 rounded-md border bg-background/80 px-2.5 py-1 text-[11px] text-muted-foreground shadow-sm backdrop-blur">
+                <div className="pointer-events-none absolute left-3 top-3 rounded-md border bg-background/80 px-2.5 py-1 text-2xs text-muted-foreground shadow-sm backdrop-blur">
                     {t('rede.dicaInteracao')}
                 </div>
             )}
 
             {/* Legenda de cor por UF (anti-hairball: nunca cor sozinha — parear com rótulo). */}
             {legenda.length > 0 && (
-                <div className="pointer-events-none absolute bottom-3 left-3 max-w-[220px] rounded-md border bg-background/85 p-2 text-[11px] shadow-sm backdrop-blur">
+                <div className="pointer-events-none absolute bottom-3 left-3 max-w-[220px] rounded-md border bg-background/85 p-2 text-2xs shadow-sm backdrop-blur">
                     <p className="mb-1 font-semibold text-muted-foreground">{t('rede.legendaUf')}</p>
                     <ul className="grid grid-cols-2 gap-x-3 gap-y-0.5">
                         {legenda.map((l) => (

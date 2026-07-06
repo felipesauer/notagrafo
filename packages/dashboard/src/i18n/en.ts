@@ -139,6 +139,11 @@ export const en = {
         salvarView: 'Save view', semViews: 'Save a filter as a view.',
         filtrandoPor: 'Filtering by:', filtrar: 'Filter…', semResultados: 'No results for your search.',
         densidade: 'Density', densidadeCompacta: 'Compact', densidadePadrao: 'Default', densidadeEspacada: 'Relaxed',
+        enviarNfe: 'Upload invoice',
+        vazioNotasTitulo: 'No invoices yet', vazioNotasDescricao: 'Upload an NF-e XML to start exploring invoices, issuers and recipients.',
+        vazioEmpresasTitulo: 'No companies yet', vazioEmpresasDescricao: 'Companies show up here automatically as you import invoices.',
+        vazioProdutosTitulo: 'No products yet', vazioProdutosDescricao: 'Products are extracted from the line items of imported invoices.',
+        semResultadosTitulo: 'No results', semResultadosDescricao: 'Adjust your search or filters to see more.',
     },
     rede: {
         titulo: 'Network', subtitulo: 'Analysis of trade relationships between companies',
@@ -162,13 +167,14 @@ export const en = {
         historico: 'History', acoes: 'Actions', baixar: 'Download', vazio: 'No exports yet.',
         subtitulo: 'Generate extracts of the invoice base as CSV, XLSX or JSON.',
         registros: 'Records', tamanho: 'Size', selecioneCampos: 'Select the fields to export.',
-        primeira: 'Create the first',
+        primeira: 'Create the first', vazioDescricao: 'Pick the format and fields on the left and generate your first extract.',
         campo: {
             chaveAcesso: 'Access key', numero: 'Number', dataEmissao: 'Issue date',
             valorTotal: 'Total value', cnpjEmitente: 'Issuer tax ID', cnpjDestinatario: 'Recipient tax ID',
         },
     },
     config: {
+        subtitulo: 'Appearance, profile and system health preferences',
         aparencia: 'Appearance', tema: 'Theme', temaClaro: 'Light', temaEscuro: 'Dark', idioma: 'Language', sobre: 'About',
         perfil: 'Profile', alterarSenha: 'Change password', usuarios: 'Users', convidar: 'Invite user',
         armazenamento: 'Storage', driver: 'Driver', sistema: 'System',
