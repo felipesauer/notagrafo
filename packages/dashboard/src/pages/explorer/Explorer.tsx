@@ -1,17 +1,22 @@
-import { type JSX, type ReactNode, useState } from 'react';
+import { type JSX, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate, useSearch } from '@tanstack/react-router';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import {
-    Activity, Bookmark, Building2, Download, FileText, Home, Languages, type LucideIcon, Moon,
-    Network, Package, ReceiptText, Search, Settings, Star, Sun, Upload, Waypoints, X,
+    Activity, Bookmark, Building2, FileText, Filter, type LucideIcon,
+    Network, Package, ReceiptText, Search, Star, Upload, X,
 } from 'lucide-react';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue.js';
-import { useThemeStore } from '../../stores/theme.store.js';
-import { setIdioma, type Idioma } from '../../i18n/index.js';
 import { Button } from '../../components/ui/button.js';
 import { Input } from '../../components/ui/input.js';
+import { Label } from '../../components/ui/label.js';
 import { NativeSelect } from '../../components/ui/native-select.js';
+import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover.js';
+import {
+    DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
+    DropdownMenuSeparator, DropdownMenuTrigger,
+} from '../../components/ui/dropdown-menu.js';
 import { UploadModal } from '../../components/UploadModal.js';
+import { DensityToggle } from '../../components/DensityToggle.js';
 import { ExplorerNotas } from './ExplorerNotas.js';
 import { ExplorerEmpresas } from './ExplorerEmpresas.js';
 import { ExplorerProdutos } from './ExplorerProdutos.js';
@@ -37,202 +42,170 @@ const ENTITIES: EntityDef[] = [
     { key: 'rede', icon: Network, labelKey: 'sidebar.rede', group: 'analise' },
     { key: 'eventos', icon: Activity, labelKey: 'sidebar.eventos', group: 'analise' },
 ];
-
-/**
- * Explorador unificado (nova navegação, modelo Linear): a NF-e é a entidade
- * central; empresas/produtos/impostos são recortes; rede/eventos são lentes.
- * Uma casca em "L invertido" (rail de entidades + header contextual) troca o
- * conteúdo sem trocar de página. Passo 1: só a entidade Notas tem conteúdo real.
- */
 const ENTITY_KEYS = new Set<string>(ENTITIES.map((e) => e.key));
 
+/**
+ * Explorador unificado (`/explorar`): a NF-e é a entidade central; empresas/
+ * produtos/impostos são recortes; rede/eventos são lentes. O rail de navegação
+ * global vive no AppShell (NOTA-119) — aqui ficam as TABS de entidade, o header
+ * contextual (busca/status/upload/views) e o conteúdo, que troca sem navegar de
+ * página. entity/peek/q/status/recorte vivem no search da URL (linkável).
+ */
 export function ExplorerPage(): JSX.Element {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const search = useSearch({ strict: false }) as {
         entity?: string; peek?: string; q?: string; status?: string;
         ufEmitente?: string; cnpjEmitente?: string; ncm?: string; comImposto?: boolean;
+        dataEmissaoInicio?: string; dataEmissaoFim?: string; valorTotalMin?: string;
+        valorTotalMax?: string; tipoNF?: string; finalidade?: string; cfop?: string;
     };
 
-    // A entidade ativa e os filtros vivem na URL (linkáveis). A busca tem um
-    // espelho local para digitação fluida, com debounce antes de ir pra query.
     const entity: EntityKey = (search.entity && ENTITY_KEYS.has(search.entity) ? search.entity : 'notas') as EntityKey;
     const status = search.status ?? '';
-    // Filtros de recorte que chegam por drill-through (Visão Geral / peeks).
     const recorte = {
         ...(search.ufEmitente ? { ufEmitente: search.ufEmitente } : {}),
         ...(search.cnpjEmitente ? { cnpjEmitente: search.cnpjEmitente } : {}),
         ...(search.ncm ? { ncm: search.ncm } : {}),
         ...(search.comImposto ? { comImposto: search.comImposto } : {}),
+        ...(search.dataEmissaoInicio ? { dataEmissaoInicio: search.dataEmissaoInicio } : {}),
+        ...(search.dataEmissaoFim ? { dataEmissaoFim: search.dataEmissaoFim } : {}),
+        ...(search.valorTotalMin ? { valorTotalMin: search.valorTotalMin } : {}),
+        ...(search.valorTotalMax ? { valorTotalMax: search.valorTotalMax } : {}),
+        ...(search.tipoNF ? { tipoNF: search.tipoNF } : {}),
+        ...(search.finalidade ? { finalidade: search.finalidade } : {}),
+        ...(search.cfop ? { cfop: search.cfop } : {}),
     };
     const temRecorte = Object.keys(recorte).length > 0;
     const [qInput, setQInput] = useState(search.q ?? '');
     const [modalAberto, setModalAberto] = useState(false);
+    // Busca client-side das entidades cujo ranking já vem inteiro (empresas/produtos):
+    // filtra as linhas em memória, sem tocar a API. Notas usa o `q` server-side acima.
+    const [buscaLocal, setBuscaLocal] = useState('');
     const q = useDebouncedValue(qInput, 300);
     const { views, add: addView, remove: removeView } = useSavedViews();
-    const { i18n } = useTranslation();
-    const tema = useThemeStore((s) => s.tema);
-    const toggleTema = useThemeStore((s) => s.toggle);
 
-    const explorar = ENTITIES.filter((e) => e.group === 'explorar');
-    const analise = ENTITIES.filter((e) => e.group === 'analise');
     const meta = ENTITIES.find((e) => e.key === entity)!;
 
     function trocar(e: EntityKey): void {
         setQInput('');
-        void navigate({ to: '/' as string, search: { entity: e } as never });
+        setBuscaLocal('');
+        void navigate({ to: '/explorar' as string, search: { entity: e } as never });
     }
     function setStatus(s: string): void {
-        void navigate({ to: '/' as string, search: { ...search, status: s || undefined } as never });
+        void navigate({ to: '/explorar' as string, search: { ...search, status: s || undefined } as never });
+    }
+    /** Atualiza um campo de filtro avançado no search (string vazia limpa). */
+    function setFiltro(campo: string, valor: string): void {
+        void navigate({ to: '/explorar' as string, search: { ...search, [campo]: valor || undefined } as never });
+    }
+    /** Limpa TODOS os filtros avançados de uma vez (um único navigate — chamar
+     *  setFiltro em loop não funciona: as navegações partem do mesmo snapshot de
+     *  search e se sobrescrevem, restando só a última). */
+    function limparFiltros(): void {
+        const limpo = { ...search };
+        for (const c of ['dataEmissaoInicio', 'dataEmissaoFim', 'valorTotalMin', 'valorTotalMax', 'tipoNF', 'finalidade', 'cfop', 'ncm']) {
+            delete (limpo as Record<string, unknown>)[c];
+        }
+        void navigate({ to: '/explorar' as string, search: limpo as never });
     }
     function setPeek(chave: string | undefined): void {
-        void navigate({ to: '/' as string, search: { ...search, peek: chave } as never });
+        void navigate({ to: '/explorar' as string, search: { ...search, peek: chave } as never });
     }
     function limparRecorte(): void {
-        void navigate({ to: '/' as string, search: { entity, ...(qInput.trim() ? { q: qInput.trim() } : {}), ...(status ? { status } : {}) } as never });
+        void navigate({ to: '/explorar' as string, search: { entity, ...(qInput.trim() ? { q: qInput.trim() } : {}), ...(status ? { status } : {}) } as never });
     }
     function aplicarView(v: { entity: string; q?: string; status?: string }): void {
         setQInput(v.q ?? '');
-        void navigate({ to: '/' as string, search: { entity: v.entity, q: v.q || undefined, status: v.status || undefined } as never });
+        void navigate({ to: '/explorar' as string, search: { entity: v.entity, q: v.q || undefined, status: v.status || undefined } as never });
     }
     function salvarView(): void {
-        // nomeia pela entidade + filtro atual; só faz sentido salvar com algum filtro
         const partes = [t(meta.labelKey), qInput.trim(), status].filter(Boolean);
         addView({ nome: partes.join(' · '), entity, ...(qInput.trim() ? { q: qInput.trim() } : {}), ...(status ? { status } : {}) });
     }
     const podeSalvar = entity === 'notas' && (!!qInput.trim() || !!status);
 
     return (
-        // rail de entidades (esquerda) + área principal — o "L" invertido; é o shell
-        <div className="flex h-svh">
-            {/* Rail de entidades (traço vertical do "L") — é o shell primário */}
-            <div data-testid="app-sidebar" className="hidden w-56 shrink-0 flex-col border-r bg-sidebar/40 md:flex">
-                {/* Brand */}
-                <div className="flex items-center gap-2 px-3 py-3">
-                    <span className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground [&>svg]:size-4"><ReceiptText /></span>
-                    <span className="text-[15px] font-semibold tracking-tight">notagrafo</span>
-                </div>
-                {/* Cmd+K trigger */}
-                <button type="button" onClick={() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
-                    className="mx-2 mb-1 flex items-center gap-2 rounded-lg border bg-background/60 px-2.5 py-1.5 text-[13px] text-muted-foreground hover:text-foreground">
-                    <Search className="size-3.5" /> {t('comando.placeholder').slice(0, 18)}…
-                    <span className="ml-auto rounded border bg-muted px-1.5 font-mono text-[10px]">⌘K</span>
-                </button>
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+            {/* Tabs de entidade (substituem o rail): recortes e lentes. Mantidas como
+                <button> para os e2e (getByRole('button', {name})). */}
+            <div className="flex items-center gap-1 overflow-x-auto border-b px-3 py-2">
+                {ENTITIES.map((e) => (
+                    <button key={e.key} type="button" onClick={() => trocar(e.key)}
+                        className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors ${entity === e.key ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>
+                        <e.icon className="size-4" /> {t(e.labelKey)}
+                    </button>
+                ))}
+            </div>
 
-                <div className="flex-1 overflow-y-auto">
-                    <RailGroup label={t('sidebar.grupoDados')}>
-                        {explorar.map((e) => <RailItem key={e.key} e={e} active={entity === e.key} onClick={() => trocar(e.key)} t={t} />)}
-                    </RailGroup>
-                    <RailGroup label={t('sidebar.grupoAnalise')}>
-                        {analise.map((e) => <RailItem key={e.key} e={e} active={entity === e.key} onClick={() => trocar(e.key)} t={t} />)}
-                        <RailLink to="/grafo" icon={Waypoints} label={t('sidebar.grafo')} />
-                    </RailGroup>
-                    <RailGroup label={t('explorer.minhasViews')}>
-                        {views.length === 0 ? (
-                            <p className="px-2 py-1 text-[12px] text-muted-foreground/60">{t('explorer.semViews')}</p>
-                        ) : views.map((v) => (
-                            <div key={v.id} className="group flex items-center rounded-md hover:bg-sidebar-accent">
-                                <button type="button" onClick={() => aplicarView(v)}
-                                    className="flex min-w-0 flex-1 items-center gap-2.5 px-2 py-1.5 text-left text-[13px] text-muted-foreground hover:text-foreground">
-                                    <Star className="size-3.5 shrink-0 text-muted-foreground/60" />
-                                    <span className="truncate">{v.nome}</span>
-                                </button>
-                                <button type="button" onClick={() => removeView(v.id)} aria-label={t('nf.filtros.remover')}
-                                    className="mr-1 shrink-0 rounded p-1 text-muted-foreground opacity-0 hover:bg-foreground/10 group-hover:opacity-100">
-                                    <X className="size-3" />
-                                </button>
+            {/* Header contextual da entidade */}
+            <div className="flex flex-wrap items-center gap-2 border-b px-4 py-2.5">
+                <span className="flex items-center gap-2 text-sm font-semibold tracking-tight">
+                    <meta.icon className="size-4 text-muted-foreground" /> {t(meta.labelKey)}
+                </span>
+                <div className="ml-auto flex items-center gap-2">
+                    <DensityToggle />
+                    <ViewsMenu views={views} onApply={aplicarView} onRemove={removeView} t={t} />
+                    {entity === 'notas' && (
+                        <>
+                            <div className="relative">
+                                <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                                <Input value={qInput} onChange={(e) => setQInput(e.target.value)} placeholder={t('nf.filtros.buscaUnica')} className="h-8 w-56 pl-8" />
                             </div>
-                        ))}
-                    </RailGroup>
-                </div>
-
-                {/* Rodapé do rail: geral + sistema */}
-                <div className="border-t p-2">
-                    <RailLink to="/visao-geral" icon={Home} label={t('sidebar.overview')} />
-                    <RailLink to="/exportacoes" icon={Download} label={t('sidebar.exportacoes')} />
-                    <RailLink to="/configuracoes" icon={Settings} label={t('sidebar.configuracoes')} />
-                    <div className="mt-1 flex items-center gap-1 border-t pt-1">
-                        <Button type="button" variant="ghost" size="icon-sm" onClick={toggleTema} aria-label={t('header.alternarTema')}>
-                            {tema === 'claro' ? <Moon /> : <Sun />}
-                        </Button>
-                        <Button type="button" variant="ghost" size="sm" onClick={() => setIdioma(i18n.language === 'pt-BR' ? 'en' : ('pt-BR' as Idioma))} aria-label={t('header.alternarIdioma')}>
-                            <Languages /> {i18n.language === 'pt-BR' ? 'EN' : 'PT'}
-                        </Button>
-                    </div>
+                            <NativeSelect value={status} onChange={(e) => setStatus(e.target.value)} data-testid="nf-status-filter" wrapperClassName="w-36">
+                                <option value="">{t('nf.todosStatus')}</option>
+                                <option value="ativa">{t('nf.statusAtiva')}</option>
+                                <option value="cancelada">{t('nf.statusCancelada')}</option>
+                                <option value="denegada">{t('nf.statusDenegada')}</option>
+                                <option value="inutilizada">{t('nf.statusInutilizada')}</option>
+                            </NativeSelect>
+                            <NFFilters search={search} onChange={setFiltro} onClearAll={limparFiltros} t={t} />
+                            {podeSalvar && (
+                                <Button type="button" variant="outline" size="sm" onClick={salvarView}><Bookmark /> {t('explorer.salvarView')}</Button>
+                            )}
+                            <Button type="button" size="sm" onClick={() => setModalAberto(true)}><Upload /> {t('nf.uploadTitulo')}</Button>
+                        </>
+                    )}
+                    {(entity === 'empresas' || entity === 'produtos') && (
+                        <div className="relative">
+                            <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input value={buscaLocal} onChange={(e) => setBuscaLocal(e.target.value)} placeholder={t('explorer.filtrar')} className="h-8 w-56 pl-8" />
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* Área principal */}
-            <div className="flex min-w-0 flex-1 flex-col">
-                {/* Seletor de entidade horizontal (mobile — o rail vertical some) */}
-                <div className="flex gap-1 overflow-x-auto border-b px-3 py-2 md:hidden">
-                    {ENTITIES.map((e) => (
-                        <button key={e.key} type="button" onClick={() => trocar(e.key)}
-                            className={`flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] ${entity === e.key ? 'bg-sidebar-accent font-medium text-foreground' : 'text-muted-foreground'}`}>
-                            <e.icon className="size-4" /> {t(e.labelKey)}
-                        </button>
-                    ))}
+            {/* Faixa de filtro ativo (drill-through) */}
+            {entity === 'notas' && temRecorte && (
+                <div className="flex flex-wrap items-center gap-2 border-b bg-muted/30 px-4 py-2">
+                    <span className="text-xs text-muted-foreground">{t('explorer.filtrandoPor')}</span>
+                    {search.ufEmitente && <FilterChip label={t('nf.filtros.ufEmitente')} value={search.ufEmitente} />}
+                    {search.cnpjEmitente && <FilterChip label={t('nf.filtros.cnpjEmitente')} value={cnpjChip(search.cnpjEmitente)} />}
+                    {search.ncm && <FilterChip label={t('nf.ncm')} value={search.ncm} />}
+                    {search.comImposto && <FilterChip label={t('grafo.nfsComImposto')} value="" />}
+                    <Button type="button" variant="ghost" size="sm" className="ml-auto h-7 text-xs" onClick={limparRecorte}>
+                        <X /> {t('nf.filtros.limparTudo')}
+                    </Button>
                 </div>
+            )}
 
-                {/* Header contextual da entidade */}
-                <div className="flex flex-wrap items-center gap-2 border-b px-4 py-2.5">
-                    <span className="flex items-center gap-2 text-sm font-semibold tracking-tight">
-                        <meta.icon className="size-4 text-muted-foreground" /> {t(meta.labelKey)}
-                    </span>
-                    <div className="ml-auto flex items-center gap-2">
-                        {entity === 'notas' && (
-                            <>
-                                <div className="relative">
-                                    <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                                    <Input value={qInput} onChange={(e) => setQInput(e.target.value)} placeholder={t('nf.filtros.buscaUnica')} className="h-8 w-56 pl-8" />
-                                </div>
-                                <NativeSelect value={status} onChange={(e) => setStatus(e.target.value)} data-testid="nf-status-filter" wrapperClassName="w-36">
-                                    <option value="">{t('nf.todosStatus')}</option>
-                                    <option value="ativa">{t('nf.statusAtiva')}</option>
-                                    <option value="cancelada">{t('nf.statusCancelada')}</option>
-                                    <option value="denegada">{t('nf.statusDenegada')}</option>
-                                </NativeSelect>
-                                {podeSalvar && (
-                                    <Button type="button" variant="outline" size="sm" onClick={salvarView}><Bookmark /> {t('explorer.salvarView')}</Button>
-                                )}
-                                <Button type="button" size="sm" onClick={() => setModalAberto(true)}><Upload /> {t('nf.uploadTitulo')}</Button>
-                            </>
-                        )}
-                    </div>
-                </div>
-
-                {/* Faixa de filtro ativo (drill-through): mostra o recorte vindo da
-                    Visão Geral/peek com um chip removível — sem isso o usuário fica
-                    preso num filtro invisível. */}
-                {entity === 'notas' && temRecorte && (
-                    <div className="flex flex-wrap items-center gap-2 border-b bg-muted/30 px-4 py-2">
-                        <span className="text-xs text-muted-foreground">{t('explorer.filtrandoPor')}</span>
-                        {search.ufEmitente && <FilterChip label={t('nf.filtros.ufEmitente')} value={search.ufEmitente} />}
-                        {search.cnpjEmitente && <FilterChip label={t('nf.filtros.cnpjEmitente')} value={cnpjChip(search.cnpjEmitente)} />}
-                        {search.ncm && <FilterChip label={t('nf.ncm')} value={search.ncm} />}
-                        {search.comImposto && <FilterChip label={t('grafo.nfsComImposto')} value="" />}
-                        <Button type="button" variant="ghost" size="sm" className="ml-auto h-7 text-xs" onClick={limparRecorte}>
-                            <X /> {t('nf.filtros.limparTudo')}
-                        </Button>
-                    </div>
+            {/* Conteúdo da entidade — container flex sem overflow próprio (a tabela
+                sticky faz o seu scroll; Rede/Eventos/Impostos rolam internamente).
+                Padding uniforme aqui = mesma margem das demais telas, um scroll só. */}
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-4 md:p-6">
+                {entity === 'notas' ? (
+                    <ExplorerNotas q={q} status={status} recorte={recorte} peek={search.peek} onPeek={setPeek} />
+                ) : entity === 'empresas' ? (
+                    <ExplorerEmpresas peek={search.peek} onPeek={setPeek} busca={buscaLocal} />
+                ) : entity === 'produtos' ? (
+                    <ExplorerProdutos peek={search.peek} onPeek={setPeek} busca={buscaLocal} />
+                ) : entity === 'impostos' ? (
+                    <div className="min-h-0 flex-1 overflow-auto"><ExplorerImpostos /></div>
+                ) : entity === 'rede' ? (
+                    <div className="min-h-0 flex-1 overflow-auto"><NetworkContent /></div>
+                ) : (
+                    <div className="min-h-0 flex-1 overflow-auto"><EventsContent /></div>
                 )}
-
-                {/* Conteúdo da entidade */}
-                <div className="flex-1 overflow-auto">
-                    {entity === 'notas' ? (
-                        <ExplorerNotas q={q} status={status} recorte={recorte} peek={search.peek} onPeek={setPeek} />
-                    ) : entity === 'empresas' ? (
-                        <ExplorerEmpresas peek={search.peek} onPeek={setPeek} />
-                    ) : entity === 'produtos' ? (
-                        <ExplorerProdutos />
-                    ) : entity === 'impostos' ? (
-                        <ExplorerImpostos />
-                    ) : entity === 'rede' ? (
-                        <div className="p-4 md:p-6"><NetworkContent /></div>
-                    ) : (
-                        <div className="p-4 md:p-6"><EventsContent /></div>
-                    )}
-                </div>
             </div>
 
             {modalAberto && <UploadModal onClose={() => setModalAberto(false)} />}
@@ -245,6 +218,75 @@ function cnpjChip(c: string): string {
     return c.length === 14 ? c.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : c;
 }
 
+interface NFSearch {
+    dataEmissaoInicio?: string; dataEmissaoFim?: string; valorTotalMin?: string;
+    valorTotalMax?: string; tipoNF?: string; finalidade?: string; cfop?: string; ncm?: string;
+}
+
+/**
+ * Painel de filtros avançados de NF (redesign BI / NOTA-125 D): expõe os filtros
+ * que a API /nf já aceita e a UI escondia (datas, valor min/max, tipo, finalidade,
+ * CFOP, NCM). Escreve no search da URL (linkável). O nº de filtros ativos aparece
+ * no botão. Selects nativos (ADR-10). Comprovante do que a API oferece em uso.
+ */
+function NFFilters({ search, onChange, onClearAll, t }: { search: NFSearch; onChange: (campo: string, valor: string) => void; onClearAll: () => void; t: (k: string) => string }): JSX.Element {
+    const campos: (keyof NFSearch)[] = ['dataEmissaoInicio', 'dataEmissaoFim', 'valorTotalMin', 'valorTotalMax', 'tipoNF', 'finalidade', 'cfop', 'ncm'];
+    const ativos = campos.filter((c) => search[c]).length;
+    return (
+        <Popover>
+            <PopoverTrigger asChild>
+                <Button type="button" variant={ativos > 0 ? 'default' : 'outline'} size="sm">
+                    <Filter /> {t('nf.filtros.titulo')}{ativos > 0 ? ` · ${ativos}` : ''}
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-80 space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                    <FiltroCampo label={t('nf.filtros.emissaoInicio')} type="date" value={search.dataEmissaoInicio} onChange={(v) => onChange('dataEmissaoInicio', v)} />
+                    <FiltroCampo label={t('nf.filtros.emissaoFim')} type="date" value={search.dataEmissaoFim} onChange={(v) => onChange('dataEmissaoFim', v)} />
+                    <FiltroCampo label={t('nf.filtros.valorMin')} type="number" value={search.valorTotalMin} onChange={(v) => onChange('valorTotalMin', v)} />
+                    <FiltroCampo label={t('nf.filtros.valorMax')} type="number" value={search.valorTotalMax} onChange={(v) => onChange('valorTotalMax', v)} />
+                    <FiltroCampo label="CFOP" value={search.cfop} onChange={(v) => onChange('cfop', v)} />
+                    <FiltroCampo label="NCM" value={search.ncm} onChange={(v) => onChange('ncm', v)} />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                    <div className="grid gap-1">
+                        <Label className="text-[11px] text-muted-foreground">{t('nf.filtros.tipoNF')}</Label>
+                        <NativeSelect value={search.tipoNF ?? ''} onChange={(e) => onChange('tipoNF', e.target.value)} wrapperClassName="w-full">
+                            <option value="">{t('nf.filtros.todos')}</option>
+                            <option value="entrada">{t('nf.filtros.tipoEntrada')}</option>
+                            <option value="saida">{t('nf.filtros.tipoSaida')}</option>
+                        </NativeSelect>
+                    </div>
+                    <div className="grid gap-1">
+                        <Label className="text-[11px] text-muted-foreground">{t('nf.filtros.finalidade')}</Label>
+                        <NativeSelect value={search.finalidade ?? ''} onChange={(e) => onChange('finalidade', e.target.value)} wrapperClassName="w-full">
+                            <option value="">{t('nf.filtros.todos')}</option>
+                            <option value="normal">{t('nf.filtros.finNormal')}</option>
+                            <option value="complementar">{t('nf.filtros.finComplementar')}</option>
+                            <option value="ajuste">{t('nf.filtros.finAjuste')}</option>
+                            <option value="devolucao">{t('nf.filtros.finDevolucao')}</option>
+                        </NativeSelect>
+                    </div>
+                </div>
+                {ativos > 0 && (
+                    <Button type="button" variant="ghost" size="sm" className="w-full" onClick={onClearAll}>
+                        <X /> {t('nf.filtros.limparTudo')}
+                    </Button>
+                )}
+            </PopoverContent>
+        </Popover>
+    );
+}
+
+function FiltroCampo({ label, type = 'text', value, onChange }: { label: string; type?: string; value?: string; onChange: (v: string) => void }): JSX.Element {
+    return (
+        <div className="grid gap-1">
+            <Label className="text-[11px] text-muted-foreground">{label}</Label>
+            <Input type={type} value={value ?? ''} onChange={(e) => onChange(e.target.value)} className="h-8" />
+        </div>
+    );
+}
+
 /** Chip somente-leitura de um filtro de recorte ativo (rótulo + valor). */
 function FilterChip({ label, value }: { label: string; value: string }): JSX.Element {
     return (
@@ -255,30 +297,40 @@ function FilterChip({ label, value }: { label: string; value: string }): JSX.Ele
     );
 }
 
-function RailGroup({ label, children }: { label: string; children: ReactNode }): JSX.Element {
+/**
+ * Menu de views salvas (antes vivia no rail). Fica no header do Explorer: um
+ * botão "Views" que abre a lista favoritável (localStorage via useSavedViews),
+ * com remoção. Some quando não há views salvas.
+ */
+function ViewsMenu({
+    views, onApply, onRemove, t,
+}: {
+    views: { id: string; nome: string; entity: string; q?: string; status?: string }[];
+    onApply: (v: { entity: string; q?: string; status?: string }) => void;
+    onRemove: (id: string) => void;
+    t: (k: string) => string;
+}): JSX.Element | null {
+    if (views.length === 0) return null;
     return (
-        <div className="px-2 py-2">
-            <p className="px-2 py-1.5 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground/70">{label}</p>
-            <div className="space-y-0.5">{children}</div>
-        </div>
-    );
-}
-
-function RailItem({ e, active, onClick, t }: { e: EntityDef; active: boolean; onClick: () => void; t: (k: string) => string }): JSX.Element {
-    return (
-        <button type="button" onClick={onClick}
-            className={`flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-[13px] transition-colors ${active ? 'bg-sidebar-accent font-medium text-foreground' : 'text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground'}`}>
-            <e.icon className="size-[15px] shrink-0" /> {t(e.labelKey)}
-        </button>
-    );
-}
-
-/** Item do rail que navega para uma rota (fora do explorador): Overview, Grafo, Exports, Settings. */
-function RailLink({ to, icon: Icon, label }: { to: string; icon: LucideIcon; label: string }): JSX.Element {
-    return (
-        <Link to={to as never} activeOptions={{ exact: to === '/' }}
-            className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-[13px] text-muted-foreground transition-colors hover:bg-sidebar-accent/60 hover:text-foreground [&.active]:bg-sidebar-accent [&.active]:font-medium [&.active]:text-foreground">
-            <Icon className="size-[15px] shrink-0" /> {label}
-        </Link>
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button type="button" variant="ghost" size="sm"><Star /> {t('explorer.minhasViews')}</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-60">
+                <DropdownMenuLabel>{t('explorer.minhasViews')}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {views.map((v) => (
+                    <DropdownMenuItem key={v.id} onSelect={() => onApply(v)} className="group">
+                        <Star className="size-3.5 shrink-0 text-muted-foreground/60" />
+                        <span className="truncate">{v.nome}</span>
+                        <button type="button" aria-label={t('nf.filtros.remover')}
+                            onClick={(e) => { e.stopPropagation(); onRemove(v.id); }}
+                            className="ml-auto shrink-0 rounded p-0.5 text-muted-foreground opacity-0 hover:bg-foreground/10 group-hover:opacity-100">
+                            <X className="size-3" />
+                        </button>
+                    </DropdownMenuItem>
+                ))}
+            </DropdownMenuContent>
+        </DropdownMenu>
     );
 }

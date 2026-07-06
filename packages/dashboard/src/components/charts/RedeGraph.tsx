@@ -19,11 +19,18 @@ export function RedeGraph({ nos, arestas }: { nos: RedeNo[]; arestas: RedeAresta
     const tema = useThemeStore((s) => s.tema);
     const ref = useRef<GraphCanvasRef | null>(null);
 
-    const { nodes, edges, theme } = useMemo(() => {
+    const { nodes, edges, theme, legenda } = useMemo(() => {
         const cores = resolveTokenColorsRGB();
         // Uma cor por UF (comunidade), ciclando na paleta de tokens.
         const ufs = [...new Set(nos.map((n) => n.uf || '—'))].sort();
         const corDaUf = new Map(ufs.map((uf, i) => [uf, cores.chart[i % 8]!]));
+        // Legenda: nº de empresas por UF, para o usuário ler a cor (não confiar só nela).
+        const contUf = new Map<string, number>();
+        for (const n of nos) contUf.set(n.uf || '—', (contUf.get(n.uf || '—') ?? 0) + 1);
+        const legenda = ufs
+            .map((uf) => ({ uf, cor: corDaUf.get(uf)!, total: contUf.get(uf) ?? 0 }))
+            .sort((a, b) => b.total - a.total)
+            .slice(0, 8);
 
         const nodes: GraphNode[] = nos.map((n) => ({
             id: n.cnpj,
@@ -61,7 +68,7 @@ export function RedeGraph({ nos, arestas }: { nos: RedeNo[]; arestas: RedeAresta
                 : base.cluster,
         };
 
-        return { nodes, edges, theme };
+        return { nodes, edges, theme, legenda };
     }, [nos, arestas, tema]);
 
     const { selections, actives, onNodeClick, onCanvasClick, clearSelections } = useSelection({
@@ -104,6 +111,22 @@ export function RedeGraph({ nos, arestas }: { nos: RedeNo[]; arestas: RedeAresta
             ) : (
                 <div className="pointer-events-none absolute left-3 top-3 rounded-md border bg-background/80 px-2.5 py-1 text-[11px] text-muted-foreground shadow-sm backdrop-blur">
                     {t('rede.dicaInteracao')}
+                </div>
+            )}
+
+            {/* Legenda de cor por UF (anti-hairball: nunca cor sozinha — parear com rótulo). */}
+            {legenda.length > 0 && (
+                <div className="pointer-events-none absolute bottom-3 left-3 max-w-[220px] rounded-md border bg-background/85 p-2 text-[11px] shadow-sm backdrop-blur">
+                    <p className="mb-1 font-semibold text-muted-foreground">{t('rede.legendaUf')}</p>
+                    <ul className="grid grid-cols-2 gap-x-3 gap-y-0.5">
+                        {legenda.map((l) => (
+                            <li key={l.uf} className="flex items-center gap-1.5">
+                                <span className="size-2 shrink-0 rounded-[3px]" style={{ background: l.cor }} />
+                                <span className="font-medium">{l.uf}</span>
+                                <span className="ml-auto tabular-nums text-muted-foreground">{l.total}</span>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
             )}
         </div>

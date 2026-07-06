@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "mnema_version": "^0.10.0-alpha.0",
+  "mnema_version": "^0.11.0-alpha.0",
   "project": {
     "key": "NOTA",
     "name": "notagrafo"
@@ -20,6 +20,16 @@
   "mode": "single",
   "audit_strategy": "recent",
   "audit_retention_months": 12,
+  "audit": {
+    "checkpoint": {
+      "events": 100,
+      "seconds": 3600
+    },
+    "anchor": {
+      "provider": "none",
+      "interval": {}
+    }
+  },
   "enforcement_mode": "advisory",
   "sync": {
     "mode": "hybrid",
@@ -30,7 +40,8 @@
   "features": {
     "fts_search": true,
     "attachments": true,
-    "knowledge": true
+    "knowledge": true,
+    "update_check": false
   },
   "aging": {
     "stale_after_days": 3,

@@ -2,7 +2,7 @@ import { type JSX, useMemo } from 'react';
 import { ResponsiveSankey } from '@nivo/sankey';
 import { useThemeStore } from '../../stores/theme.store.js';
 import { useIsMobile } from '../../hooks/use-mobile.js';
-import { resolveTokenColors } from './resolveTheme.js';
+import { resolveTokenColors, toRgb } from './resolveTheme.js';
 import type { FluxoAresta } from '../../api/hooks.js';
 
 const brlCompact = (v: number): string =>
@@ -38,14 +38,19 @@ export function FluxoSankey({ arestas }: { arestas: FluxoAresta[] }): JSX.Elemen
 
     const { data, theme } = useMemo(() => {
         const cores = resolveTokenColors();
+        // Nivo (SVG) recebe as cores como string; o gradiente dos links (nodeColor
+        // → nodeColor) não interpola oklch de forma confiável e, no dark, as faixas
+        // saíam quase pretas. Convertemos as cores dos nós para rgb (toRgb) — assim
+        // o gradiente interpola cores reais e as faixas ficam visíveis nos 2 temas.
+        const chartRgb = cores.chart.map(toRgb);
         const nodes = new Map<string, SankeyNode>();
         const links: SankeyLink[] = [];
 
         for (const a of arestas) {
             const src = `de:${a.de}`;
             const tgt = `para:${a.para}`;
-            if (!nodes.has(src)) nodes.set(src, { id: src, label: nomeDe(a.de, a.deNome), nodeColor: cores.chart[nodes.size % 8]! });
-            if (!nodes.has(tgt)) nodes.set(tgt, { id: tgt, label: nomeDe(a.para, a.paraNome), nodeColor: cores.chart[nodes.size % 8]! });
+            if (!nodes.has(src)) nodes.set(src, { id: src, label: nomeDe(a.de, a.deNome), nodeColor: chartRgb[nodes.size % 8]! });
+            if (!nodes.has(tgt)) nodes.set(tgt, { id: tgt, label: nomeDe(a.para, a.paraNome), nodeColor: chartRgb[nodes.size % 8]! });
             links.push({ source: src, target: tgt, value: Math.max(a.valorTotal, 1), nfs: a.totalNFs });
         }
 
@@ -70,9 +75,10 @@ export function FluxoSankey({ arestas }: { arestas: FluxoAresta[] }): JSX.Elemen
             nodeSpacing={16}
             nodeBorderWidth={0}
             nodeBorderRadius={3}
-            linkOpacity={0.45}
-            linkHoverOthersOpacity={0.12}
+            linkOpacity={tema === 'escuro' ? 0.85 : 0.55}
+            linkHoverOthersOpacity={0.15}
             linkContract={2}
+            linkBlendMode="normal"
             enableLinkGradient
             labelPosition="outside"
             labelOrientation="horizontal"

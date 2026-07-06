@@ -6,6 +6,7 @@ import { useNFList, type NFListItem } from '../../api/hooks.js';
 import { downloadFile } from '../../api/api.client.js';
 import { NFStatusBadge, CurrencyValue, DateDisplay, LoadingSkeleton, InlineError, EmptyState } from '../../components/shared.js';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table.js';
+import { useDensityStore, densityClass } from '../../stores/density.store.js';
 import { Card } from '../../components/ui/card.js';
 import { Button } from '../../components/ui/button.js';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/ui/tooltip.js';
@@ -64,6 +65,7 @@ function Parte({ p }: { p?: { cnpj: string; razaoSocial: string; uf: string } })
  */
 export function ExplorerNotas({ q, status, recorte, peek, onPeek }: { q?: string; status?: string; recorte?: Record<string, string | boolean>; peek?: string; onPeek: (chave: string | undefined) => void }): JSX.Element {
     const { t } = useTranslation();
+    const density = useDensityStore((s) => s.density);
     const query = useNFList({ limit: 50, orderBy: 'dataEmissao', order: 'desc', ...(q ? { q } : {}), ...(status ? { status } : {}), ...recorte });
     const rows = query.data?.data ?? [];
 
@@ -78,18 +80,20 @@ export function ExplorerNotas({ q, status, recorte, peek, onPeek }: { q?: string
 
     return (
         <>
-            {/* Desktop: tabela densa */}
-            <div className="hidden overflow-x-auto md:block">
-                <Table data-testid="data-table">
+            {/* Desktop: tabela densa (sticky header; densidade via store). O scroll
+                vertical + max-height vivem no container interno do <Table> via CSS
+                [data-slot=table-container]:has(> [data-sticky]) — ver globals.css. */}
+            <div className="hidden h-full md:block">
+                <Table data-testid="data-table" data-sticky className={densityClass(density)}>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-14">{t('nf.numero')}</TableHead>
-                            <TableHead>{t('nf.chave')}</TableHead>
+                            <TableHead className="w-16">{t('nf.numero')}</TableHead>
+                            <TableHead className="w-28">{t('nf.chave')}</TableHead>
                             <TableHead>{t('nf.emitente')}</TableHead>
                             <TableHead>{t('nf.destinatario')}</TableHead>
-                            <TableHead className="text-right">{t('nf.valor')}</TableHead>
-                            <TableHead>{t('nf.status')}</TableHead>
-                            <TableHead>{t('nf.emissao')}</TableHead>
+                            <TableHead className="w-32 text-right">{t('nf.valor')}</TableHead>
+                            <TableHead className="w-28">{t('nf.status')}</TableHead>
+                            <TableHead className="w-44">{t('nf.emissao')}</TableHead>
                             <TableHead className="w-[116px] text-right">{t('nf.acoes')}</TableHead>
                         </TableRow>
                     </TableHeader>

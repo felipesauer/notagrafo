@@ -1,25 +1,44 @@
 import { Component, type ErrorInfo, type JSX, type ReactNode, useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check, Copy } from 'lucide-react';
+import { Check, Copy, CheckCircle2, XCircle, AlertTriangle, Ban, type LucideIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { maskCpfIf, isCpf } from '@notagrafo/core/lgpd';
 import { isCpfMaskingEnabled } from '../lib/lgpd-config.js';
-import { statusColor } from '../lib/status.js';
+import { statusColor, statusBg } from '../lib/status.js';
 import { Button } from './ui/button.js';
 import { Skeleton } from './ui/skeleton.js';
 
 /**
- * Badge de status de NF ou de exportação. A cor vem de lib/status.ts (CSS var,
- * responde ao tema); o data-testid é usado pelos e2e. Texto renderizado cru
+ * Ícone por status — a11y: nunca comunicar status só por cor (NOTA-ADR-13). O
+ * ícone acompanha a cor+texto na pill, para leitura sem depender de matiz.
+ * Status de export reusam a semântica: ready→check, failed→x, queued→alerta.
+ */
+const STATUS_ICON: Record<string, LucideIcon> = {
+    ativa: CheckCircle2,
+    ready: CheckCircle2,
+    cancelada: XCircle,
+    failed: XCircle,
+    denegada: AlertTriangle,
+    queued: AlertTriangle,
+    inutilizada: Ban,
+    processing: Ban,
+};
+
+/**
+ * Badge de status de NF ou de exportação, no formato pill (redesign BI vibrante):
+ * cor de texto/ícone + fundo tonal suave (lib/status.ts, CSS vars que respondem ao
+ * tema) + ícone semântico. O data-testid é usado pelos e2e. Texto renderizado cru
  * (o back-end já entrega o rótulo do domínio).
  */
 export function NFStatusBadge({ status }: { status: string }): JSX.Element {
+    const Icon = STATUS_ICON[status] ?? Ban;
     return (
         <span
-            className="inline-flex w-fit items-center rounded-full px-2 py-0.5 text-xs font-medium text-white"
+            className="inline-flex w-fit items-center gap-1 rounded-full py-0.5 pr-2 pl-1.5 text-xs font-semibold capitalize"
             data-testid="status-badge"
-            style={{ background: statusColor(status) }}
+            style={{ color: statusColor(status), background: statusBg(status) }}
         >
+            <Icon className="size-3" aria-hidden />
             {status}
         </span>
     );

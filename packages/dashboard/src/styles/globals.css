@@ -1,13 +1,18 @@
 /*
- * Design tokens do redesign (NOTA-EPIC-13 / NOTA-85).
+ * Design tokens do redesign "BI denso e vibrante" (NOTA-EPIC-18 / NOTA-ADR-13).
+ * Substitui a paleta "sofra, cor só em status" da Fase 5 por uma linguagem de BI
+ * vibrante: superfícies com elevação por lightness, paleta categórica forte e
+ * status semânticos com pares cor+fundo (o badge agora é uma pill com ícone).
  *
- * Dark mode: o tema é controlado pelo theme.store via <html data-theme="claro|escuro">
- * (NOTA-ADR-7) — o custom variant abaixo faz todos os utilitários `dark:` do
- * Tailwind responderem a esse atributo, no lugar da classe `.dark` do shadcn.
+ * Dark mode: controlado pelo theme.store via <html data-theme="claro|escuro">
+ * (NOTA-ADR-7) — o custom variant abaixo faz os utilitários `dark:` do Tailwind
+ * responderem a esse atributo, no lugar da classe `.dark` do shadcn.
  *
- * Paleta: base neutra + accent azul (continuidade do #2563eb legado, em oklch).
- * Tokens de domínio: status de NF, status de exportação e categóricas de chart
- * (--chart-1..8, matizes herdados do UF_CORES legado) — NOTA-ADR-8.
+ * RESTRIÇÃO (NOTA-webgl-oklch): as categóricas --chart-1..8 DEVEM ficar em
+ * oklch(L C H) SEM alpha — o conversor toRgb() em charts/resolveTheme.ts parseia
+ * exatamente esse formato para alimentar Reagraph (WebGL) e Nivo. Não trocar por
+ * color-mix()/alpha nesses tokens. Os 3 primeiros hues também são espelhados à
+ * mão em TIPO_COR_MINIMAP (pages/Graph.tsx), pois o <canvas> do minimap não lê vars.
  */
 
 @import 'tailwindcss';
@@ -16,109 +21,128 @@
 @custom-variant dark (&:where([data-theme='escuro'], [data-theme='escuro'] *));
 
 :root {
-    --radius: 0.5rem;
+    --radius: 0.7rem;
 
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
+    /* Superfícies claras — off-white com viés azul-frio; elevação por lightness */
+    --background: oklch(0.981 0.004 250);
+    --foreground: oklch(0.205 0.02 260);
     --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
+    --card-foreground: oklch(0.205 0.02 260);
     --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.546 0.245 262.881);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --destructive-foreground: oklch(0.985 0 0);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.623 0.214 259.815);
+    --popover-foreground: oklch(0.205 0.02 260);
+    --elevated: oklch(1 0 0);
+    --primary: oklch(0.55 0.235 264);
+    --primary-foreground: oklch(0.99 0 0);
+    --secondary: oklch(0.968 0.005 250);
+    --secondary-foreground: oklch(0.28 0.02 260);
+    --muted: oklch(0.968 0.005 250);
+    --muted-foreground: oklch(0.52 0.02 260);
+    --accent: oklch(0.968 0.005 250);
+    --accent-foreground: oklch(0.28 0.02 260);
+    --destructive: oklch(0.60 0.245 20);
+    --destructive-foreground: oklch(0.99 0 0);
+    --border: oklch(0.918 0.008 260);
+    --input: oklch(0.918 0.008 260);
+    --ring: oklch(0.55 0.235 264);
 
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.546 0.245 262.881);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.922 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.623 0.214 259.815);
+    --sidebar: oklch(1 0 0);
+    --sidebar-foreground: oklch(0.205 0.02 260);
+    --sidebar-primary: oklch(0.55 0.235 264);
+    --sidebar-primary-foreground: oklch(0.99 0 0);
+    --sidebar-accent: oklch(0.968 0.005 250);
+    --sidebar-accent-foreground: oklch(0.28 0.02 260);
+    --sidebar-border: oklch(0.918 0.008 260);
+    --sidebar-ring: oklch(0.55 0.235 264);
 
-    /* Status de NF (matizes dos badges legados: green/red/amber/neutral 600) */
-    --status-ativa: oklch(0.627 0.194 149.214);
-    --status-cancelada: oklch(0.577 0.245 27.325);
-    --status-denegada: oklch(0.666 0.179 58.318);
-    --status-inutilizada: oklch(0.556 0 0);
+    /* Status de NF — par cor (texto/ícone) + fundo suave da pill. As cores de
+       texto foram escurecidas para atingir contraste WCAG AA (≥4.5) sobre o
+       fundo tonal claro da pill (texto pequeno) — NOTA-124. */
+    --status-ativa: oklch(0.50 0.16 150);
+    --status-ativa-bg: oklch(0.95 0.05 150);
+    --status-cancelada: oklch(0.53 0.22 22);
+    --status-cancelada-bg: oklch(0.95 0.04 22);
+    --status-denegada: oklch(0.53 0.13 70);
+    --status-denegada-bg: oklch(0.96 0.06 80);
+    --status-inutilizada: oklch(0.48 0.01 260);
+    --status-inutilizada-bg: oklch(0.95 0.005 260);
 
-    /* Status de exportação */
-    --export-pending: oklch(0.666 0.179 58.318);
-    --export-processing: oklch(0.546 0.245 262.881);
-    --export-ready: oklch(0.627 0.194 149.214);
-    --export-failed: oklch(0.577 0.245 27.325);
+    /* Status de exportação — o NFStatusBadge compartilha os fundos tonais claros
+       dos --status-*-bg (via statusBg), então estas cores de texto também
+       precisam ser escuras para o contraste WCAG AA no tema claro (NOTA-124).
+       Alinhadas com o --status-* de semântica equivalente. */
+    --export-pending: oklch(0.53 0.13 70);
+    --export-processing: oklch(0.48 0.01 260);
+    --export-ready: oklch(0.50 0.16 150);
+    --export-failed: oklch(0.53 0.22 22);
 
-    /* Categóricas de chart (matizes do UF_CORES legado, peso 600) */
-    --chart-1: oklch(0.546 0.245 262.881);
-    --chart-2: oklch(0.627 0.194 149.214);
-    --chart-3: oklch(0.666 0.179 58.318);
-    --chart-4: oklch(0.577 0.245 27.325);
-    --chart-5: oklch(0.541 0.281 293.009);
-    --chart-6: oklch(0.609 0.126 221.723);
-    --chart-7: oklch(0.592 0.249 0.584);
-    --chart-8: oklch(0.648 0.2 131.684);
+    /* Categóricas de chart — warm/cool alternada, ≥0.15 L entre adjacentes.
+       MANTER oklch(L C H) sem alpha (ver restrição no cabeçalho). */
+    --chart-1: oklch(0.55 0.235 264);   /* cobalto  */
+    --chart-2: oklch(0.70 0.185 150);   /* esmeralda */
+    --chart-3: oklch(0.78 0.165 78);    /* âmbar    */
+    --chart-4: oklch(0.60 0.245 20);    /* vermelho */
+    --chart-5: oklch(0.72 0.13 200);    /* teal     */
+    --chart-6: oklch(0.56 0.26 300);    /* violeta  */
+    --chart-7: oklch(0.68 0.20 45);     /* laranja  */
+    --chart-8: oklch(0.80 0.20 130);    /* lime     */
 }
 
 [data-theme='escuro'] {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.623 0.214 259.815);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.637 0.237 25.331);
-    --destructive-foreground: oklch(0.985 0 0);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.623 0.214 259.815);
+    /* Base cinza-azulada escura (não preto puro); foreground ~90% L (não branco puro) */
+    --background: oklch(0.17 0.012 260);
+    --foreground: oklch(0.93 0.01 260);
+    --card: oklch(0.205 0.014 260);
+    --card-foreground: oklch(0.93 0.01 260);
+    --popover: oklch(0.235 0.015 260);
+    --popover-foreground: oklch(0.93 0.01 260);
+    --elevated: oklch(0.245 0.016 260);
+    --primary: oklch(0.65 0.20 264);
+    --primary-foreground: oklch(0.99 0 0);
+    --secondary: oklch(0.235 0.015 260);
+    --secondary-foreground: oklch(0.93 0.01 260);
+    --muted: oklch(0.235 0.015 260);
+    --muted-foreground: oklch(0.70 0.015 260);
+    --accent: oklch(0.235 0.015 260);
+    --accent-foreground: oklch(0.93 0.01 260);
+    --destructive: oklch(0.68 0.20 22);
+    --destructive-foreground: oklch(0.99 0 0);
+    --border: oklch(1 0 0 / 9%);
+    --input: oklch(1 0 0 / 16%);
+    --ring: oklch(0.65 0.20 264);
 
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.623 0.214 259.815);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.623 0.214 259.815);
+    --sidebar: oklch(0.205 0.014 260);
+    --sidebar-foreground: oklch(0.93 0.01 260);
+    --sidebar-primary: oklch(0.65 0.20 264);
+    --sidebar-primary-foreground: oklch(0.99 0 0);
+    --sidebar-accent: oklch(0.235 0.015 260);
+    --sidebar-accent-foreground: oklch(0.93 0.01 260);
+    --sidebar-border: oklch(1 0 0 / 9%);
+    --sidebar-ring: oklch(0.65 0.20 264);
 
-    /* Status sobem para peso 500 — legibilidade sobre superfícies escuras */
-    --status-ativa: oklch(0.723 0.219 149.579);
-    --status-cancelada: oklch(0.637 0.237 25.331);
-    --status-denegada: oklch(0.769 0.188 70.08);
-    --status-inutilizada: oklch(0.708 0 0);
+    /* Status dessaturados + L maior; fundos escuros tonais para as pills */
+    --status-ativa: oklch(0.74 0.18 152);
+    --status-ativa-bg: oklch(0.30 0.06 152);
+    --status-cancelada: oklch(0.70 0.19 22);
+    --status-cancelada-bg: oklch(0.30 0.07 22);
+    --status-denegada: oklch(0.80 0.15 78);
+    --status-denegada-bg: oklch(0.32 0.06 80);
+    --status-inutilizada: oklch(0.70 0.01 260);
+    --status-inutilizada-bg: oklch(0.30 0.005 260);
 
-    --export-pending: oklch(0.769 0.188 70.08);
-    --export-processing: oklch(0.623 0.214 259.815);
-    --export-ready: oklch(0.723 0.219 149.579);
-    --export-failed: oklch(0.637 0.237 25.331);
+    --export-pending: oklch(0.80 0.15 78);
+    --export-processing: oklch(0.65 0.20 264);
+    --export-ready: oklch(0.74 0.18 152);
+    --export-failed: oklch(0.70 0.19 22);
 
-    --chart-1: oklch(0.623 0.214 259.815);
-    --chart-2: oklch(0.723 0.219 149.579);
-    --chart-3: oklch(0.769 0.188 70.08);
-    --chart-4: oklch(0.637 0.237 25.331);
-    --chart-5: oklch(0.606 0.25 292.717);
-    --chart-6: oklch(0.715 0.143 215.221);
-    --chart-7: oklch(0.656 0.241 354.308);
-    --chart-8: oklch(0.768 0.233 130.85);
+    /* Categóricas dessaturadas (chroma menor) + L maior p/ não vibrar no escuro */
+    --chart-1: oklch(0.66 0.19 264);
+    --chart-2: oklch(0.76 0.16 152);
+    --chart-3: oklch(0.82 0.15 82);
+    --chart-4: oklch(0.68 0.20 22);
+    --chart-5: oklch(0.76 0.11 200);
+    --chart-6: oklch(0.68 0.21 300);
+    --chart-7: oklch(0.74 0.17 48);
+    --chart-8: oklch(0.84 0.18 130);
 }
 
 @theme inline {
@@ -134,6 +158,7 @@
     --color-foreground: var(--foreground);
     --color-card: var(--card);
     --color-card-foreground: var(--card-foreground);
+    --color-elevated: var(--elevated);
     --color-popover: var(--popover);
     --color-popover-foreground: var(--popover-foreground);
     --color-primary: var(--primary);
@@ -160,9 +185,13 @@
     --color-sidebar-ring: var(--sidebar-ring);
 
     --color-status-ativa: var(--status-ativa);
+    --color-status-ativa-bg: var(--status-ativa-bg);
     --color-status-cancelada: var(--status-cancelada);
+    --color-status-cancelada-bg: var(--status-cancelada-bg);
     --color-status-denegada: var(--status-denegada);
+    --color-status-denegada-bg: var(--status-denegada-bg);
     --color-status-inutilizada: var(--status-inutilizada);
+    --color-status-inutilizada-bg: var(--status-inutilizada-bg);
 
     --color-export-pending: var(--export-pending);
     --color-export-processing: var(--export-processing);
@@ -183,6 +212,11 @@
     * {
         @apply border-border outline-ring/50;
     }
+    /* html também pinta o fundo: em overscroll/áreas descobertas não vaza o preto
+       do agente por trás do body (visível no dark mode antes desta regra). */
+    html {
+        @apply bg-background;
+    }
     body {
         @apply bg-background text-foreground antialiased;
     }
@@ -190,4 +224,71 @@
     table {
         font-variant-numeric: tabular-nums;
     }
+    /* Scrollbar temável (respeita claro/escuro via tokens) — antes usava a nativa
+       do SO, que destoava (branca no dark mode). Firefox via scrollbar-* ; Chrome/
+       Safari via ::-webkit-scrollbar. */
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) transparent;
+    }
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: color-mix(in oklch, var(--muted-foreground) 35%, transparent);
+        border: 2px solid transparent;
+        background-clip: padding-box;
+        border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: color-mix(in oklch, var(--muted-foreground) 55%, transparent);
+        background-clip: padding-box;
+    }
+    ::-webkit-scrollbar-corner {
+        background: transparent;
+    }
+}
+
+/* Densidade de tabela (NOTA-121 / NOTA-136): o DensityToggle põe d-compact/
+   d-relaxed no <table>; o padrão (sem classe) usa o p-2 do shadcn. As células do
+   shadcn têm `p-2` e o head `h-10 px-2` (classes utilitárias) — para a densidade
+   surtir efeito é preciso VENCER esse utilitário: sem :where (que zera a
+   especificidade) e neutralizando a altura fixa do head. Diferença ampliada para
+   ser perceptível (compacta 2px / padrão 8px / espaçada 14px). */
+table.d-compact [data-slot='table-cell'],
+table.d-compact [data-slot='table-head'] {
+    padding-top: 0.125rem;
+    padding-bottom: 0.125rem;
+    height: auto;
+}
+table.d-relaxed [data-slot='table-cell'],
+table.d-relaxed [data-slot='table-head'] {
+    padding-top: 0.875rem;
+    padding-bottom: 0.875rem;
+    height: auto;
+}
+
+/* Cabeçalho fixo nas tabelas de dados do Explorer: o thead cola no topo enquanto
+   as linhas rolam. O shadcn <Table> embrulha o <table> num div[data-slot=
+   table-container] com overflow-x-auto — esse container PRECISA ser o scrollport
+   vertical (o sticky se ancora no ancestral que rola), então damos a ele altura +
+   overflow-y quando a tabela é [data-sticky]. Marcado por [data-sticky] para não
+   afetar tabelas de leitura (detalhe da NF). */
+[data-slot='table-container']:has(> table[data-sticky]) {
+    /* herda a altura do container flex do Explorer (que já desconta topbar/tabs/
+       toolbar) em vez de um número mágico (100svh - 8.5rem) do shell antigo, que
+       criava um 2º scroll e altura errada. h-full vem do wrapper .md:block. */
+    max-height: 100%;
+    overflow-y: auto;
+}
+table[data-sticky] thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--card);
+    box-shadow: inset 0 -1px 0 var(--border);
 }

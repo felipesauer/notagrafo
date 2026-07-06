@@ -12,12 +12,16 @@ import {
     XAxis,
     YAxis,
 } from 'recharts';
-import { Building2, FileText, Package, Receipt } from 'lucide-react';
+import { Building2, Download, Eye, FileText, Package, Receipt, Waypoints } from 'lucide-react';
 import { useOverview, useVolume, useTopCompanies, useByUf, useTaxStats } from '../api/hooks.js';
-import { CurrencyValue, DateDisplay, LoadingSkeleton, InlineError, EmptyState } from '../components/shared.js';
+import { downloadFile } from '../api/api.client.js';
+import { NFStatusBadge, CurrencyValue, DateDisplay, LoadingSkeleton, InlineError, EmptyState } from '../components/shared.js';
+import { Button } from '../components/ui/button.js';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../components/ui/tooltip.js';
 import { KpiCard } from '../components/KpiCard.js';
 import { FadeIn } from '../components/Motion.js';
 import { ChartCard } from '../components/charts/ChartCard.js';
+import { BarList, type BarItem } from '../components/charts/BarList.js';
 import { chartColor } from '../components/charts/palette.js';
 import { Card, CardContent, CardHeader } from '../components/ui/card.js';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '../components/ui/chart.js';
@@ -40,6 +44,7 @@ function trend(series: number[]): number | undefined {
 const volumeConfig = {
     totalNFs: { label: 'NF-e', color: 'var(--chart-1)' },
     valorTotal: { label: 'Valor', color: 'var(--chart-3)' },
+    canceladas: { label: 'Canceladas', color: 'var(--status-cancelada)' },
 } satisfies ChartConfig;
 
 type Gran = 'dia' | 'semana' | 'mes';
@@ -112,7 +117,7 @@ function OverviewContent({
     taxTotals,
 }: {
     o: NonNullable<OverviewData>;
-    volumeSeries: { periodo: string; totalNFs: number; valorTotal: number }[];
+    volumeSeries: { periodo: string; totalNFs: number; valorTotal: number; canceladas?: number }[];
     ranking: { cnpj: string; razaoSocial: string; valorTotal: number }[];
     byUf: ByUfQuery;
     taxTotals?: TaxTotals;
@@ -141,9 +146,9 @@ function OverviewContent({
         : [];
 
     return (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-12">
             {/* ── KPIs headline (topo, zona F) — entram em stagger sutil ── */}
-            <FadeIn className="lg:col-span-3" delay={0}>
+            <FadeIn className="sm:col-span-6 lg:col-span-3" delay={0}>
                 <KpiCard
                     label={t('overview.totalNFs')}
                     value={o.totalNFs.toLocaleString('pt-BR')}
@@ -154,7 +159,7 @@ function OverviewContent({
                     sparkColor="var(--chart-1)"
                 />
             </FadeIn>
-            <FadeIn className="lg:col-span-3" delay={0.05}>
+            <FadeIn className="sm:col-span-6 lg:col-span-3" delay={0.05}>
                 <KpiCard
                     label={t('overview.valorTotal')}
                     value={brlCompact(o.valorTotalProcessado)}
@@ -165,7 +170,7 @@ function OverviewContent({
                     sparkColor="var(--chart-3)"
                 />
             </FadeIn>
-            <FadeIn className="lg:col-span-3" delay={0.1}>
+            <FadeIn className="sm:col-span-6 lg:col-span-3" delay={0.1}>
                 <KpiCard
                     label={t('overview.totalEmpresas')}
                     value={o.totalEmpresas.toLocaleString('pt-BR')}
@@ -173,7 +178,7 @@ function OverviewContent({
                     hint={t('overview.empresasHint', { count: o.totalEmpresas })}
                 />
             </FadeIn>
-            <FadeIn className="lg:col-span-3" delay={0.15}>
+            <FadeIn className="sm:col-span-6 lg:col-span-3" delay={0.15}>
                 <KpiCard
                     label={t('overview.totalProdutos')}
                     value={o.totalProdutos.toLocaleString('pt-BR')}
@@ -183,7 +188,7 @@ function OverviewContent({
             </FadeIn>
 
             {/* ── Área grande: volume + valor (8 col) ── */}
-            <FadeIn className="lg:col-span-8" delay={0.2}>
+            <FadeIn className="sm:col-span-12 lg:col-span-8" delay={0.2}>
                 <ChartCard title={t('overview.volumeTitulo')} config={volumeConfig} className="h-[280px] w-full">
                     <ComposedChart data={volumeSeries} margin={{ left: 4, right: 8, top: 8 }}>
                         <defs>
@@ -198,13 +203,14 @@ function OverviewContent({
                         <YAxis yAxisId="r" orientation="right" tickLine={false} axisLine={false} fontSize={11} width={44} tickFormatter={(v: number) => (v >= 1000 ? `${v / 1000}k` : String(v))} />
                         <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
                         <Bar yAxisId="l" dataKey="totalNFs" fill="var(--color-totalNFs)" radius={[3, 3, 0, 0]} maxBarSize={22} />
+                        <Bar yAxisId="l" dataKey="canceladas" fill="var(--color-canceladas)" radius={[3, 3, 0, 0]} maxBarSize={22} />
                         <Line yAxisId="r" dataKey="valorTotal" type="monotone" stroke="var(--color-valorTotal)" strokeWidth={2} dot={false} />
                     </ComposedChart>
                 </ChartCard>
             </FadeIn>
 
             {/* ── Donut composição tributária (4 col) ── */}
-            <FadeIn className="lg:col-span-4" delay={0.25}>
+            <FadeIn className="sm:col-span-12 lg:col-span-4" delay={0.25}>
                 <Card data-testid="chart" className="gap-4">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0">
                         <h3 className="text-base leading-none font-semibold">{t('overview.composicaoTributaria')}</h3>
@@ -240,17 +246,30 @@ function OverviewContent({
 
             {/* ── Ranking fornecedores (5 col) — cada linha faz drill-through para
                    o Explorer filtrado pelo CNPJ do emitente ── */}
-            <FadeIn className="lg:col-span-5" delay={0.3}>
+            <FadeIn className="sm:col-span-12 lg:col-span-5" delay={0.3}>
                 <Card data-testid="chart" className="gap-4">
                     <CardHeader className="space-y-0"><h3 className="text-base leading-none font-semibold">{t('overview.topFornecedores')}</h3></CardHeader>
                     <CardContent>
-                        {rankTop.length === 0 ? <EmptyState /> : <FornecedorBars data={rankTop} />}
+                        {rankTop.length === 0 ? <EmptyState /> : (
+                            <BarList
+                                items={rankTop.map<BarItem>((e) => ({
+                                    id: e.cnpj || e.nome,
+                                    label: e.nome,
+                                    value: e.valorTotal,
+                                    hint: brlCompact(e.valorTotal),
+                                    to: '/explorar',
+                                    search: { entity: 'notas', cnpjEmitente: e.cnpj },
+                                    ariaLabel: t('overview.verNotasFornecedor', { nome: e.nome }),
+                                }))}
+                                fixedColor="var(--chart-3)"
+                            />
+                        )}
                     </CardContent>
                 </Card>
             </FadeIn>
 
             {/* ── Distribuição por UF — treemap denso (7 col) ── */}
-            <FadeIn className="lg:col-span-7" delay={0.35}>
+            <FadeIn className="sm:col-span-12 lg:col-span-7" delay={0.35}>
                 <Card data-testid="chart" className="gap-4">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0">
                         <h3 className="text-base leading-none font-semibold">{t('overview.distribuicaoUf')}</h3>
@@ -264,14 +283,27 @@ function OverviewContent({
                         ) : treemapUf.length === 0 ? (
                             <EmptyState mensagem={t('overview.distribuicaoUfVazio')} />
                         ) : (
-                            <UfBars data={treemapUf} />
+                            <BarList
+                                colorByIndex
+                                items={treemapUf.map<BarItem>((u) => ({
+                                    id: u.uf,
+                                    label: u.uf,
+                                    tag: u.uf,
+                                    value: u.size,
+                                    hint: u.valorTotal >= 1000 ? `R$ ${(u.valorTotal / 1000).toFixed(0)}k` : `R$ ${u.valorTotal.toFixed(0)}`,
+                                    to: '/explorar',
+                                    search: { entity: 'notas', ufEmitente: u.uf },
+                                    ariaLabel: t('overview.verNotasUf', { uf: u.uf }),
+                                }))}
+                                formatValue={(v) => String(v)}
+                            />
                         )}
                     </CardContent>
                 </Card>
             </FadeIn>
 
             {/* ── Últimas NFs (largura total) ── */}
-            <FadeIn className="lg:col-span-12" delay={0.4}>
+            <FadeIn className="sm:col-span-12 lg:col-span-12" delay={0.4}>
                 <Card className="py-4">
                     <CardContent className="px-4">
                         <h3 className="mb-3 text-base font-semibold">{t('overview.ultimasNFs')}</h3>
@@ -282,19 +314,29 @@ function OverviewContent({
                             <Table data-testid="data-table">
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>{t('overview.numero')}</TableHead>
+                                        <TableHead className="w-16">{t('overview.numero')}</TableHead>
+                                        <TableHead>{t('nf.emitente')}</TableHead>
                                         <TableHead className="text-right">{t('overview.valor')}</TableHead>
+                                        <TableHead>{t('nf.status')}</TableHead>
                                         <TableHead>{t('overview.processadaEm')}</TableHead>
+                                        <TableHead className="w-[104px] text-right">{t('nf.acoes')}</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {o.ultimasProcessadas.map((nf) => (
                                         <TableRow key={nf.chaveAcesso}>
                                             <TableCell>
-                                                <Link className="font-medium text-primary hover:underline" to={'/nf/$chave' as string} params={{ chave: nf.chaveAcesso } as never}>{nf.numero}</Link>
+                                                <Link className="font-mono font-medium tabular-nums text-primary hover:underline" to={'/nf/$chave' as string} params={{ chave: nf.chaveAcesso } as never}>{nf.numero}</Link>
                                             </TableCell>
-                                            <TableCell className="text-right"><CurrencyValue value={nf.valorTotal} /></TableCell>
-                                            <TableCell><DateDisplay value={nf.processadaEm} /></TableCell>
+                                            <TableCell>
+                                                {nf.emitente
+                                                    ? <span className="truncate">{nf.emitente.razaoSocial || '—'}{nf.emitente.uf ? <span className="ml-1 font-mono text-[11px] text-muted-foreground">· {nf.emitente.uf}</span> : null}</span>
+                                                    : <span className="text-muted-foreground">—</span>}
+                                            </TableCell>
+                                            <TableCell className="text-right font-mono tabular-nums"><CurrencyValue value={nf.valorTotal} /></TableCell>
+                                            <TableCell>{nf.status ? <NFStatusBadge status={nf.status} /> : '—'}</TableCell>
+                                            <TableCell className="font-mono text-muted-foreground tabular-nums"><DateDisplay value={nf.processadaEm} /></TableCell>
+                                            <TableCell><UltimaNFActions chave={nf.chaveAcesso} cnpjEmitente={nf.emitente?.cnpj} t={t} /></TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -308,62 +350,35 @@ function OverviewContent({
     );
 }
 
-/** Barras horizontais densas por UF. A barra e o número dentro dela representam
- *  a MESMA métrica (nº de NF-e, o eixo declarado no hint); o valor em R$ fica à
- *  direita como contexto secundário, tipograficamente subordinado, para não
- *  competir com a barra (barra curta + R$ alto lia como inconsistência).
- *  Cada linha é um drill-through: leva ao Explorer filtrado por UF do emitente. */
-function UfBars({ data }: { data: { uf: string; size: number; valorTotal: number }[] }): JSX.Element {
-    const { t } = useTranslation();
-    const max = Math.max(...data.map((d) => d.size), 1);
-    const fmtValor = (v: number): string => (v >= 1000 ? `R$ ${(v / 1000).toFixed(0)}k` : `R$ ${v.toFixed(0)}`);
+/** Ações inline das Últimas NFs (ver detalhe / baixar XML / abrir no grafo),
+ *  no mesmo padrão da listagem do Explorer. O grafo só aparece com cnpj do emitente. */
+function UltimaNFActions({ chave, cnpjEmitente, t }: { chave: string; cnpjEmitente?: string; t: (k: string) => string }): JSX.Element {
     return (
-        <div className="space-y-1">
-            {data.map((d, i) => (
-                <Link
-                    key={d.uf}
-                    to={'/' as string}
-                    search={{ entity: 'notas', ufEmitente: d.uf } as never}
-                    aria-label={t('overview.verNotasUf', { uf: d.uf })}
-                    className="grid grid-cols-[32px_1fr_88px] items-center gap-3 rounded-md px-1 py-1 transition-colors hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:outline-none"
-                >
-                    <span className="text-xs font-medium tabular-nums text-muted-foreground">{d.uf}</span>
-                    <div className="h-6 overflow-hidden rounded bg-muted/50">
-                        <div className="flex h-full items-center justify-end rounded pr-2 text-[11px] font-semibold text-white tabular-nums" style={{ width: `${Math.max((d.size / max) * 100, 14)}%`, background: chartColor(i) }}>
-                            {d.size}
-                        </div>
-                    </div>
-                    <span className="text-right text-xs tabular-nums text-muted-foreground/70">{fmtValor(d.valorTotal)}</span>
-                </Link>
-            ))}
-        </div>
-    );
-}
-
-/** Ranking de fornecedores como barras-Link: cada linha leva ao Explorer
- *  filtrado pelo CNPJ do emitente (drill-through). Escala por valor faturado. */
-function FornecedorBars({ data }: { data: { nome: string; cnpj: string; valorTotal: number }[] }): JSX.Element {
-    const { t } = useTranslation();
-    const max = Math.max(...data.map((d) => d.valorTotal), 1);
-    return (
-        <div className="space-y-1">
-            {data.map((d) => (
-                <Link
-                    key={d.cnpj || d.nome}
-                    to={'/' as string}
-                    search={{ entity: 'notas', cnpjEmitente: d.cnpj } as never}
-                    aria-label={t('overview.verNotasFornecedor', { nome: d.nome })}
-                    className="group grid grid-cols-[1fr_auto] items-center gap-3 rounded-md px-1 py-1 transition-colors hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:outline-none"
-                >
-                    <div className="min-w-0">
-                        <p className="truncate text-xs font-medium">{d.nome}</p>
-                        <div className="mt-1 h-2 overflow-hidden rounded-full bg-muted/50">
-                            <div className="h-full rounded-full bg-[var(--chart-3)]" style={{ width: `${Math.max((d.valorTotal / max) * 100, 4)}%` }} />
-                        </div>
-                    </div>
-                    <span className="shrink-0 text-right text-xs font-medium tabular-nums text-muted-foreground">{brlCompact(d.valorTotal)}</span>
-                </Link>
-            ))}
+        <div className="flex items-center justify-end gap-0.5">
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button asChild type="button" variant="ghost" size="icon-sm" aria-label={t('nf.verDetalhe')}>
+                        <Link to={'/nf/$chave' as string} params={{ chave } as never}><Eye /></Link>
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t('nf.verDetalhe')}</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button type="button" variant="ghost" size="icon-sm" aria-label={t('nf.baixarXml')} onClick={() => void downloadFile(`/nf/${chave}/xml`, `${chave}.xml`)}><Download /></Button>
+                </TooltipTrigger>
+                <TooltipContent>{t('nf.baixarXml')}</TooltipContent>
+            </Tooltip>
+            {cnpjEmitente && (
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button asChild type="button" variant="ghost" size="icon-sm" aria-label={t('nf.abrirGrafo')}>
+                            <Link to={'/grafo' as string} search={{ cnpj: cnpjEmitente } as never}><Waypoints /></Link>
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{t('nf.abrirGrafo')}</TooltipContent>
+                </Tooltip>
+            )}
         </div>
     );
 }

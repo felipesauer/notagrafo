@@ -12,7 +12,6 @@ import { WeightedEdge } from '../graph/WeightedEdge.js';
 import { GraphPanel } from '../graph/GraphPanel.js';
 import { useGraphStore, type GraphDirection } from '../stores/graph.store.js';
 import { useThemeStore } from '../stores/theme.store.js';
-import { PageHeader } from '../components/PageHeader.js';
 import { Button } from '../components/ui/button.js';
 import { Input } from '../components/ui/input.js';
 import { Label } from '../components/ui/label.js';
@@ -32,19 +31,24 @@ const TIPO_COR: Record<NodeType, string> = {
     produto: 'var(--chart-3)',
 };
 /** Cor concreta por tipo para o MiniMap: seu <canvas> NÃO resolve CSS vars,
- *  então precisa de hex/rgb literais (era a causa do minimap "vazio"). */
+ *  então precisa de hex/rgb literais (era a causa do minimap "vazio"). Espelha
+ *  as --chart-1..3 do tema claro (NOTA-ADR-13), convertidas pela mesma matemática
+ *  OKLab→sRGB do toRgb() em charts/resolveTheme.ts: chart-1 cobalto, 2 esmeralda,
+ *  3 âmbar. Ao mudar a paleta em globals.css, recalcular estes 3 hex. */
 const TIPO_COR_MINIMAP: Record<NodeType, string> = {
-    empresa: '#6ea8fe',
-    notafiscal: '#46c56a',
-    produto: '#e0a83c',
+    empresa: '#255ff8',
+    notafiscal: '#1ebd5b',
+    produto: '#f0a800',
 };
 
-function Legenda(): JSX.Element {
+/** Legenda dos tipos de nó — mostra só os tipos ATIVOS no grafo (empresa sempre;
+ *  produto/nota conforme os toggles), evitando prometer 'Notas' quando estão OFF. */
+function Legenda({ produtos, notas }: { produtos: boolean; notas: boolean }): JSX.Element {
     const { t } = useTranslation();
     const itens: [NodeType, string][] = [
         ['empresa', t('empresas.titulo')],
-        ['notafiscal', t('sidebar.nfs')],
-        ['produto', t('produtos.titulo')],
+        ...(produtos ? ([['produto', t('produtos.titulo')]] as [NodeType, string][]) : []),
+        ...(notas ? ([['notafiscal', t('sidebar.nfs')]] as [NodeType, string][]) : []),
     ];
     return (
         <div className="absolute left-3 top-3 z-10 flex flex-col gap-1.5 rounded-md border bg-card/90 px-3 py-2 text-xs shadow-sm backdrop-blur">
@@ -68,9 +72,11 @@ function GraphInner(): JSX.Element {
     const depth = useGraphStore((s) => s.depth);
     const direction = useGraphStore((s) => s.direction);
     const includeProdutos = useGraphStore((s) => s.includeProdutos);
+    const includeNotas = useGraphStore((s) => s.includeNotas);
     const setDepth = useGraphStore((s) => s.setDepth);
     const setDirection = useGraphStore((s) => s.setDirection);
     const setIncludeProdutos = useGraphStore((s) => s.setIncludeProdutos);
+    const setIncludeNotas = useGraphStore((s) => s.setIncludeNotas);
 
     const [graph, setGraph] = useState<{ nodes: GraphNode[]; edges: GraphEdge[] }>({ nodes: [], edges: [] });
     const [selected, setSelected] = useState<NodeData | null>(null);
@@ -79,15 +85,16 @@ function GraphInner(): JSX.Element {
     const [hovered, setHovered] = useState<string | null>(null);
     const { nodes, edges } = graph;
 
-    const load = useCallback(async (cnpj: string, degree: number, dir: GraphDirection, merge: boolean, produtos = false) => {
+    const load = useCallback(async (cnpj: string, degree: number, dir: GraphDirection, merge: boolean, produtos = false, notas = false) => {
         const prodParam = produtos ? '&includeProdutos=true' : '';
+        const notasParam = notas ? '&includeNotas=true' : '';
         setLoading(true);
         try {
             // Busca o grafo e, em paralelo, os dados da empresa-raiz (a API do
             // grafo não inclui a própria raiz em `nos`, então o nó raiz ficaria
             // só com o CNPJ). Falha do /empresa não derruba o grafo.
             const [api, rootMeta] = await Promise.all([
-                apiFetch<ApiGraph>(`/empresa/${cnpj}/grafo?depth=${degree}&direction=${dir}${prodParam}`),
+                apiFetch<ApiGraph>(`/empresa/${cnpj}/grafo?depth=${degree}&direction=${dir}${prodParam}${notasParam}`),
                 apiFetch<{ razaoSocial?: string; uf?: string; stats?: { totalNFsEmitidas?: number; totalNFsRecebidas?: number } }>(`/empresa/${cnpj}`).catch(() => null),
             ]);
             const meta = rootMeta
@@ -100,8 +107,8 @@ function GraphInner(): JSX.Element {
     }, []);
 
     useEffect(() => {
-        if (search.cnpj) void load(search.cnpj, depth, direction, false, includeProdutos);
-    }, [search.cnpj, depth, direction, includeProdutos, load]);
+        if (search.cnpj) void load(search.cnpj, depth, direction, false, includeProdutos, includeNotas);
+    }, [search.cnpj, depth, direction, includeProdutos, includeNotas, load]);
 
     // Re-enquadra sempre que o CONJUNTO de nós muda (busca, merge, expansão),
     // não só quando a contagem muda. O timeout dá ao React Flow tempo de medir
@@ -113,9 +120,9 @@ function GraphInner(): JSX.Element {
         (_e: unknown, node: Node) => {
             const data = node.data as NodeData;
             setSelected(data);
-            if (data.cnpj) void load(data.cnpj, 1, direction, true, includeProdutos);
+            if (data.cnpj) void load(data.cnpj, 1, direction, true, includeProdutos, includeNotas);
         },
-        [load, direction, includeProdutos],
+        [load, direction, includeProdutos, includeNotas],
     );
 
     function runSearch(): void {
@@ -163,8 +170,10 @@ function GraphInner(): JSX.Element {
     useEffect(() => {
         setRfNodes((ns) => ns.map((n) => ({ ...n, data: { ...n.data, dimmed: vizinhanca ? !vizinhanca.has(n.id) : false } })));
         setRfEdges((es) => es.map((e) => {
-            const dim = vizinhanca ? !(vizinhanca.has(e.source) && vizinhanca.has(e.target)) : false;
-            return { ...e, data: { ...(e.data as EdgeData), dimmed: dim } };
+            const naViz = vizinhanca ? vizinhanca.has(e.source) && vizinhanca.has(e.target) : false;
+            // focado = há um hover ativo E a aresta pertence à vizinhança. O rótulo
+            // só aparece nesse caso, evitando o amontoado de labels no centro.
+            return { ...e, data: { ...(e.data as EdgeData), dimmed: vizinhanca ? !naViz : false, focado: !!vizinhanca && naViz } };
         }));
     }, [vizinhanca, setRfNodes, setRfEdges]);
 
@@ -177,16 +186,17 @@ function GraphInner(): JSX.Element {
     }, [nodesKey, rfNodes.length, fitView]);
 
     return (
-        <div className="flex h-[calc(100vh-8.5rem)] flex-col">
-            <PageHeader
-                title={t('sidebar.grafo')}
-                actions={
-                    <>
-                        <Button type="button" variant="outline" size="sm" onClick={reset}><RotateCcw /> {t('grafo.resetar')}</Button>
-                        <Button type="button" variant="outline" size="sm" onClick={() => void exportPng()} disabled={nodes.length === 0}><Download /> {t('grafo.exportPng')}</Button>
-                    </>
-                }
-            />
+        // full-bleed: herda a altura do container do shell (flex-1). Antes usava
+        // h-[calc(100vh-8.5rem)] — número mágico do shell antigo que deixava vazio
+        // no fim. O header vem num toolbar próprio (o título já está na Topbar).
+        <div className="flex h-full min-h-0 flex-col p-4 md:p-6">
+            <div className="mb-3 flex items-center justify-between gap-2">
+                <h2 className="text-lg font-semibold leading-none tracking-tight">{t('sidebar.grafo')}</h2>
+                <div className="flex gap-2">
+                    <Button type="button" variant="outline" size="sm" onClick={reset}><RotateCcw /> {t('grafo.resetar')}</Button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => void exportPng()} disabled={nodes.length === 0}><Download /> {t('grafo.exportPng')}</Button>
+                </div>
+            </div>
 
             <Card className="mb-4 flex flex-row flex-wrap items-center gap-3 px-4 py-3">
                 <div className="relative min-w-56 flex-1">
@@ -213,6 +223,10 @@ function GraphInner(): JSX.Element {
                     <Switch checked={includeProdutos} onCheckedChange={setIncludeProdutos} />
                     {t('grafo.incluirProdutos')}
                 </Label>
+                <Label className="flex items-center gap-2 text-xs">
+                    <Switch checked={includeNotas} onCheckedChange={setIncludeNotas} />
+                    {t('grafo.incluirNotas')}
+                </Label>
             </Card>
 
             <Card className="relative flex-1 overflow-hidden py-0">
@@ -227,7 +241,7 @@ function GraphInner(): JSX.Element {
                                 <Loader2 className="size-3.5 animate-spin" /> {t('comum.carregando')}
                             </div>
                         )}
-                        <Legenda />
+                        <Legenda produtos={includeProdutos} notas={includeNotas} />
                         <ReactFlow
                             nodes={rfNodes}
                             edges={rfEdges}

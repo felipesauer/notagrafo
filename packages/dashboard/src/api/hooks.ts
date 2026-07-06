@@ -7,7 +7,7 @@ export interface Overview {
     totalProdutos: number;
     valorTotalProcessado: number;
     nfsPorStatus: Record<string, number>;
-    ultimasProcessadas: Array<{ chaveAcesso: string; numero: string; valorTotal: number; processadaEm: string }>;
+    ultimasProcessadas: Array<{ chaveAcesso: string; numero: string; valorTotal: number; processadaEm: string; status?: string; emitente?: { cnpj: string; razaoSocial: string; uf: string } }>;
 }
 
 export interface NFListItem {
@@ -73,7 +73,7 @@ export function useByUf(tipo: 'emitente' | 'destinatario' = 'emitente') {
 export function useVolume(granularidade = 'dia') {
     return useQuery({
         queryKey: ['stats', 'volume', granularidade],
-        queryFn: () => apiFetch<{ serie: Array<{ periodo: string; totalNFs: number; valorTotal: number }> }>(`/stats/volume${qs({ granularidade })}`),
+        queryFn: () => apiFetch<{ serie: Array<{ periodo: string; totalNFs: number; valorTotal: number; canceladas: number }> }>(`/stats/volume${qs({ granularidade })}`),
     });
 }
 
@@ -133,6 +133,24 @@ export function usePriceHistory(idUnico: string) {
     return useQuery({
         queryKey: ['stats', 'produto-historico', idUnico],
         queryFn: () => apiFetch<{ idUnico: string; historico: PrecoHistoricoPonto[] }>(`/stats/produto/${encodeURIComponent(idUnico)}/historico`),
+        enabled: !!idUnico,
+    });
+}
+
+export interface ProdutoEmpresa {
+    cnpj: string;
+    razaoSocial: string;
+    papel: 'emitente' | 'destinatario';
+    totalNFs: number;
+    /** Soma do valorTotal dos itens (aresta CONTÉM) desse produto. */
+    valor: number;
+}
+
+/** Empresas ligadas a um produto (emitentes/destinatários) — /stats/produto/:id/empresas. */
+export function useProductCompanies(idUnico: string) {
+    return useQuery({
+        queryKey: ['stats', 'produto-empresas', idUnico],
+        queryFn: () => apiFetch<{ idUnico: string; empresas: ProdutoEmpresa[] }>(`/stats/produto/${encodeURIComponent(idUnico)}/empresas`),
         enabled: !!idUnico,
     });
 }

@@ -21,7 +21,8 @@ export const en = {
     },
     sidebar: {
         grupoGeral: 'General', grupoDados: 'Data', grupoAnalise: 'Analysis', grupoSistema: 'System',
-        overview: 'Overview', explorar: 'Explorer',
+        inicio: 'Home', overview: 'Overview', explorar: 'Explorer',
+        insights: 'Insights',
         nfs: 'Invoices',
         empresas: 'Companies',
         produtos: 'Products',
@@ -32,6 +33,8 @@ export const en = {
         exportacoes: 'Exports',
         configuracoes: 'Settings',
         sair: 'Sign out',
+        expandir: 'Expand menu',
+        colapsar: 'Collapse menu',
     },
     overview: {
         titulo: 'Overview',
@@ -102,16 +105,17 @@ export const en = {
         nfsEmitidas: 'Issued invoices', nfsRecebidas: 'Received invoices', verGrafo: 'View in graph',
     },
     produtos: {
-        titulo: 'Products', descricao: 'Description', ncm: 'NCM', totalNFs: 'Invoices',
+        titulo: 'Products', descricao: 'Description', codigo: 'Code / Issuer', ncm: 'NCM', totalNFs: 'Invoices',
         quantidade: 'Quantity', valorTotal: 'Total value', precoMedio: 'Average price',
         historicoPreco: 'Average price history', semHistorico: 'No price history.',
+        empresasLigadas: 'Linked companies',
     },
     impostos: {
         titulo: 'Taxes', vazio: 'No taxes recorded in the dataset.',
         icmsSt: 'ICMS-ST', fcp: 'FCP',
         serieTitulo: 'Tax burden per month',
         topNcm: 'Top NCM by tax', topCfop: 'Top CFOP by tax',
-        totalImposto: 'Total tax',
+        totalImposto: 'Total tax', serieMensal: 'Monthly trend',
     },
     grafo: {
         buscarEmpresa: 'Search company (Tax ID)', profundidade: 'Depth',
@@ -120,12 +124,14 @@ export const en = {
         tituloDrawer: 'Relationship graph', subtituloDrawer: 'This company’s trade partners', abrirCompleto: 'Open full',
         vazio: 'Search a company to start.',
         incluirProdutos: 'Include products',
+        incluirNotas: 'Include invoices',
         nfsComImposto: 'Invoices with ICMS', nfsDoNcm: 'Invoices of this NCM',
     },
     explorer: {
         minhasViews: 'My views', emBreve: '{{entidade}} is coming to the explorer soon.',
         salvarView: 'Save view', semViews: 'Save a filter as a view.',
-        filtrandoPor: 'Filtering by:',
+        filtrandoPor: 'Filtering by:', filtrar: 'Filter…', semResultados: 'No results for your search.',
+        densidade: 'Density', densidadeCompacta: 'Compact', densidadePadrao: 'Default', densidadeEspacada: 'Relaxed',
     },
     rede: {
         titulo: 'Network', subtitulo: 'Analysis of trade relationships between companies',
@@ -136,6 +142,7 @@ export const en = {
         redeTitulo: 'Full trade network', redeAjuda: 'Each node is a company (size ∝ activity); colors group by state. Click two companies to highlight the path between them.',
         nosExibidos: 'Nodes shown', limparSelecao: 'Clear selection', porUf: 'Color by state',
         dicaInteracao: 'Drag nodes · click two to trace the path',
+        legendaUf: 'State (company count)',
     },
     eventos: {
         titulo: 'Events', subtitulo: 'Audit trail across all invoices, most recent first',
@@ -173,5 +180,20 @@ export const en = {
         pronta: 'Your export is ready.',
         baixar: 'Download file',
         fechar: 'Dismiss',
+    },
+    insights: {
+        titulo: 'Insights',
+        emBreve: 'Insights appear here as your invoices get processed.',
+        cargaTituloAlta: 'Tax burden rising',
+        cargaTituloBaixa: 'Tax burden falling',
+        cargaCorpo: 'Recent tax burden is {{delta}} vs. the previous period.',
+        concentracaoTitulo: 'Supplier concentration',
+        concentracaoCorpo: '{{nome}} accounts for {{pct}} of billed value. High dependency on a single issuer.',
+        ingestaoTitulo: 'Healthy ingestion',
+        ingestaoCorpo: '{{ativas}} active invoices in the base · {{total}} processed in total.',
+        ultimaTitulo: 'Last processed invoice',
+        ultimaCorpo: 'Invoice {{numero}} · {{valor}}',
+        atividade: 'Recent activity',
+        verNota: 'View invoice',
     },
 } as const;

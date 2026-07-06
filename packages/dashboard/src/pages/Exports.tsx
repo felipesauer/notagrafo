@@ -74,7 +74,9 @@ export function ExportsPage(): JSX.Element {
     }
 
     return (
-        <div>
+        // preenche a altura disponível: o histórico (que cresce com dados) estica
+        // até o rodapé em vez de deixar um vazio grande embaixo.
+        <div className="flex min-h-full flex-col">
             {/* Header contextual leve (padrão das telas novas), não o h1 gigante. */}
             <div className="mb-4 flex items-center gap-2 border-b px-1 pb-3">
                 <FileDown className="size-4 text-muted-foreground" />
@@ -83,7 +85,7 @@ export function ExportsPage(): JSX.Element {
                     <p className="mt-1 text-xs text-muted-foreground">{t('exportacoes.subtitulo')}</p>
                 </div>
             </div>
-            <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
+            <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[320px_1fr]">
                 <Card className="h-fit gap-4 py-4" data-testid="export-form">
                     <CardHeader className="px-4 pb-0"><CardTitle className="text-base">{t('exportacoes.nova')}</CardTitle></CardHeader>
                     <CardContent className="space-y-4 px-4">
@@ -112,9 +114,9 @@ export function ExportsPage(): JSX.Element {
                     </CardContent>
                 </Card>
 
-                <Card className="overflow-hidden py-0" data-testid="export-list">
+                <Card className="flex flex-col overflow-hidden py-0" data-testid="export-list">
                     <CardHeader className="border-b px-4 py-3"><CardTitle className="text-base">{t('exportacoes.historico')}</CardTitle></CardHeader>
-                    <CardContent className="px-0 pb-0">
+                    <CardContent className="flex-1 px-0 pb-0">
                         {historico.isLoading ? (
                             <div className="p-4"><LoadingSkeleton variant="table" linhas={3} colunas={4} /></div>
                         ) : historico.isError ? (

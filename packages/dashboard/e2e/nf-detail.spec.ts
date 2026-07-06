@@ -4,7 +4,8 @@ import { login } from './helpers.js';
 test.describe('Detalhe da NF', () => {
     test('abre o detalhe, mostra itens e o link para o grafo', async ({ page }) => {
         await login(page);
-        // a home é o explorador (Notas); abre o peek e daí o detalhe completo
+        // abre o explorador (Notas), o peek e daí o detalhe completo
+        await page.goto('/explorar');
         await expect(page.getByTestId('data-table')).toBeVisible();
         await page.getByTestId('data-table').locator('tbody tr').first().click();
         await expect(page.getByTestId('nf-peek')).toBeVisible();

@@ -32,8 +32,8 @@ export function KpiCard({
     sparkColor?: string;
 }): JSX.Element {
     return (
-        <Card data-testid="kpi-card" className="gap-0 overflow-hidden py-4">
-            <CardContent className="px-4">
+        <Card data-testid="kpi-card" className="h-full gap-0 overflow-hidden py-4">
+            <CardContent className="flex h-full flex-col px-4">
                 <div className="flex items-center justify-between">
                     <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</span>
                     <span className="flex size-7 items-center justify-center rounded-md bg-primary/10 text-primary [&>svg]:size-4">
@@ -47,11 +47,11 @@ export function KpiCard({
                         {hint && <span className="text-muted-foreground">{hint}</span>}
                     </div>
                 )}
-                {spark && spark.length >= 2 && (
-                    <div className="mt-3">
-                        <Sparkline data={spark} color={sparkColor} />
-                    </div>
-                )}
+                {/* Sparkline ancorado ao pé; mt-auto alinha a base de todos os KPIs
+                    da linha (os sem spark deixavam vazio e desalinhavam — NOTA-137). */}
+                <div className="mt-auto pt-3">
+                    {spark && spark.length >= 2 ? <Sparkline data={spark} color={sparkColor} /> : <div className="h-[34px]" aria-hidden />}
+                </div>
             </CardContent>
         </Card>
     );

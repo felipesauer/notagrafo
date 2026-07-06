@@ -165,7 +165,11 @@ export class ExportService {
                 cursor = page.nextCursor ?? undefined;
             } while (cursor);
 
-            const content = this.serialize(job.formato, rows, fields);
+            // Achata as linhas (CNPJ do emitente/destinatário vêm aninhados em
+            // listInvoices) para que TODOS os campos selecionáveis existam como
+            // chave plana — senão cnpjEmitente/cnpjDestinatario saem vazios.
+            const flatRows = rows.map(flattenRow);
+            const content = this.serialize(job.formato, flatRows, fields);
             const filePath = join(this.dir, `${job.exportId}.${job.formato}`);
             await writeFile(filePath, content);
 
@@ -185,10 +189,17 @@ export class ExportService {
         if (formato === 'json') {
             return JSON.stringify(fields ? rows.map((l) => pick(l, cols)) : rows, null, 0);
         }
-        // csv e xlsx (xlsx servido como CSV no MVP — mesmo conteúdo tabular)
+        // csv e xlsx: conteúdo tabular CSV. O ramo xlsx ainda não gera OOXML
+        // nativo (melhoria futura), mas prefixa a diretiva `sep=,` + BOM UTF-8
+        // para o Excel abrir em COLUNAS (não numa célula só) e com acentos
+        // corretos — antes o "xlsx" era CSV cru e caía tudo numa coluna.
         const header = cols.join(',');
         const lines = rows.map((l) => cols.map((c) => csvCell(l[c])).join(','));
-        return [header, ...lines].join('\n');
+        const body = [header, ...lines].join('\r\n');
+        // BOM (U+FEFF) = BOM UTF-8 (mantém acentos no Excel); "sep=," diz ao Excel o
+        // separador, fazendo-o abrir em colunas em vez de tudo numa célula.
+        if (formato === 'xlsx') return `\uFEFFsep=,\r\n${body}`;
+        return body;
     }
 }
 
@@ -196,6 +207,27 @@ function pick(obj: Record<string, unknown>, keys: string[]): Record<string, unkn
     const out: Record<string, unknown> = {};
     for (const k of keys) if (k in obj) out[k] = obj[k];
     return out;
+}
+
+/**
+ * Achata uma linha de listInvoices num objeto de chaves planas exportáveis.
+ * listInvoices devolve emitente/destinatário como objetos aninhados; os campos
+ * selecionáveis no dashboard (cnpjEmitente, cnpjDestinatario, …) precisam existir
+ * como chave de topo, senão a serialização os deixa vazios/ausentes. Preserva as
+ * chaves planas já existentes (chaveAcesso, numero, dataEmissao, valorTotal, …).
+ */
+function flattenRow(row: Record<string, unknown>): Record<string, unknown> {
+    const emit = (row.emitente ?? undefined) as { cnpj?: string; razaoSocial?: string; uf?: string } | undefined;
+    const dest = (row.destinatario ?? undefined) as { cnpj?: string; razaoSocial?: string; uf?: string } | undefined;
+    return {
+        ...row,
+        cnpjEmitente: emit?.cnpj ?? '',
+        razaoSocialEmitente: emit?.razaoSocial ?? '',
+        ufEmitente: emit?.uf ?? '',
+        cnpjDestinatario: dest?.cnpj ?? '',
+        razaoSocialDestinatario: dest?.razaoSocial ?? '',
+        ufDestinatario: dest?.uf ?? '',
+    };
 }
 
 function csvCell(v: unknown): string {

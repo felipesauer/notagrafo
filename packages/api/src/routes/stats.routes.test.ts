@@ -13,8 +13,8 @@ describe('GET /stats/overview (unit)', () => {
             if (cypher.includes('count(nf) AS totalNFs')) return [rec({ totalNFs: 5, valor: 12345 })];
             if (cypher.includes('(e:Empresa)')) return [rec({ c: 3 })];
             if (cypher.includes('(p:Produto)')) return [rec({ c: 7 })];
-            if (cypher.includes('nf.status AS status')) return [rec({ status: 'ativa', c: 5 })];
-            return [rec({ chaveAcesso: 'a', numero: '1', valorTotal: 10, processadaEm: 'x' })];
+            if (cypher.includes('RETURN nf.status AS status, count(nf) AS c')) return [rec({ status: 'ativa', c: 5 })];
+            return [rec({ chaveAcesso: 'a', numero: '1', valorTotal: 10, processadaEm: 'x', status: 'ativa', emitenteCnpj: '11222333000144', emitenteRazao: 'Emit LTDA', emitenteUf: 'SP' })];
         };
         const { driver } = makeFakeDriver(responder);
         app = await buildTestApi((a) => statsRoutes(a, driver));
@@ -26,6 +26,8 @@ describe('GET /stats/overview (unit)', () => {
         expect(j.totalProdutos).toBe(7);
         expect(j.nfsPorStatus.ativa).toBe(5);
         expect(j.ultimasProcessadas).toHaveLength(1);
+        // enriquecido com status + emitente (NOTA-132)
+        expect(j.ultimasProcessadas[0]).toMatchObject({ chaveAcesso: 'a', status: 'ativa', emitente: { cnpj: '11222333000144', uf: 'SP' } });
     });
 });
 

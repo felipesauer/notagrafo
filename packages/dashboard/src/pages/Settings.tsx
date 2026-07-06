@@ -11,6 +11,7 @@ import { Button } from '../components/ui/button.js';
 import { Switch } from '../components/ui/switch.js';
 import { Label } from '../components/ui/label.js';
 import { NativeSelect } from '../components/ui/native-select.js';
+import { DensityToggle } from '../components/DensityToggle.js';
 
 interface Health {
     status: string;
@@ -21,6 +22,10 @@ interface Health {
 
 async function fetchHealth(): Promise<Health> {
     const res = await fetch('/health');
+    // A API responde 503 quando algum serviço está "degraded" — ainda é um
+    // corpo JSON válido que queremos exibir. Só tratamos como erro real fora
+    // de 2xx/503 (ex.: HTML do dev-server se o proxy /health faltar).
+    if (!res.ok && res.status !== 503) throw new Error(`health ${res.status}`);
     return (await res.json()) as Health;
 }
 
@@ -69,6 +74,10 @@ export function SettingsPage(): JSX.Element {
                                 <option value="pt-BR">Português (BR)</option>
                                 <option value="en">English</option>
                             </NativeSelect>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <Label className="font-normal">{t('explorer.densidade')}</Label>
+                            <DensityToggle />
                         </div>
                     </CardContent>
                 </Card>

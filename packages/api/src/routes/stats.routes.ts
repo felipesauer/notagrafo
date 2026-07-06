@@ -41,8 +41,11 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
                 );
                 const ultimas = await session.run(
                     `MATCH (nf:NotaFiscal) WHERE nf.status IS NOT NULL
+                     OPTIONAL MATCH (emit:Empresa)-[:EMITIU]->(nf)
                      RETURN nf.chaveAcesso AS chaveAcesso, nf.numero AS numero,
-                            nf.valorTotal AS valorTotal, nf.importadaEm AS processadaEm
+                            nf.valorTotal AS valorTotal, nf.importadaEm AS processadaEm,
+                            nf.status AS status,
+                            emit.cnpj AS emitenteCnpj, emit.razaoSocial AS emitenteRazao, emit.uf AS emitenteUf
                      ORDER BY nf.importadaEm DESC LIMIT 10`,
                 );
                 const nfsPorStatus: Record<string, number> = {};
@@ -53,12 +56,17 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
                     totalProdutos: toNum(produtos.records[0]?.get('c')),
                     valorTotalProcessado: toNum(totais.records[0]?.get('valor')),
                     nfsPorStatus,
-                    ultimasProcessadas: ultimas.records.map((r) => ({
-                        chaveAcesso: r.get('chaveAcesso'),
-                        numero: r.get('numero'),
-                        valorTotal: toNum(r.get('valorTotal')),
-                        processadaEm: r.get('processadaEm'),
-                    })),
+                    ultimasProcessadas: ultimas.records.map((r) => {
+                        const cnpj = r.get('emitenteCnpj') as string | null;
+                        return {
+                            chaveAcesso: r.get('chaveAcesso'),
+                            numero: r.get('numero'),
+                            valorTotal: toNum(r.get('valorTotal')),
+                            processadaEm: r.get('processadaEm'),
+                            status: (r.get('status') as string | null) ?? 'ativa',
+                            ...(cnpj ? { emitente: { cnpj, razaoSocial: (r.get('emitenteRazao') as string | null) ?? '', uf: (r.get('emitenteUf') as string | null) ?? '' } } : {}),
+                        };
+                    }),
                 };
             } finally {
                 await session.close();

@@ -7,6 +7,7 @@ import { useNFDetail } from '../api/hooks.js';
 import { downloadFile } from '../api/api.client.js';
 import { useThemeStore } from '../stores/theme.store.js';
 import { NFStatusBadge, CopyableKey, CurrencyValue, DateDisplay, LoadingSkeleton, InlineError } from '../components/shared.js';
+import { useDensityStore, densityClass } from '../stores/density.store.js';
 import { PageHeader } from '../components/PageHeader.js';
 import { GraphDrawer } from '../graph/GraphDrawer.js';
 import { Button } from '../components/ui/button.js';
@@ -98,6 +99,7 @@ export function NFDetailPage(): JSX.Element {
     const { chave } = useParams({ strict: false }) as { chave: string };
     const { data, isLoading, isError, refetch } = useNFDetail(chave);
     const [grafoAberto, setGrafoAberto] = useState(false);
+    const density = useDensityStore((s) => s.density);
 
     if (isLoading) return <LoadingSkeleton variant="card" />;
     if (isError || !data) return <InlineError onRetry={() => void refetch()} />;
@@ -165,7 +167,7 @@ export function NFDetailPage(): JSX.Element {
                         <CardHeader className="px-4 pb-0"><CardTitle className="text-base"><h3>{t('nf.itens')}</h3></CardTitle></CardHeader>
                         <CardContent className="px-0">
                             <div className="overflow-x-auto">
-                                <Table data-testid="data-table">
+                                <Table data-testid="data-table" className={densityClass(density)}>
                                     <TableHeader>
                                         <TableRow>
                                             <TableHead className="pl-4">#</TableHead>
@@ -213,7 +215,8 @@ export function NFDetailPage(): JSX.Element {
                     </Card>
                 </div>
 
-                {/* Coluna lateral: grafo (os eventos foram para a tela /eventos) */}
+                {/* Coluna lateral: mini-grafo do fluxo (eventos removidos do detalhe,
+                    ADR NOTA-ADR-15 — a auditoria vive na lente Eventos do Explorer). */}
                 <aside className="space-y-6">
                     <Card className="py-4">
                         <CardHeader className="px-4 pb-0"><CardTitle className="text-sm">{t('nf.miniGrafo')}</CardTitle></CardHeader>
@@ -235,3 +238,4 @@ export function NFDetailPage(): JSX.Element {
         </div>
     );
 }
+

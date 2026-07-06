@@ -39,3 +39,25 @@ export function statusColor(status: string): string {
     if (isExportStatus(status)) return EXPORT_STATUS_COLOR[status];
     return NF_STATUS_COLOR.inutilizada;
 }
+
+/**
+ * Fundo tonal suave da pill de status (redesign BI vibrante, NOTA-ADR-13). O badge
+ * passou de cor sólida + texto branco para pill (texto colorido sobre fundo tonal
+ * + ícone). Os status de export mapeiam para o fundo do status de NF de mesma
+ * semântica (queued→denegada/âmbar, processing→ativa? não: processing→azul via
+ * inutilizada-bg neutro, ready→ativa, failed→cancelada). Desconhecido → cinza.
+ */
+const STATUS_BG: Record<string, string> = {
+    ativa: 'var(--status-ativa-bg)',
+    cancelada: 'var(--status-cancelada-bg)',
+    denegada: 'var(--status-denegada-bg)',
+    inutilizada: 'var(--status-inutilizada-bg)',
+    ready: 'var(--status-ativa-bg)',
+    failed: 'var(--status-cancelada-bg)',
+    queued: 'var(--status-denegada-bg)',
+    processing: 'var(--status-inutilizada-bg)',
+};
+
+export function statusBg(status: string): string {
+    return STATUS_BG[status] ?? 'var(--status-inutilizada-bg)';
+}

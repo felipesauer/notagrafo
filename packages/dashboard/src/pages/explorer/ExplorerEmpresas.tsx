@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Card } from '../../components/ui/card.js';
 import { Sheet, SheetContent } from '../../components/ui/sheet.js';
 import { Button } from '../../components/ui/button.js';
+import { useDensityStore, densityClass } from '../../stores/density.store.js';
 
 const brlK = (n: number): string => (n >= 1000 ? `R$ ${(n / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mil` : `R$ ${n.toFixed(2)}`);
 const cnpjFmt = (c: string): string => (c.length === 14 ? c.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : c);
@@ -39,7 +40,7 @@ function EmpresaPeek({ cnpj, empresa, onClose, onOpenChange }: { cnpj: string | 
                         </div>
                         <div className="flex gap-2 border-t p-3">
                             <Button asChild type="button" variant="outline" size="sm" className="flex-1 justify-center">
-                                <Link to={'/' as string} search={{ entity: 'notas', cnpjEmitente: empresa.cnpj } as never}>{t('empresas.verNFs', { defaultValue: 'Ver NF-e' })}</Link>
+                                <Link to={'/explorar' as string} search={{ entity: 'notas', cnpjEmitente: empresa.cnpj } as never}>{t('empresas.verNFs', { defaultValue: 'Ver NF-e' })}</Link>
                             </Button>
                             <Button asChild type="button" size="sm" className="flex-1 justify-center">
                                 <Link to={'/grafo' as string} search={{ cnpj: empresa.cnpj } as never}><Network /> {t('empresas.verGrafo')}</Link>
@@ -53,28 +54,38 @@ function EmpresaPeek({ cnpj, empresa, onClose, onOpenChange }: { cnpj: string | 
 }
 
 /** Explorador da entidade Empresas: ranking por volume, com peek de parceiros. */
-export function ExplorerEmpresas({ peek, onPeek }: { peek?: string; onPeek: (cnpj: string | undefined) => void }): JSX.Element {
+export function ExplorerEmpresas({ peek, onPeek, busca }: { peek?: string; onPeek: (cnpj: string | undefined) => void; busca?: string }): JSX.Element {
     const { t } = useTranslation();
+    const density = useDensityStore((s) => s.density);
     const { data, isLoading, isError, refetch } = useTopCompanies();
-    const rows = data?.ranking ?? [];
+    const todas = data?.ranking ?? [];
+    // Busca client-side: razão social ou dígitos do CNPJ.
+    const termo = (busca ?? '').trim().toLowerCase();
+    const digitos = termo.replace(/\D/g, '');
+    const rows = termo
+        ? todas.filter((e) => e.razaoSocial.toLowerCase().includes(termo) || (digitos && e.cnpj.includes(digitos)))
+        : todas;
 
     if (isLoading) return <LoadingSkeleton variant="table" linhas={8} colunas={5} />;
     if (isError) return <InlineError onRetry={() => void refetch()} />;
-    if (rows.length === 0) return <EmptyState />;
+    if (todas.length === 0) return <EmptyState />;
+    if (rows.length === 0) return <EmptyState mensagem={t('explorer.semResultados')} />;
 
     const sel = peek ? rows.find((r) => r.cnpj === peek) : undefined;
+    // maior valor faturado → escala a barra de proporção (ranking visual denso).
+    const maxValor = Math.max(...rows.map((r) => r.valorTotal), 1);
 
     return (
         <>
-            <div className="hidden overflow-x-auto md:block">
-                <Table data-testid="data-table">
+            <div className="hidden h-full md:block">
+                <Table data-testid="data-table" data-sticky className={densityClass(density)}>
                     <TableHeader>
                         <TableRow>
                             <TableHead className="w-10 text-right">#</TableHead>
                             <TableHead>{t('empresas.razaoSocial')}</TableHead>
                             <TableHead>{t('empresas.cnpj')}</TableHead>
                             <TableHead>{t('empresas.uf')}</TableHead>
-                            <TableHead className="text-right">{t('empresas.nfsEmitidas')}</TableHead>
+                            <TableHead className="w-24 text-right">{t('empresas.nfsEmitidas')}</TableHead>
                             <TableHead className="text-right">{t('overview.valorTotal')}</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -86,7 +97,14 @@ export function ExplorerEmpresas({ peek, onPeek }: { peek?: string; onPeek: (cnp
                                 <TableCell className="font-mono text-[11px] text-muted-foreground">{cnpjFmt(e.cnpj)}</TableCell>
                                 <TableCell><span className="rounded border bg-muted px-1.5 py-0.5 font-mono text-[11px]">{e.uf}</span></TableCell>
                                 <TableCell className="text-right font-mono tabular-nums">{e.totalNFs}</TableCell>
-                                <TableCell className="text-right font-mono font-medium tabular-nums">{brlK(e.valorTotal)}</TableCell>
+                                <TableCell>
+                                    <div className="flex items-center justify-end gap-2">
+                                        <div className="hidden h-1.5 w-16 overflow-hidden rounded-full bg-muted lg:block">
+                                            <div className="h-full rounded-full bg-[var(--chart-1)]" style={{ width: `${Math.max((e.valorTotal / maxValor) * 100, 3)}%` }} />
+                                        </div>
+                                        <span className="w-24 text-right font-mono font-medium tabular-nums">{brlK(e.valorTotal)}</span>
+                                    </div>
+                                </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>

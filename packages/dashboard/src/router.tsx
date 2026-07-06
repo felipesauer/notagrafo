@@ -49,18 +49,30 @@ const childRoute = (path: string, component: RouteComponent) =>
     createRoute({ getParentRoute: () => protectedLayout, path, component });
 
 /**
- * Home: o explorador é a experiência principal. entity/peek/q/status + os
+ * Home (`/`): landing de BI do redesign (NOTA-EPIC-18) — reusa a OverviewPage
+ * como painel-resumo. A navegação por entidade vive no Explorador (`/explorar`).
+ */
+const homeRoute = createRoute({
+    getParentRoute: () => protectedLayout,
+    path: '/',
+    component: OverviewPage,
+});
+
+/**
+ * Explorador (`/explorar`): a navegação por entidade. entity/peek/q/status + os
  * filtros de recorte (ufEmitente/cnpjEmitente/ncm/comImposto) vivem no search,
- * tornando o Explorer linkável e habilitando drill-through da Visão Geral e dos
- * peeks (empresa/grafo) para a lista de NF-e filtrada. Campos não listados aqui
- * são descartados pelo validateSearch — por isso os deep-links precisam deles.
+ * tornando o Explorer linkável e habilitando drill-through da Home e dos peeks
+ * (empresa/grafo) para a lista de NF-e filtrada. Campos não listados aqui são
+ * descartados pelo validateSearch — por isso os deep-links precisam deles.
  */
 const explorarRoute = createRoute({
     getParentRoute: () => protectedLayout,
-    path: '/',
+    path: '/explorar',
     validateSearch: (search: Record<string, unknown>): {
         entity?: string; peek?: string; q?: string; status?: string;
         ufEmitente?: string; cnpjEmitente?: string; ncm?: string; comImposto?: boolean;
+        dataEmissaoInicio?: string; dataEmissaoFim?: string;
+        valorTotalMin?: string; valorTotalMax?: string; tipoNF?: string; finalidade?: string; cfop?: string;
     } => ({
         entity: typeof search.entity === 'string' ? search.entity : undefined,
         peek: typeof search.peek === 'string' ? search.peek : undefined,
@@ -70,10 +82,26 @@ const explorarRoute = createRoute({
         cnpjEmitente: typeof search.cnpjEmitente === 'string' ? search.cnpjEmitente : undefined,
         ncm: typeof search.ncm === 'string' ? search.ncm : undefined,
         comImposto: search.comImposto === true || search.comImposto === 'true' ? true : undefined,
+        // Filtros avançados de NF (NOTA-125 D) — mantidos como string na URL.
+        dataEmissaoInicio: typeof search.dataEmissaoInicio === 'string' ? search.dataEmissaoInicio : undefined,
+        dataEmissaoFim: typeof search.dataEmissaoFim === 'string' ? search.dataEmissaoFim : undefined,
+        valorTotalMin: typeof search.valorTotalMin === 'string' ? search.valorTotalMin : undefined,
+        valorTotalMax: typeof search.valorTotalMax === 'string' ? search.valorTotalMax : undefined,
+        tipoNF: typeof search.tipoNF === 'string' ? search.tipoNF : undefined,
+        finalidade: typeof search.finalidade === 'string' ? search.finalidade : undefined,
+        cfop: typeof search.cfop === 'string' ? search.cfop : undefined,
     }),
     component: ExplorerPage,
 });
-const overviewRoute = childRoute('/visao-geral', OverviewPage);
+// /visao-geral: redireciona à Home (que agora é a própria Overview) — preserva
+// bookmarks/deep-links antigos sem duplicar a página.
+const visaoGeralRedirect = createRoute({
+    getParentRoute: () => protectedLayout,
+    path: '/visao-geral',
+    beforeLoad: () => {
+        throw redirect({ to: '/' });
+    },
+});
 const nfDetailRoute = childRoute('/nf/$chave', NFDetailPage);
 const grafoRoute = createRoute({
     getParentRoute: () => protectedLayout,
@@ -89,8 +117,9 @@ const configuracoesRoute = childRoute('/configuracoes', SettingsPage);
 const routeTree = rootRoute.addChildren([
     loginRoute,
     protectedLayout.addChildren([
+        homeRoute,
         explorarRoute,
-        overviewRoute,
+        visaoGeralRedirect,
         nfDetailRoute,
         grafoRoute,
         exportacoesRoute,

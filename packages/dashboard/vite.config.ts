@@ -11,9 +11,12 @@ export default defineConfig({
     },
     server: {
         port: 5173,
-        // Proxy para a API em dev — evita CORS.
+        // Proxy para a API em dev — evita CORS. /health fica FORA do prefixo
+        // /api/v1 (usado por Docker/orquestradores); espelha o location /health
+        // do nginx (prod) para o card Sistema funcionar também no dev.
         proxy: {
             '/api': { target: 'http://localhost:3000', changeOrigin: true },
+            '/health': { target: 'http://localhost:3000', changeOrigin: true },
         },
     },
     build: { outDir: 'dist' },
