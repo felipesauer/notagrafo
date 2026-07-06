@@ -1,5 +1,5 @@
 import { type JSX } from 'react';
-import { Link } from '@tanstack/react-router';
+import { Link, useLocation } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import {
     Activity, Building2, Download, FileText, Home, Landmark, type LucideIcon, Network, Package,
@@ -67,6 +67,14 @@ export function AppSidebar(): JSX.Element {
     const { t } = useTranslation();
     const expanded = useUIStore((s) => s.sidebarExpanded);
     const toggle = useUIStore((s) => s.toggleSidebar);
+    // Entidade ativa do Explorer, com o MESMO default do Explorer.tsx ('notas'):
+    // em /explorar sem ?entity= a lente é Notas, então o item Notas deve destacar
+    // (o activeOptions/includeSearch sozinho não casa quando entity está ausente).
+    const loc = useLocation();
+    const emExplorar = loc.pathname === '/explorar';
+    const entityAtiva = emExplorar
+        ? ((loc.search as { entity?: string }).entity ?? 'notas')
+        : undefined;
 
     return (
         <nav
@@ -99,7 +107,7 @@ export function AppSidebar(): JSX.Element {
                         ) : (
                             <div className="mx-auto mb-1 h-px w-6 bg-sidebar-border" aria-hidden />
                         )}
-                        {g.items.map((r) => <RailIcon key={r.to + (r.search?.entity ?? '')} def={r} expanded={expanded} t={t} />)}
+                        {g.items.map((r) => <RailIcon key={r.to + (r.search?.entity ?? '')} def={r} expanded={expanded} t={t} entityAtiva={entityAtiva} />)}
                     </div>
                 ))}
             </div>
@@ -121,17 +129,25 @@ function ToggleBtn({ expanded, onClick, t }: { expanded: boolean; onClick: () =>
     );
 }
 
-function RailIcon({ def, expanded, t }: { def: RailDef; expanded: boolean; t: (k: string) => string }): JSX.Element {
+function RailIcon({ def, expanded, t, entityAtiva }: { def: RailDef; expanded: boolean; t: (k: string) => string; entityAtiva?: string }): JSX.Element {
     const { to, search, icon: Icon, labelKey, exact } = def;
+    // Item de entidade do Explorer (/explorar?entity=X): destaque calculado por
+    // nós, comparando com a entidade ativa (que já resolve o default 'notas' em
+    // /explorar puro). Assim o item Notas destaca mesmo sem ?entity= na URL.
+    const isEntity = to === '/explorar' && !!search?.entity;
+    const entityActive = isEntity && entityAtiva === search!.entity;
+    const activeClasses = 'bg-primary/12 font-medium text-primary';
+    // Itens de entidade: destaque 100% controlado por `entityActive` (o matcher
+    // do router casaria TODOS os /explorar pelo pathname, então não usamos a
+    // classe .active neles). Itens não-entidade: matcher normal do router.
     const link = (
         <Link
             to={to as never}
             search={(search ?? undefined) as never}
-            // Itens que diferem só pelo search (entidades do Explorer) precisam
-            // casar o search para não ficarem todos ativos em /explorar ao mesmo tempo.
-            activeOptions={{ exact: exact ?? false, includeSearch: search ? true : false }}
+            activeOptions={{ exact: exact ?? false }}
             aria-label={t(labelKey)}
-            className={`flex h-9 items-center rounded-[10px] text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground [&.active]:bg-primary/12 [&.active]:font-medium [&.active]:text-primary [&>svg]:size-[18px] ${expanded ? 'gap-2.5 px-2.5' : 'w-10 justify-center'}`}
+            aria-current={entityActive ? 'page' : undefined}
+            className={`flex h-9 items-center rounded-[10px] text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground [&>svg]:size-[18px] ${expanded ? 'gap-2.5 px-2.5' : 'w-10 justify-center'} ${isEntity ? (entityActive ? activeClasses : '') : '[&.active]:bg-primary/12 [&.active]:font-medium [&.active]:text-primary'}`}
         >
             <Icon />
             {expanded && <span className="text-[13px]">{t(labelKey)}</span>}
