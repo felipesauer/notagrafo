@@ -113,7 +113,7 @@ export const ptBR = {
     explorer: {
         minhasViews: 'Minhas views', emBreve: '{{entidade}} chega ao explorador em breve.',
         salvarView: 'Salvar view', semViews: 'Salve um filtro como view.',
-        filtrandoPor: 'Filtrando por:',
+        filtrandoPor: 'Filtrando por:', filtrar: 'Filtrar…', semResultados: 'Nenhum resultado para a busca.',
         densidade: 'Densidade', densidadeCompacta: 'Compacta', densidadePadrao: 'Padrão', densidadeEspacada: 'Espaçada',
     },
     rede: {

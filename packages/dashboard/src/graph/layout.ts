@@ -23,6 +23,8 @@ export interface EdgeData extends Record<string, unknown> {
     valorTotal?: number;
     totalNFs?: number;
     dimmed?: boolean;
+    /** Realçada pelo hover (na vizinhança do nó focado) → mostra o rótulo. */
+    focado?: boolean;
 }
 
 export type GraphNode = Node<NodeData>;

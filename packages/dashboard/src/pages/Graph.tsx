@@ -41,12 +41,14 @@ const TIPO_COR_MINIMAP: Record<NodeType, string> = {
     produto: '#f0a800',
 };
 
-function Legenda(): JSX.Element {
+/** Legenda dos tipos de nó — mostra só os tipos ATIVOS no grafo (empresa sempre;
+ *  produto/nota conforme os toggles), evitando prometer 'Notas' quando estão OFF. */
+function Legenda({ produtos, notas }: { produtos: boolean; notas: boolean }): JSX.Element {
     const { t } = useTranslation();
     const itens: [NodeType, string][] = [
         ['empresa', t('empresas.titulo')],
-        ['notafiscal', t('sidebar.nfs')],
-        ['produto', t('produtos.titulo')],
+        ...(produtos ? ([['produto', t('produtos.titulo')]] as [NodeType, string][]) : []),
+        ...(notas ? ([['notafiscal', t('sidebar.nfs')]] as [NodeType, string][]) : []),
     ];
     return (
         <div className="absolute left-3 top-3 z-10 flex flex-col gap-1.5 rounded-md border bg-card/90 px-3 py-2 text-xs shadow-sm backdrop-blur">
@@ -168,8 +170,10 @@ function GraphInner(): JSX.Element {
     useEffect(() => {
         setRfNodes((ns) => ns.map((n) => ({ ...n, data: { ...n.data, dimmed: vizinhanca ? !vizinhanca.has(n.id) : false } })));
         setRfEdges((es) => es.map((e) => {
-            const dim = vizinhanca ? !(vizinhanca.has(e.source) && vizinhanca.has(e.target)) : false;
-            return { ...e, data: { ...(e.data as EdgeData), dimmed: dim } };
+            const naViz = vizinhanca ? vizinhanca.has(e.source) && vizinhanca.has(e.target) : false;
+            // focado = há um hover ativo E a aresta pertence à vizinhança. O rótulo
+            // só aparece nesse caso, evitando o amontoado de labels no centro.
+            return { ...e, data: { ...(e.data as EdgeData), dimmed: vizinhanca ? !naViz : false, focado: !!vizinhanca && naViz } };
         }));
     }, [vizinhanca, setRfNodes, setRfEdges]);
 
@@ -237,7 +241,7 @@ function GraphInner(): JSX.Element {
                                 <Loader2 className="size-3.5 animate-spin" /> {t('comum.carregando')}
                             </div>
                         )}
-                        <Legenda />
+                        <Legenda produtos={includeProdutos} notas={includeNotas} />
                         <ReactFlow
                             nodes={rfNodes}
                             edges={rfEdges}

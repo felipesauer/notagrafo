@@ -130,7 +130,7 @@ export const en = {
     explorer: {
         minhasViews: 'My views', emBreve: '{{entidade}} is coming to the explorer soon.',
         salvarView: 'Save view', semViews: 'Save a filter as a view.',
-        filtrandoPor: 'Filtering by:',
+        filtrandoPor: 'Filtering by:', filtrar: 'Filter…', semResultados: 'No results for your search.',
         densidade: 'Density', densidadeCompacta: 'Compact', densidadePadrao: 'Default', densidadeEspacada: 'Relaxed',
     },
     rede: {

@@ -79,6 +79,9 @@ export function ExplorerPage(): JSX.Element {
     const temRecorte = Object.keys(recorte).length > 0;
     const [qInput, setQInput] = useState(search.q ?? '');
     const [modalAberto, setModalAberto] = useState(false);
+    // Busca client-side das entidades cujo ranking já vem inteiro (empresas/produtos):
+    // filtra as linhas em memória, sem tocar a API. Notas usa o `q` server-side acima.
+    const [buscaLocal, setBuscaLocal] = useState('');
     const q = useDebouncedValue(qInput, 300);
     const { views, add: addView, remove: removeView } = useSavedViews();
 
@@ -86,6 +89,7 @@ export function ExplorerPage(): JSX.Element {
 
     function trocar(e: EntityKey): void {
         setQInput('');
+        setBuscaLocal('');
         void navigate({ to: '/explorar' as string, search: { entity: e } as never });
     }
     function setStatus(s: string): void {
@@ -162,6 +166,12 @@ export function ExplorerPage(): JSX.Element {
                             <Button type="button" size="sm" onClick={() => setModalAberto(true)}><Upload /> {t('nf.uploadTitulo')}</Button>
                         </>
                     )}
+                    {(entity === 'empresas' || entity === 'produtos') && (
+                        <div className="relative">
+                            <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input value={buscaLocal} onChange={(e) => setBuscaLocal(e.target.value)} placeholder={t('explorer.filtrar')} className="h-8 w-56 pl-8" />
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -186,9 +196,9 @@ export function ExplorerPage(): JSX.Element {
                 {entity === 'notas' ? (
                     <ExplorerNotas q={q} status={status} recorte={recorte} peek={search.peek} onPeek={setPeek} />
                 ) : entity === 'empresas' ? (
-                    <ExplorerEmpresas peek={search.peek} onPeek={setPeek} />
+                    <ExplorerEmpresas peek={search.peek} onPeek={setPeek} busca={buscaLocal} />
                 ) : entity === 'produtos' ? (
-                    <ExplorerProdutos peek={search.peek} onPeek={setPeek} />
+                    <ExplorerProdutos peek={search.peek} onPeek={setPeek} busca={buscaLocal} />
                 ) : entity === 'impostos' ? (
                     <div className="min-h-0 flex-1 overflow-auto"><ExplorerImpostos /></div>
                 ) : entity === 'rede' ? (

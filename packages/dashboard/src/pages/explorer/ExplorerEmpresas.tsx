@@ -54,15 +54,22 @@ function EmpresaPeek({ cnpj, empresa, onClose, onOpenChange }: { cnpj: string | 
 }
 
 /** Explorador da entidade Empresas: ranking por volume, com peek de parceiros. */
-export function ExplorerEmpresas({ peek, onPeek }: { peek?: string; onPeek: (cnpj: string | undefined) => void }): JSX.Element {
+export function ExplorerEmpresas({ peek, onPeek, busca }: { peek?: string; onPeek: (cnpj: string | undefined) => void; busca?: string }): JSX.Element {
     const { t } = useTranslation();
     const density = useDensityStore((s) => s.density);
     const { data, isLoading, isError, refetch } = useTopCompanies();
-    const rows = data?.ranking ?? [];
+    const todas = data?.ranking ?? [];
+    // Busca client-side: razão social ou dígitos do CNPJ.
+    const termo = (busca ?? '').trim().toLowerCase();
+    const digitos = termo.replace(/\D/g, '');
+    const rows = termo
+        ? todas.filter((e) => e.razaoSocial.toLowerCase().includes(termo) || (digitos && e.cnpj.includes(digitos)))
+        : todas;
 
     if (isLoading) return <LoadingSkeleton variant="table" linhas={8} colunas={5} />;
     if (isError) return <InlineError onRetry={() => void refetch()} />;
-    if (rows.length === 0) return <EmptyState />;
+    if (todas.length === 0) return <EmptyState />;
+    if (rows.length === 0) return <EmptyState mensagem={t('explorer.semResultados')} />;
 
     const sel = peek ? rows.find((r) => r.cnpj === peek) : undefined;
 

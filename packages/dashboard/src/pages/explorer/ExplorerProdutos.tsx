@@ -22,15 +22,21 @@ const precoConfig = { precoMedio: { label: 'Preço médio', color: 'var(--chart-
  * as empresas ligadas (useProductCompanies). Aproveita endpoints que existiam mas
  * não tinham tela (NOTA-125 polish).
  */
-export function ExplorerProdutos({ peek, onPeek }: { peek?: string; onPeek: (id: string | undefined) => void }): JSX.Element {
+export function ExplorerProdutos({ peek, onPeek, busca }: { peek?: string; onPeek: (id: string | undefined) => void; busca?: string }): JSX.Element {
     const { t } = useTranslation();
     const density = useDensityStore((s) => s.density);
     const { data, isLoading, isError, refetch } = useTopProducts();
-    const rows = (data?.ranking as unknown as Produto[]) ?? [];
+    const todos = (data?.ranking as unknown as Produto[]) ?? [];
+    // Busca client-side: descrição ou NCM.
+    const termo = (busca ?? '').trim().toLowerCase();
+    const rows = termo
+        ? todos.filter((p) => (p.descricao ?? '').toLowerCase().includes(termo) || (p.ncm ?? '').includes(termo))
+        : todos;
 
     if (isLoading) return <LoadingSkeleton variant="table" linhas={8} colunas={4} />;
     if (isError) return <InlineError onRetry={() => void refetch()} />;
-    if (rows.length === 0) return <EmptyState />;
+    if (todos.length === 0) return <EmptyState />;
+    if (rows.length === 0) return <EmptyState mensagem={t('explorer.semResultados')} />;
 
     const sel = peek ? rows.find((p) => p.idUnico === peek) : undefined;
 

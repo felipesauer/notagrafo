@@ -7,8 +7,9 @@ const brlCompact = (v: number): string =>
 
 /**
  * Aresta com PESO e DIREÇÃO: espessura proporcional ao valor agregado da
- * relação (faixa 1.5–6px, escala log para não achatar) e rótulo "N NF-e · R$"
- * numa pílula que não sobrepõe a linha. Esmaece com `data.dimmed` (hover-isola).
+ * relação (faixa 1.5–6px, escala log para não achatar). O rótulo "N NF-e · R$"
+ * só aparece quando a aresta está `focado` (hover no nó) — sem hover os rótulos
+ * ficam ocultos para não amontoar no centro do grafo. Esmaece com `data.dimmed`.
  */
 export function WeightedEdge({
     sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, markerEnd, data,
@@ -28,7 +29,7 @@ export function WeightedEdge({
                 markerEnd={markerEnd}
                 style={{ strokeWidth: width, stroke: 'var(--muted-foreground)', opacity: dim ? 0.12 : 0.55, transition: 'opacity .15s' }}
             />
-            {rotulo && !dim && (
+            {rotulo && d.focado && (
                 <EdgeLabelRenderer>
                     <div
                         className="pointer-events-none absolute rounded-md border border-border bg-background/90 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground tabular-nums shadow-sm backdrop-blur"
