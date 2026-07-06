@@ -191,10 +191,10 @@ export function ExplorerPage(): JSX.Element {
                 </div>
             )}
 
-            {/* Conteúdo da entidade — container flex sem overflow próprio (a tabela
-                sticky faz o seu scroll; Rede/Eventos/Impostos rolam internamente).
-                Padding uniforme aqui = mesma margem das demais telas, um scroll só. */}
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-4 md:p-6">
+            {/* Conteúdo da entidade — rola na PÁGINA (estilo do feed de Eventos):
+                as tabelas vivem em cards com paginação (10/pág), sem scroll interno
+                próprio. Padding uniforme = mesma margem das demais telas. */}
+            <div className="min-h-0 flex-1 overflow-auto p-4 md:p-6">
                 {entity === 'notas' ? (
                     <ExplorerNotas q={q} status={status} recorte={recorte} peek={search.peek} onPeek={setPeek} />
                 ) : entity === 'empresas' ? (
@@ -202,11 +202,11 @@ export function ExplorerPage(): JSX.Element {
                 ) : entity === 'produtos' ? (
                     <ExplorerProdutos peek={search.peek} onPeek={setPeek} busca={buscaLocal} />
                 ) : entity === 'impostos' ? (
-                    <div className="min-h-0 flex-1 overflow-auto"><ExplorerImpostos /></div>
+                    <ExplorerImpostos />
                 ) : entity === 'rede' ? (
-                    <div className="min-h-0 flex-1 overflow-auto"><NetworkContent /></div>
+                    <div className="min-h-0"><NetworkContent /></div>
                 ) : (
-                    <div className="min-h-0 flex-1 overflow-auto"><EventsContent /></div>
+                    <EventsContent />
                 )}
             </div>
 

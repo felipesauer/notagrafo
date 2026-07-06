@@ -189,7 +189,7 @@ function HistoricoTable({ registros, density, onUpdate, t }: { registros: Export
         status: (r) => r.status,
         totalRegistros: (r) => r.totalRegistros ?? 0,
         tamanhoBytes: (r) => r.tamanhoBytes ?? 0,
-    }, { initialPageSize: 25 });
+    }, { initialPageSize: 10 });
     return (
         <>
             <Table data-testid="data-table" data-zebra className={densityClass(density)}>

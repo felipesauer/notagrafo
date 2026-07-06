@@ -6,7 +6,7 @@ import { useTopProducts, usePriceHistory, useProductCompanies } from '../../api/
 import { LoadingSkeleton, InlineError, EmptyState } from '../../components/shared.js';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table.js';
 import { SortableHead } from '../../components/SortableHead.js';
-import { TablePagination } from '../../components/TablePagination.js';
+import { TableCard } from '../../components/TableCard.js';
 import { useClientTable } from '../../hooks/useClientTable.js';
 import { Card } from '../../components/ui/card.js';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '../../components/ui/sheet.js';
@@ -62,11 +62,11 @@ export function ExplorerProdutos({ peek, onPeek, busca }: { peek?: string; onPee
 
     return (
         <>
-            <div className="hidden h-full md:block">
-                <Table data-testid="data-table" data-sticky data-zebra className={densityClass(density)}>
+            <TableCard className="hidden md:block" pagination={pagination}>
+                <Table data-testid="data-table" data-zebra className={densityClass(density)}>
                     <TableHeader>
                         <TableRow>
-                            <SortableHead sortKey="descricao" ariaSort={ariaSort} onToggle={toggle}>{t('produtos.descricao')}</SortableHead>
+                            <SortableHead sortKey="descricao" ariaSort={ariaSort} onToggle={toggle} className="pl-4">{t('produtos.descricao')}</SortableHead>
                             <TableHead className="w-40">{t('produtos.codigo')}</TableHead>
                             <SortableHead sortKey="ncm" ariaSort={ariaSort} onToggle={toggle} className="w-28">{t('produtos.ncm')}</SortableHead>
                             <SortableHead sortKey="totalNFs" ariaSort={ariaSort} onToggle={toggle} align="right" className="w-20 text-right">{t('produtos.totalNFs')}</SortableHead>
@@ -90,14 +90,13 @@ export function ExplorerProdutos({ peek, onPeek, busca }: { peek?: string; onPee
                                     {p.ncm ? <Link className="font-mono text-[12px] text-primary hover:underline" to={'/explorar' as string} search={{ entity: 'notas', ncm: p.ncm } as never}>{p.ncm}</Link> : <span className="text-muted-foreground">—</span>}
                                 </TableCell>
                                 <TableCell className="text-right font-mono tabular-nums">{p.totalNFs ?? 0}</TableCell>
-                                <TableCell className="text-right font-mono font-medium tabular-nums">{brlK(p.valorTotal ?? 0)}</TableCell>
+                                <TableCell className="pr-4 text-right font-mono font-medium tabular-nums">{brlK(p.valorTotal ?? 0)}</TableCell>
                             </TableRow>
                             );
                         })}
                     </TableBody>
                 </Table>
-                <TablePagination {...pagination} />
-            </div>
+            </TableCard>
 
             <div className="grid gap-2.5 p-3 md:hidden" data-testid="data-cards">
                 {pageRows.map((p) => (

@@ -4,7 +4,7 @@ import { useNFList, type NFListItem } from '../../api/hooks.js';
 import { NFStatusBadge, CurrencyValue, DateDisplay, LoadingSkeleton, InlineError, EmptyState } from '../../components/shared.js';
 import { NFRowActions } from '../../components/NFRowActions.js';
 import { SortableHead } from '../../components/SortableHead.js';
-import { TablePagination } from '../../components/TablePagination.js';
+import { TableCard } from '../../components/TableCard.js';
 import { ariaSortFor, type SortState } from '../../hooks/useTableSort.js';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table.js';
 import { useDensityStore, densityClass } from '../../stores/density.store.js';
@@ -40,7 +40,7 @@ export function ExplorerNotas({ q, status, recorte, peek, onPeek }: { q?: string
     // Ordenação e paginação SERVER-SIDE (ADR-16): orderBy/order via query; a
     // paginação é por cursor keyset (não permite salto p/ página N, só Ant/Próx).
     const [sort, setSort] = useState<SortState<NfSortKey>>({ key: 'dataEmissao', direction: 'desc' });
-    const [pageSize, setPageSize] = useState(50);
+    const [pageSize, setPageSize] = useState(10);
     const [cursorStack, setCursorStack] = useState<string[]>([]); // cursores das páginas anteriores
     const cursor = cursorStack[cursorStack.length - 1];
     // Filtros/ordenação mudaram → volta para a 1ª página (zera a pilha de cursores).
@@ -75,21 +75,28 @@ export function ExplorerNotas({ q, status, recorte, peek, onPeek }: { q?: string
 
     return (
         <>
-            {/* Desktop: tabela densa (sticky header; densidade via store). O scroll
-                vertical + max-height vivem no container interno do <Table> via CSS
-                [data-slot=table-container]:has(> [data-sticky]) — ver globals.css. */}
-            <div className="hidden h-full md:block">
-                <Table data-testid="data-table" data-sticky data-zebra className={densityClass(density)}>
+            {/* Desktop: tabela densa dentro do card padrão (estilo Events).
+                Ordenação server (orderBy/order) + paginação por cursor no rodapé. */}
+            <TableCard className="hidden md:block" pagination={{
+                page: cursorStack.length,
+                pageSize,
+                hasPrev: cursorStack.length > 0,
+                hasNext: !!nextCursor,
+                onPrev: () => setCursorStack((s) => s.slice(0, -1)),
+                onNext: () => nextCursor && setCursorStack((s) => [...s, nextCursor]),
+                onPageSize: setPageSize,
+            }}>
+                <Table data-testid="data-table" data-zebra className={densityClass(density)}>
                     <TableHeader>
                         <TableRow>
-                            <SortableHead sortKey="numero" ariaSort={ariaSort} onToggle={toggleSort} className="w-16">{t('nf.numero')}</SortableHead>
-                            <TableHead className="w-28">{t('nf.chave')}</TableHead>
+                            <SortableHead sortKey="numero" ariaSort={ariaSort} onToggle={toggleSort} className="pl-4">{t('nf.numero')}</SortableHead>
+                            <TableHead>{t('nf.chave')}</TableHead>
                             <TableHead>{t('nf.emitente')}</TableHead>
                             <TableHead>{t('nf.destinatario')}</TableHead>
-                            <SortableHead sortKey="valorTotal" ariaSort={ariaSort} onToggle={toggleSort} align="right" className="w-32 text-right">{t('nf.valor')}</SortableHead>
-                            <TableHead className="w-28">{t('nf.status')}</TableHead>
-                            <SortableHead sortKey="dataEmissao" ariaSort={ariaSort} onToggle={toggleSort} className="w-44">{t('nf.emissao')}</SortableHead>
-                            <TableHead className="w-[116px] text-right">{t('nf.acoes')}</TableHead>
+                            <SortableHead sortKey="valorTotal" ariaSort={ariaSort} onToggle={toggleSort} align="right" className="text-right">{t('nf.valor')}</SortableHead>
+                            <TableHead>{t('nf.status')}</TableHead>
+                            <SortableHead sortKey="dataEmissao" ariaSort={ariaSort} onToggle={toggleSort}>{t('nf.emissao')}</SortableHead>
+                            <TableHead className="pr-4 text-right">{t('nf.acoes')}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -107,21 +114,12 @@ export function ExplorerNotas({ q, status, recorte, peek, onPeek }: { q?: string
                                 <TableCell className="text-right font-mono font-medium tabular-nums"><CurrencyValue value={nf.valorTotal} /></TableCell>
                                 <TableCell><NFStatusBadge status={nf.status} /></TableCell>
                                 <TableCell className="font-mono text-muted-foreground tabular-nums"><DateDisplay value={nf.dataEmissao} /></TableCell>
-                                <TableCell><NFRowActions chave={nf.chaveAcesso} cnpjEmitente={nf.emitente?.cnpj} onView={() => onPeek(nf.chaveAcesso)} /></TableCell>
+                                <TableCell className="pr-4"><NFRowActions chave={nf.chaveAcesso} cnpjEmitente={nf.emitente?.cnpj} onView={() => onPeek(nf.chaveAcesso)} /></TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
                 </Table>
-                <TablePagination
-                    page={cursorStack.length}
-                    pageSize={pageSize}
-                    hasPrev={cursorStack.length > 0}
-                    hasNext={!!nextCursor}
-                    onPrev={() => setCursorStack((s) => s.slice(0, -1))}
-                    onNext={() => nextCursor && setCursorStack((s) => [...s, nextCursor])}
-                    onPageSize={setPageSize}
-                />
-            </div>
+            </TableCard>
 
             {/* Mobile: cards empilhados (sem scroll lateral) */}
             <div className="grid gap-2.5 p-3 md:hidden" data-testid="data-cards">

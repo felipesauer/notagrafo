@@ -6,7 +6,7 @@ import { useTopCompanies, useCompany, type TopEmpresa } from '../../api/hooks.js
 import { LoadingSkeleton, InlineError, EmptyState } from '../../components/shared.js';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table.js';
 import { SortableHead } from '../../components/SortableHead.js';
-import { TablePagination } from '../../components/TablePagination.js';
+import { TableCard } from '../../components/TableCard.js';
 import { useClientTable } from '../../hooks/useClientTable.js';
 import { Card } from '../../components/ui/card.js';
 import { Sheet, SheetContent } from '../../components/ui/sheet.js';
@@ -89,27 +89,27 @@ export function ExplorerEmpresas({ peek, onPeek, busca }: { peek?: string; onPee
 
     return (
         <>
-            <div className="hidden h-full md:block">
-                <Table data-testid="data-table" data-sticky data-zebra className={densityClass(density)}>
+            <TableCard className="hidden md:block" pagination={pagination}>
+                <Table data-testid="data-table" data-zebra className={densityClass(density)}>
                     <TableHeader>
                         <TableRow>
-                            <SortableHead sortKey="posicao" ariaSort={ariaSort} onToggle={toggle} align="right" className="w-10 text-right">#</SortableHead>
+                            <SortableHead sortKey="posicao" ariaSort={ariaSort} onToggle={toggle} align="right" className="w-10 pl-4 text-right">#</SortableHead>
                             <SortableHead sortKey="razaoSocial" ariaSort={ariaSort} onToggle={toggle}>{t('empresas.razaoSocial')}</SortableHead>
                             <TableHead>{t('empresas.cnpj')}</TableHead>
                             <SortableHead sortKey="uf" ariaSort={ariaSort} onToggle={toggle}>{t('empresas.uf')}</SortableHead>
                             <SortableHead sortKey="totalNFs" ariaSort={ariaSort} onToggle={toggle} align="right" className="w-24 text-right">{t('empresas.nfsEmitidas')}</SortableHead>
-                            <SortableHead sortKey="valorTotal" ariaSort={ariaSort} onToggle={toggle} align="right" className="text-right">{t('overview.valorTotal')}</SortableHead>
+                            <SortableHead sortKey="valorTotal" ariaSort={ariaSort} onToggle={toggle} align="right" className="pr-4 text-right">{t('overview.valorTotal')}</SortableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {pageRows.map((e) => (
                             <TableRow key={e.cnpj} className={`cursor-pointer ${sel?.cnpj === e.cnpj ? 'bg-primary/10 shadow-[inset_2px_0_0_var(--primary)]' : ''}`} onClick={() => onPeek(e.cnpj)}>
-                                <TableCell className="text-right font-mono tabular-nums text-muted-foreground">{e.posicao}</TableCell>
+                                <TableCell className="pl-4 text-right font-mono tabular-nums text-muted-foreground">{e.posicao}</TableCell>
                                 <TableCell className="font-medium">{e.razaoSocial}</TableCell>
                                 <TableCell className="font-mono text-[11px] text-muted-foreground">{cnpjFmt(e.cnpj)}</TableCell>
                                 <TableCell><span className="rounded border bg-muted px-1.5 py-0.5 font-mono text-[11px]">{e.uf}</span></TableCell>
                                 <TableCell className="text-right font-mono tabular-nums">{e.totalNFs}</TableCell>
-                                <TableCell>
+                                <TableCell className="pr-4">
                                     <div className="flex items-center justify-end gap-2">
                                         <div className="hidden h-1.5 w-16 overflow-hidden rounded-full bg-muted lg:block">
                                             <div className="h-full rounded-full bg-[var(--chart-1)]" style={{ width: `${Math.max((e.valorTotal / maxValor) * 100, 3)}%` }} />
@@ -121,8 +121,7 @@ export function ExplorerEmpresas({ peek, onPeek, busca }: { peek?: string; onPee
                         ))}
                     </TableBody>
                 </Table>
-                <TablePagination {...pagination} />
-            </div>
+            </TableCard>
 
             <div className="grid gap-2.5 p-3 md:hidden">
                 {pageRows.map((e) => (
