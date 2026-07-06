@@ -87,13 +87,13 @@ export function ExplorerNotas({ q, status, recorte, peek, onPeek }: { q?: string
                 <Table data-testid="data-table" data-sticky className={densityClass(density)}>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-14">{t('nf.numero')}</TableHead>
-                            <TableHead>{t('nf.chave')}</TableHead>
+                            <TableHead className="w-16">{t('nf.numero')}</TableHead>
+                            <TableHead className="w-28">{t('nf.chave')}</TableHead>
                             <TableHead>{t('nf.emitente')}</TableHead>
                             <TableHead>{t('nf.destinatario')}</TableHead>
-                            <TableHead className="text-right">{t('nf.valor')}</TableHead>
-                            <TableHead>{t('nf.status')}</TableHead>
-                            <TableHead>{t('nf.emissao')}</TableHead>
+                            <TableHead className="w-32 text-right">{t('nf.valor')}</TableHead>
+                            <TableHead className="w-28">{t('nf.status')}</TableHead>
+                            <TableHead className="w-44">{t('nf.emissao')}</TableHead>
                             <TableHead className="w-[116px] text-right">{t('nf.acoes')}</TableHead>
                         </TableRow>
                     </TableHeader>

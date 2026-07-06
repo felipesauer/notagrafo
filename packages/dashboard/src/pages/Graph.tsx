@@ -12,7 +12,6 @@ import { WeightedEdge } from '../graph/WeightedEdge.js';
 import { GraphPanel } from '../graph/GraphPanel.js';
 import { useGraphStore, type GraphDirection } from '../stores/graph.store.js';
 import { useThemeStore } from '../stores/theme.store.js';
-import { PageHeader } from '../components/PageHeader.js';
 import { Button } from '../components/ui/button.js';
 import { Input } from '../components/ui/input.js';
 import { Label } from '../components/ui/label.js';
@@ -183,16 +182,17 @@ function GraphInner(): JSX.Element {
     }, [nodesKey, rfNodes.length, fitView]);
 
     return (
-        <div className="flex h-[calc(100vh-8.5rem)] flex-col">
-            <PageHeader
-                title={t('sidebar.grafo')}
-                actions={
-                    <>
-                        <Button type="button" variant="outline" size="sm" onClick={reset}><RotateCcw /> {t('grafo.resetar')}</Button>
-                        <Button type="button" variant="outline" size="sm" onClick={() => void exportPng()} disabled={nodes.length === 0}><Download /> {t('grafo.exportPng')}</Button>
-                    </>
-                }
-            />
+        // full-bleed: herda a altura do container do shell (flex-1). Antes usava
+        // h-[calc(100vh-8.5rem)] — número mágico do shell antigo que deixava vazio
+        // no fim. O header vem num toolbar próprio (o título já está na Topbar).
+        <div className="flex h-full min-h-0 flex-col p-4 md:p-6">
+            <div className="mb-3 flex items-center justify-between gap-2">
+                <h2 className="text-lg font-semibold leading-none tracking-tight">{t('sidebar.grafo')}</h2>
+                <div className="flex gap-2">
+                    <Button type="button" variant="outline" size="sm" onClick={reset}><RotateCcw /> {t('grafo.resetar')}</Button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => void exportPng()} disabled={nodes.length === 0}><Download /> {t('grafo.exportPng')}</Button>
+                </div>
+            </div>
 
             <Card className="mb-4 flex flex-row flex-wrap items-center gap-3 px-4 py-3">
                 <div className="relative min-w-56 flex-1">

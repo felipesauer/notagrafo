@@ -33,17 +33,17 @@ export function AppShell(): JSX.Element {
             {/* 1ª coluna some no mobile (rail escondido); no desktop a AppSidebar
                 dita a própria largura (60px ou expandida) via `w-*`, então usamos
                 width:auto na trilha do grid. */}
-            <div className="grid h-svh grid-cols-1 overflow-hidden bg-background md:grid-cols-[auto_1fr]">
+            <div className="grid h-svh grid-cols-1 grid-rows-1 overflow-hidden bg-background md:grid-cols-[auto_1fr]">
                 <AppSidebar />
-                <div className="flex min-w-0 flex-col overflow-hidden">
+                <div className="flex min-h-0 min-w-0 flex-col overflow-hidden">
                     <Topbar />
-                    <div className={`grid min-h-0 flex-1 overflow-hidden ${insightsOpen ? 'grid-cols-1 xl:grid-cols-[1fr_320px]' : 'grid-cols-1'}`}>
+                    <div className={`grid min-h-0 flex-1 grid-rows-1 overflow-hidden ${insightsOpen ? 'grid-cols-1 xl:grid-cols-[1fr_320px]' : 'grid-cols-1'}`}>
                         {fullBleed ? (
-                            <div className="flex min-w-0 flex-col overflow-hidden">
+                            <div className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden">
                                 <Outlet />
                             </div>
                         ) : (
-                            <div className="min-w-0 overflow-auto p-4 md:p-6">
+                            <div className="h-full min-w-0 overflow-auto p-4 md:p-6">
                                 <Outlet />
                             </div>
                         )}
