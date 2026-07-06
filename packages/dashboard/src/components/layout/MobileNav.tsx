@@ -1,7 +1,6 @@
 import { type JSX } from 'react';
 import { Link, useLocation } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
-import { ReceiptText } from 'lucide-react';
 import { useUIStore } from '../../stores/ui.store.js';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '../ui/sheet.js';
 import { RAIL_GROUPS } from './AppSidebar.js';
@@ -24,8 +23,8 @@ export function MobileNav(): JSX.Element {
         <Sheet open={open} onOpenChange={setOpen}>
             <SheetContent side="left" className="w-64 p-0">
                 <SheetHeader className="flex-row items-center gap-2 border-b px-4 py-3 space-y-0">
-                    <span className="flex size-8 items-center justify-center rounded-[10px] bg-primary text-primary-foreground [&>svg]:size-4"><ReceiptText /></span>
-                    <SheetTitle className="text-[15px]">notagrafo</SheetTitle>
+                    <img src="/notagrafo-logo.png" alt="notagrafo" className="h-7 w-auto" />
+                    <SheetTitle className="sr-only">notagrafo</SheetTitle>
                 </SheetHeader>
                 <nav className="flex flex-col gap-4 p-2">
                     {RAIL_GROUPS.map((g) => (

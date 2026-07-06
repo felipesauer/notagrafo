@@ -1,4 +1,6 @@
-# notagrafo
+<p align="center">
+  <img src="assets/notagrafo-logo.png" alt="notagrafo" width="360" />
+</p>
 
 Sistema open-source de processamento e análise de **Notas Fiscais Eletrônicas (NF-e)**.
 Recebe XMLs de NF-e, valida contra os XSDs oficiais da SEFAZ, processa via filas,

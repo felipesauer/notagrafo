@@ -3,7 +3,7 @@ import { Link, useLocation } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import {
     Activity, Building2, Download, FileText, Home, Landmark, type LucideIcon, Network, Package,
-    PanelLeftClose, PanelLeftOpen, ReceiptText, Settings, Waypoints,
+    PanelLeftClose, PanelLeftOpen, Settings, Waypoints,
 } from 'lucide-react';
 import { useUIStore } from '../../stores/ui.store.js';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip.js';
@@ -87,13 +87,15 @@ export function AppSidebar(): JSX.Element {
                 na divisa rail/conteúdo, verticalmente no topo, em ambos os estados. */}
             <ToggleBtn expanded={expanded} onClick={toggle} t={t} />
 
-            {/* Marca no topo */}
+            {/* Marca no topo: logo completo (arte + texto) quando expandido;
+                só a arte (mark) quando colapsado, onde o texto não caberia. */}
             <div className={`mb-2 flex h-9 items-center ${expanded ? '' : 'justify-center'}`}>
-                <Link to={'/' as string} aria-label="notagrafo" className="flex items-center gap-2 rounded-[10px]">
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-primary text-primary-foreground [&>svg]:size-[19px]">
-                        <ReceiptText />
-                    </span>
-                    {expanded && <span className="text-[15px] font-semibold tracking-tight">notagrafo</span>}
+                <Link to={'/' as string} aria-label="notagrafo" className="flex items-center rounded-[10px]">
+                    {expanded ? (
+                        <img src="/notagrafo-logo.png" alt="notagrafo" className="h-8 w-auto" />
+                    ) : (
+                        <img src="/notagrafo-mark.png" alt="notagrafo" className="size-8" />
+                    )}
                 </Link>
             </div>
 
