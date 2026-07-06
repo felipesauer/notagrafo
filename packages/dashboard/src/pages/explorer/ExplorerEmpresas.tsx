@@ -24,7 +24,9 @@ function EmpresaPeek({ cnpj, empresa, onClose, onOpenChange }: { cnpj: string | 
 
     return (
         <Sheet open={!!cnpj} onOpenChange={onOpenChange}>
-            <SheetContent side="right" className="flex w-[420px] max-w-[92vw] flex-col gap-0 p-0" data-testid="empresa-peek">
+            {/* showCloseButton=false: o header já tem um X próprio; sem isso o
+                Sheet injetaria um SEGUNDO X no canto. */}
+            <SheetContent side="right" showCloseButton={false} className="flex w-[420px] max-w-[92vw] flex-col gap-0 p-0" data-testid="empresa-peek">
                 {empresa && (
                     <>
                         <div className="flex items-center gap-2 border-b px-4 py-3">

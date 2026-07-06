@@ -63,7 +63,9 @@ export function NFPeek({
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent side="right" className="flex w-[440px] max-w-[92vw] flex-col gap-0 p-0" data-testid="nf-peek">
+            {/* showCloseButton=false: o header já tem um X próprio (ao lado das
+                setas ↑/↓); sem isso o Sheet injetaria um SEGUNDO X no canto. */}
+            <SheetContent side="right" showCloseButton={false} className="flex w-[440px] max-w-[92vw] flex-col gap-0 p-0" data-testid="nf-peek">
                 {nf && (
                     <>
                         <div className="flex items-center gap-2 border-b px-4 py-3">
