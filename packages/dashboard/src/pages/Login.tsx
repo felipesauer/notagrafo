@@ -1,7 +1,6 @@
 import { useState, type FormEvent, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearch } from '@tanstack/react-router';
-import { ReceiptText } from 'lucide-react';
 import { apiFetch, ApiError } from '../api/api.client.js';
 import { useAuthStore, type Usuario } from '../stores/auth.store.js';
 import { Button } from '../components/ui/button.js';
@@ -44,10 +43,8 @@ export function LoginPage(): JSX.Element {
         <main className="grid min-h-svh place-items-center bg-muted/30 p-4">
             <Card className="w-full max-w-sm">
                 <CardHeader className="items-center text-center">
-                    <div className="mx-auto mb-2 flex size-11 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                        <ReceiptText className="size-5" />
-                    </div>
-                    <CardTitle className="text-xl">notagrafo</CardTitle>
+                    <img src="/notagrafo-logo.png" alt="notagrafo" className="mx-auto mb-1 h-11 w-auto" />
+                    <CardTitle className="sr-only">notagrafo</CardTitle>
                     <CardDescription>{t('login.titulo')}</CardDescription>
                 </CardHeader>
                 <CardContent>

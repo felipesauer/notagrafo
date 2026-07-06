@@ -8,6 +8,7 @@ import { chartColor } from '../../components/charts/palette.js';
 import { Card, CardContent, CardHeader } from '../../components/ui/card.js';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '../../components/ui/chart.js';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table.js';
+import { useDensityStore, densityClass } from '../../stores/density.store.js';
 
 const brlK = (n: number): string => (n >= 1000 ? `R$ ${(n / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mil` : `R$ ${n.toFixed(2)}`);
 
@@ -26,6 +27,7 @@ const serieConfig = {
  */
 export function ExplorerImpostos(): JSX.Element {
     const { t } = useTranslation();
+    const density = useDensityStore((s) => s.density);
     const { data, isLoading, isError, refetch } = useTaxStats();
 
     if (isLoading) return <LoadingSkeleton variant="card" />;
@@ -95,8 +97,7 @@ export function ExplorerImpostos(): JSX.Element {
                 <CardHeader className="space-y-0"><h3 className="text-base font-semibold leading-none">{t('impostos.topNcm')}</h3></CardHeader>
                 <CardContent>
                     {topNcm.length === 0 ? <EmptyState /> : (
-                        <div className="overflow-x-auto">
-                            <Table>
+                            <Table data-testid="data-table" className={densityClass(density)}>
                                 <TableHeader><TableRow>
                                     <TableHead>{t('nf.ncm')}</TableHead>
                                     <TableHead className="text-right">{t('impostos.totalImposto')}</TableHead>
@@ -105,9 +106,11 @@ export function ExplorerImpostos(): JSX.Element {
                                 <TableBody>
                                     {topNcm.slice(0, 8).map((n) => (
                                         <TableRow key={n.ncm}>
-                                            <TableCell>
-                                                <Link className="font-mono text-[12px] text-primary hover:underline" to={'/explorar' as string} search={{ entity: 'notas', ncm: n.ncm } as never}>{n.ncm}</Link>
-                                                {n.descricao && <span className="ml-2 text-xs text-muted-foreground">{n.descricao}</span>}
+                                            <TableCell className="max-w-0">
+                                                <div className="flex items-baseline gap-2">
+                                                    <Link className="font-mono text-[12px] text-primary hover:underline shrink-0" to={'/explorar' as string} search={{ entity: 'notas', ncm: n.ncm } as never}>{n.ncm}</Link>
+                                                    {n.descricao && <span className="truncate text-xs text-muted-foreground" title={n.descricao}>{n.descricao}</span>}
+                                                </div>
                                             </TableCell>
                                             <TableCell className="text-right font-mono tabular-nums">{brlK(n.totalImposto)}</TableCell>
                                             <TableCell className="text-right font-mono tabular-nums text-muted-foreground">{n.totalNFs}</TableCell>
@@ -115,7 +118,6 @@ export function ExplorerImpostos(): JSX.Element {
                                     ))}
                                 </TableBody>
                             </Table>
-                        </div>
                     )}
                 </CardContent>
             </Card>
@@ -125,8 +127,7 @@ export function ExplorerImpostos(): JSX.Element {
                 <CardHeader className="space-y-0"><h3 className="text-base font-semibold leading-none">{t('impostos.topCfop')}</h3></CardHeader>
                 <CardContent>
                     {topCfop.length === 0 ? <EmptyState /> : (
-                        <div className="overflow-x-auto">
-                            <Table>
+                            <Table data-testid="data-table" className={densityClass(density)}>
                                 <TableHeader><TableRow>
                                     <TableHead>CFOP</TableHead>
                                     <TableHead className="text-right">ICMS</TableHead>
@@ -136,9 +137,11 @@ export function ExplorerImpostos(): JSX.Element {
                                 <TableBody>
                                     {topCfop.slice(0, 8).map((c) => (
                                         <TableRow key={c.cfop}>
-                                            <TableCell>
-                                                <span className="font-mono text-[12px]">{c.cfop}</span>
-                                                {c.descricao && <span className="ml-2 text-xs text-muted-foreground">{c.descricao}</span>}
+                                            <TableCell className="max-w-0">
+                                                <div className="flex items-baseline gap-2">
+                                                    <span className="font-mono text-[12px] shrink-0">{c.cfop}</span>
+                                                    {c.descricao && <span className="truncate text-xs text-muted-foreground" title={c.descricao}>{c.descricao}</span>}
+                                                </div>
                                             </TableCell>
                                             <TableCell className="text-right font-mono tabular-nums">{brlK(c.vICMS)}</TableCell>
                                             <TableCell className="text-right font-mono tabular-nums">{brlK(c.vIPI)}</TableCell>
@@ -147,7 +150,6 @@ export function ExplorerImpostos(): JSX.Element {
                                     ))}
                                 </TableBody>
                             </Table>
-                        </div>
                     )}
                 </CardContent>
             </Card>

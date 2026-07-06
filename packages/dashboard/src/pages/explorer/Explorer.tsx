@@ -127,9 +127,11 @@ export function ExplorerPage(): JSX.Element {
 
     return (
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-            {/* Tabs de entidade (substituem o rail): recortes e lentes. Mantidas como
-                <button> para os e2e (getByRole('button', {name})). */}
-            <div className="flex items-center gap-1 overflow-x-auto border-b px-3 py-2">
+            {/* Tabs de entidade — só no MOBILE (md:hidden): no desktop o rail
+                lateral já navega entre entidades e o header contextual abaixo
+                indica a ativa, então as tabs seriam redundantes. No mobile o rail
+                vira drawer (escondido), então as tabs dão a troca rápida visível. */}
+            <div className="flex items-center gap-1 overflow-x-auto border-b px-3 py-2 md:hidden">
                 {ENTITIES.map((e) => (
                     <button key={e.key} type="button" onClick={() => trocar(e.key)}
                         className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors ${entity === e.key ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>

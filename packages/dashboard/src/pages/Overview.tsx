@@ -1,6 +1,6 @@
 import { type JSX, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from '@tanstack/react-router';
+import { useNavigate } from '@tanstack/react-router';
 import {
     Bar,
     CartesianGrid,
@@ -12,12 +12,11 @@ import {
     XAxis,
     YAxis,
 } from 'recharts';
-import { Building2, Download, Eye, FileText, Package, Receipt, Waypoints } from 'lucide-react';
+import { Building2, FileText, Package, Receipt } from 'lucide-react';
 import { useOverview, useVolume, useTopCompanies, useByUf, useTaxStats } from '../api/hooks.js';
-import { downloadFile } from '../api/api.client.js';
 import { NFStatusBadge, CurrencyValue, DateDisplay, LoadingSkeleton, InlineError, EmptyState } from '../components/shared.js';
-import { Button } from '../components/ui/button.js';
-import { Tooltip, TooltipContent, TooltipTrigger } from '../components/ui/tooltip.js';
+import { NFRowActions } from '../components/NFRowActions.js';
+import { useDensityStore, densityClass } from '../stores/density.store.js';
 import { KpiCard } from '../components/KpiCard.js';
 import { FadeIn } from '../components/Motion.js';
 import { ChartCard } from '../components/charts/ChartCard.js';
@@ -123,6 +122,8 @@ function OverviewContent({
     taxTotals?: TaxTotals;
 }): JSX.Element {
     const { t } = useTranslation();
+    const navigate = useNavigate();
+    const density = useDensityStore((s) => s.density);
 
     const nfSpark = useMemo(() => volumeSeries.map((s) => s.totalNFs), [volumeSeries]);
     const valSpark = useMemo(() => volumeSeries.map((s) => s.valorTotal), [volumeSeries]);
@@ -220,18 +221,18 @@ function OverviewContent({
                         {taxPie.length === 0 ? (
                             <EmptyState mensagem={t('impostos.vazio')} />
                         ) : (
-                            <div className="flex items-center gap-4">
-                                <ChartContainer config={{}} className="h-[150px] w-[150px] shrink-0">
+                            <div className="flex items-center justify-between gap-6">
+                                <ChartContainer config={{}} className="aspect-square h-[168px] w-[168px] shrink-0">
                                     <PieChart>
-                                        <Pie data={taxPie} dataKey="valor" nameKey="key" innerRadius={45} outerRadius={70} strokeWidth={2} stroke="var(--background)">
+                                        <Pie data={taxPie} dataKey="valor" nameKey="key" innerRadius={50} outerRadius={82} strokeWidth={2} stroke="var(--background)">
                                             {taxPie.map((_, i) => <Cell key={i} fill={chartColor(i)} />)}
                                         </Pie>
                                         <ChartTooltip content={<ChartTooltipContent nameKey="key" hideLabel formatter={(v) => brl(Number(v))} />} />
                                     </PieChart>
                                 </ChartContainer>
-                                <ul className="flex-1 space-y-1.5">
+                                <ul className="flex flex-1 flex-col justify-center gap-2">
                                     {taxPie.map((d, i) => (
-                                        <li key={d.key} className="grid grid-cols-[10px_1fr_auto] items-center gap-2 text-xs">
+                                        <li key={d.key} className="grid grid-cols-[10px_1fr_auto] items-center gap-2.5 text-[13px]">
                                             <span className="size-2.5 rounded-[3px]" style={{ background: chartColor(i) }} />
                                             <span className="text-muted-foreground">{d.key}</span>
                                             <span className="font-medium tabular-nums">{brlCompact(d.valor)}</span>
@@ -310,8 +311,7 @@ function OverviewContent({
                         {o.ultimasProcessadas.length === 0 ? (
                             <EmptyState />
                         ) : (
-                            <div className="overflow-x-auto">
-                            <Table data-testid="data-table">
+                            <Table data-testid="data-table" className={densityClass(density)}>
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead className="w-16">{t('overview.numero')}</TableHead>
@@ -324,10 +324,12 @@ function OverviewContent({
                                 </TableHeader>
                                 <TableBody>
                                     {o.ultimasProcessadas.map((nf) => (
-                                        <TableRow key={nf.chaveAcesso}>
-                                            <TableCell>
-                                                <Link className="font-mono font-medium tabular-nums text-primary hover:underline" to={'/nf/$chave' as string} params={{ chave: nf.chaveAcesso } as never}>{nf.numero}</Link>
-                                            </TableCell>
+                                        <TableRow
+                                            key={nf.chaveAcesso}
+                                            className="cursor-pointer"
+                                            onClick={() => void navigate({ to: '/nf/$chave' as string, params: { chave: nf.chaveAcesso } as never })}
+                                        >
+                                            <TableCell className="font-mono font-medium tabular-nums text-primary">{nf.numero}</TableCell>
                                             <TableCell>
                                                 {nf.emitente
                                                     ? <span className="truncate">{nf.emitente.razaoSocial || '—'}{nf.emitente.uf ? <span className="ml-1 font-mono text-[11px] text-muted-foreground">· {nf.emitente.uf}</span> : null}</span>
@@ -336,12 +338,11 @@ function OverviewContent({
                                             <TableCell className="text-right font-mono tabular-nums"><CurrencyValue value={nf.valorTotal} /></TableCell>
                                             <TableCell>{nf.status ? <NFStatusBadge status={nf.status} /> : '—'}</TableCell>
                                             <TableCell className="font-mono text-muted-foreground tabular-nums"><DateDisplay value={nf.processadaEm} /></TableCell>
-                                            <TableCell><UltimaNFActions chave={nf.chaveAcesso} cnpjEmitente={nf.emitente?.cnpj} t={t} /></TableCell>
+                                            <TableCell><NFRowActions chave={nf.chaveAcesso} cnpjEmitente={nf.emitente?.cnpj} /></TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
                             </Table>
-                            </div>
                         )}
                     </CardContent>
                 </Card>
@@ -350,35 +351,3 @@ function OverviewContent({
     );
 }
 
-/** Ações inline das Últimas NFs (ver detalhe / baixar XML / abrir no grafo),
- *  no mesmo padrão da listagem do Explorer. O grafo só aparece com cnpj do emitente. */
-function UltimaNFActions({ chave, cnpjEmitente, t }: { chave: string; cnpjEmitente?: string; t: (k: string) => string }): JSX.Element {
-    return (
-        <div className="flex items-center justify-end gap-0.5">
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button asChild type="button" variant="ghost" size="icon-sm" aria-label={t('nf.verDetalhe')}>
-                        <Link to={'/nf/$chave' as string} params={{ chave } as never}><Eye /></Link>
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent>{t('nf.verDetalhe')}</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button type="button" variant="ghost" size="icon-sm" aria-label={t('nf.baixarXml')} onClick={() => void downloadFile(`/nf/${chave}/xml`, `${chave}.xml`)}><Download /></Button>
-                </TooltipTrigger>
-                <TooltipContent>{t('nf.baixarXml')}</TooltipContent>
-            </Tooltip>
-            {cnpjEmitente && (
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button asChild type="button" variant="ghost" size="icon-sm" aria-label={t('nf.abrirGrafo')}>
-                            <Link to={'/grafo' as string} search={{ cnpj: cnpjEmitente } as never}><Waypoints /></Link>
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>{t('nf.abrirGrafo')}</TooltipContent>
-                </Tooltip>
-            )}
-        </div>
-    );
-}
