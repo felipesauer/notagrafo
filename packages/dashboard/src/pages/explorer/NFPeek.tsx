@@ -17,7 +17,7 @@ function FlowNode({ icon, papel, nome, color }: { icon: JSX.Element; papel: stri
         <div className="flex items-center gap-2.5 rounded-lg border bg-card px-3 py-2">
             <span className="flex size-8 shrink-0 items-center justify-center rounded-md text-white [&>svg]:size-4" style={{ background: color }}>{icon}</span>
             <div className="min-w-0">
-                <p className="text-[10.5px] uppercase tracking-wide text-muted-foreground">{papel}</p>
+                <p className="text-2xs uppercase tracking-wide text-muted-foreground">{papel}</p>
                 <p className="truncate text-sm font-medium" title={nome}>{nome}</p>
             </div>
         </div>

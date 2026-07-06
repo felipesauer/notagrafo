@@ -102,7 +102,7 @@ function FluxoTab(): JSX.Element {
                     ) : query.isError ? (
                         <InlineError onRetry={() => void query.refetch()} />
                     ) : arestas.length === 0 ? (
-                        <EmptyState mensagem={t('rede.vazio')} />
+                        <EmptyState icon={GitCompareArrows} titulo={t('rede.vazioTitulo')} descricao={t('rede.vazioFluxoDescricao')} />
                     ) : (
                         <div className="h-[560px] w-full">
                             <FluxoSankey arestas={arestas} />
@@ -143,7 +143,7 @@ function RedeTab(): JSX.Element {
                     ) : query.isError ? (
                         <InlineError onRetry={() => void query.refetch()} />
                     ) : nos.length === 0 ? (
-                        <EmptyState mensagem={t('rede.vazio')} />
+                        <EmptyState icon={NetworkIcon} titulo={t('rede.vazioTitulo')} descricao={t('rede.vazioRedeDescricao')} />
                     ) : (
                         <div className="relative h-[560px] w-full overflow-hidden rounded-lg border bg-muted/20">
                             <Suspense fallback={<LoadingSkeleton variant="card" />}>

@@ -12,6 +12,7 @@ import { SortableHead } from '../components/SortableHead.js';
 import { useTableSort } from '../hooks/useTableSort.js';
 import { type TFunction } from 'i18next';
 import { PageHeader } from '../components/PageHeader.js';
+import { PageContainer } from '../components/layout/PageContainer.js';
 import { GraphDrawer } from '../graph/GraphDrawer.js';
 import { Button } from '../components/ui/button.js';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card.js';
@@ -126,7 +127,7 @@ export function NFDetailPage(): JSX.Element {
     }
 
     return (
-        <div>
+        <PageContainer width="wide">
             <PageHeader
                 title={`${t('nf.detalheTitulo')} ${nf.numero ?? ''}`}
                 actions={
@@ -189,7 +190,7 @@ export function NFDetailPage(): JSX.Element {
             {nf.emitente?.cnpj && (
                 <GraphDrawer cnpj={nf.emitente.cnpj} open={grafoAberto} onOpenChange={setGrafoAberto} dark={tema === 'escuro'} />
             )}
-        </div>
+        </PageContainer>
     );
 }
 

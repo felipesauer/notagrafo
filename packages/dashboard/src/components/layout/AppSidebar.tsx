@@ -103,7 +103,7 @@ export function AppSidebar(): JSX.Element {
                 {RAIL_GROUPS.map((g) => (
                     <div key={g.labelKey} className="flex flex-col gap-0.5">
                         {expanded ? (
-                            <p className="px-2.5 pb-1 pt-1 text-[10.5px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
+                            <p className="px-2.5 pb-1 pt-1 text-3xs font-semibold uppercase tracking-wider text-sidebar-foreground/40">
                                 {t(g.labelKey)}
                             </p>
                         ) : (
