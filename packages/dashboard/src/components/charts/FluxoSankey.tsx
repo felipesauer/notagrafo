@@ -58,7 +58,10 @@ export function FluxoSankey({ arestas }: { arestas: FluxoAresta[] }): JSX.Elemen
             data: { nodes: [...nodes.values()], links },
             theme: {
                 text: { fill: cores.foreground, fontSize: 12, fontFamily: 'inherit' },
-                tooltip: { container: { background: cores.card, color: cores.foreground, fontSize: 12, borderRadius: 8, border: `1px solid ${cores.border}` } },
+                // whiteSpace:nowrap — sem isso o container do tooltip do Nivo fica
+                // estreito e quebra o texto palavra a palavra (razão social + → +
+                // razão social ficavam empilhadas verticalmente).
+                tooltip: { container: { background: cores.card, color: cores.foreground, fontSize: 12, borderRadius: 8, border: `1px solid ${cores.border}`, whiteSpace: 'nowrap' } },
             },
         };
     }, [arestas, tema]);
@@ -89,13 +92,13 @@ export function FluxoSankey({ arestas }: { arestas: FluxoAresta[] }): JSX.Elemen
                 return isMobile && s.length > 12 ? `${s.slice(0, 11)}…` : s;
             }}
             nodeTooltip={({ node }: { node: { label?: string; id: string; value: number } }) => (
-                <div style={{ padding: '6px 10px', fontSize: 12 }}>
+                <div style={{ padding: '6px 10px', fontSize: 12, whiteSpace: 'nowrap' }}>
                     <strong>{node.label ?? node.id}</strong>
                     <div style={{ opacity: 0.7 }}>{brlCompact(node.value)}</div>
                 </div>
             )}
             linkTooltip={({ link }: { link: { source: { label?: string }; target: { label?: string }; value: number; nfs?: number } }) => (
-                <div style={{ padding: '6px 10px', fontSize: 12 }}>
+                <div style={{ padding: '6px 10px', fontSize: 12, whiteSpace: 'nowrap' }}>
                     <strong>{link.source.label}</strong> → <strong>{link.target.label}</strong>
                     <div style={{ opacity: 0.7 }}>{brlCompact(link.value)}{link.nfs !== undefined ? ` · ${link.nfs} NF-e` : ''}</div>
                 </div>

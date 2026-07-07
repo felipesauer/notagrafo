@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-152
-  state: IN_PROGRESS
+  state: DONE
   title: 'Enquadramento: max-width por tipo de tela + padding centralizado no shell'
   description: >-
     Hoje o conteúdo esparrama em telas largas (sem max-width) e o padding está
@@ -28,6 +28,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-06T21:47:23.569Z'
+  updated_at: '2026-07-07T00:13:50.130Z'
 ---
 # Enquadramento: max-width por tipo de tela + padding centralizado no shell
