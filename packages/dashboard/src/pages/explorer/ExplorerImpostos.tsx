@@ -5,6 +5,7 @@ import { Link } from '@tanstack/react-router';
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { useTaxStats, type TaxStats } from '../../api/hooks.js';
 import { LoadingSkeleton, InlineError, EmptyState } from '../../components/shared.js';
+import { Sparkline } from '../../components/charts/Sparkline.js';
 import { chartColor } from '../../components/charts/palette.js';
 import { Card, CardContent, CardHeader } from '../../components/ui/card.js';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '../../components/ui/chart.js';
@@ -65,6 +66,23 @@ export function ExplorerImpostos(): JSX.Element {
     const transicao = data?.transicao;
     const pctReforma = transicao && transicao.total > 0 ? Math.round((transicao.comReforma / transicao.total) * 100) : 0;
 
+    // KPI por tributo (NOTA-100): um card por tributo com valor + sparkline da sua
+    // série mensal e cor própria. Só os que têm total > 0; os da Reforma entram
+    // automaticamente quando houver valor. As chaves batem com totais e serie[].
+    const kpiKeys = Object.keys(serieConfig) as Array<keyof typeof serieConfig>;
+    const kpis = kpiKeys
+        .map((k) => ({
+            key: k,
+            label: serieConfig[k].label,
+            color: serieConfig[k].color,
+            total: totais[k] ?? 0,
+            spark: serie.map((p) => (p[k] as number) ?? 0),
+        }))
+        .filter((k) => k.total > 0);
+    // Séries com algum valor no período — a área empilhada plota só estas
+    // (assim IBS/CBS/IS aparecem quando presentes, sem poluir quando ausentes).
+    const serieKeys = kpiKeys.filter((k) => serie.some((p) => ((p[k] as number) ?? 0) > 0));
+
     return (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
             {/* Transição da Reforma Tributária: % de NF-e já com IBS/CBS (EPIC-25).
@@ -87,6 +105,24 @@ export function ExplorerImpostos(): JSX.Element {
                     </CardContent>
                 </Card>
             )}
+            {/* KPI por tributo: valor + sparkline da série mensal, cor por tributo (NOTA-100) */}
+            {kpis.length > 0 && (
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:col-span-12 xl:grid-cols-6">
+                    {kpis.map((k) => (
+                        <Card key={k.key} data-testid="kpi-tributo" className="gap-1 p-3">
+                            <div className="flex items-center gap-1.5">
+                                <span className="size-2 shrink-0 rounded-[3px]" style={{ background: k.color }} />
+                                <span className="text-2xs font-semibold uppercase tracking-wide text-muted-foreground">{k.label}</span>
+                            </div>
+                            <span className="font-mono text-base font-semibold tabular-nums">{brlK(k.total)}</span>
+                            <div className="mt-0.5 h-8">
+                                <Sparkline data={k.spark} color={k.color} height={32} />
+                            </div>
+                        </Card>
+                    ))}
+                </div>
+            )}
+
             {/* Carga por tributo (barras) */}
             <Card data-testid="chart" className="gap-4 lg:col-span-5">
                 <CardHeader className="flex flex-row items-baseline justify-between space-y-0">
@@ -117,7 +153,7 @@ export function ExplorerImpostos(): JSX.Element {
                                 <XAxis dataKey="periodo" tickLine={false} axisLine={false} fontSize={11} minTickGap={28} />
                                 <YAxis tickLine={false} axisLine={false} fontSize={11} width={40} tickFormatter={(v: number) => (v >= 1000 ? `${Math.round(v / 1000)}k` : String(v))} />
                                 <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
-                                {(['vICMS', 'vCOFINS', 'vIPI', 'vPIS'] as const).map((k) => (
+                                {serieKeys.map((k) => (
                                     <Area key={k} dataKey={k} type="monotone" stackId="1" stroke={`var(--color-${k})`} fill={`var(--color-${k})`} fillOpacity={0.25} strokeWidth={2} />
                                 ))}
                             </AreaChart>

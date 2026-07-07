@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-191
-  state: IN_REVIEW
+  state: DONE
   title: Evolução temporal da rede (filtrar por período)
   description: >-
     RedeGraph filtra relações por janela de tempo (dataEmissao). getRedeGlobal
@@ -24,6 +24,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-07T20:07:37.044Z'
+  updated_at: '2026-07-07T20:21:25.021Z'
 ---
 # Evolução temporal da rede (filtrar por período)
