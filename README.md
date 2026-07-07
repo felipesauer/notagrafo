@@ -4,7 +4,7 @@
 
 <p>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg" /></a>
-  <img alt="Node.js >=20" src="https://img.shields.io/badge/node-%3E%3D20-339933?logo=node.js&logoColor=white" />
+  <img alt="Node.js 20+" src="https://img.shields.io/badge/Node.js-20+-339933?logo=nodedotjs&logoColor=white" />
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" />
   <img alt="React" src="https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB" />
   <img alt="Fastify" src="https://img.shields.io/badge/Fastify-000000?logo=fastify&logoColor=white" />
@@ -33,8 +33,41 @@ emitentes e destinatários.
 
 ---
 
+## O que o notagrafo faz
+
+Você joga um XML de NF-e (ou um lote em ZIP) e o notagrafo cuida do resto: valida
+contra o XSD oficial da SEFAZ, processa em fila, modela tudo como um **grafo de
+relacionamentos** e abre um **dashboard de BI** para explorar os dados.
+
+### Ingestão e processamento
+- **Upload de NF-e** (XML avulso ou ZIP em lote) com validação contra o **XSD oficial v4.00**.
+- **Processamento assíncrono** via filas (BullMQ/Redis) com retry e DLQ — o upload responde na hora e o processamento acontece em background.
+- **Storage do XML original** configurável (`local` / `S3` / `MinIO`).
+- **Deduplicação** por chave de acesso — reenviar a mesma nota não duplica dados.
+
+### Modelo em grafo (Neo4j)
+- Modela `Empresa`, `NotaFiscal`, `Produto`, `NCM`, `CFOP` como **nós**, ligados por `EMITIU`, `DESTINADA_A`, `CONTÉM` (com tributos por item), `CLASSIFICADO_EM`, `USA_CFOP` e `DEVOLVE`.
+- Permite responder perguntas que uma tabela não responde: *quem são os parceiros comerciais desta empresa? que caminho liga emitente e destinatário? quais produtos circulam entre elas?*
+
+### Dashboard (React + Vite)
+- **Visão geral** de BI: KPIs, volume/valor por período, composição tributária, top fornecedores e distribuição por UF.
+- **Explorador** unificado de NF-e, Empresas, Produtos e Impostos — com busca, filtros avançados, ordenação, paginação e *peek* lateral (prévia sem sair da lista).
+- **Grafo de relações** interativo (WebGL): busca por CNPJ, profundidade ajustável, destaque de caminho entre duas empresas, inclusão de produtos/notas.
+- **Rede** (fluxo de valor em Sankey + rede comercial completa) e **linha do tempo de eventos**.
+- **Exportação** assíncrona (CSV / XLSX / JSON) com **~19 campos selecionáveis** agrupados.
+- **Conta e perfil**: cadastro, login (JWT) e edição de nome/e-mail/senha.
+- Bilíngue (**pt-BR / en**), tema claro/escuro e densidade de tabela ajustável.
+
+### Plataforma
+- **API REST** documentada (OpenAPI/Swagger em `/docs`), com rate limit e observabilidade (métricas Prometheus + OpenTelemetry).
+- **LGPD**: pseudonimização opcional de CPF de MEI nos logs e na UI.
+- **Monorepo** testado ponta a ponta: unitários (Vitest), integração (Testcontainers com Neo4j/Redis/MinIO reais) e e2e (Playwright).
+
+---
+
 ## Sumário
 
+- [O que o notagrafo faz](#o-que-o-notagrafo-faz)
 - [Stack](#stack)
 - [Quickstart (5 minutos)](#quickstart-5-minutos)
 - [Portas e serviços](#portas-e-serviços)
@@ -215,8 +248,8 @@ para `.env` e ajuste. As principais:
 | `LGPD_MASK_CPF` / `VITE_LGPD_MASK_CPF` | `false` / `false` | `true` → pseudonimiza CPFs de MEI (11 díg. no campo `cnpj`) nos logs da API (Pino) e, com a flag `VITE_`, na UI do dashboard. CNPJs passam intactos |
 | `OTEL_EXPORTER` / `OTEL_ENDPOINT` | `none` / — | `console` \| `otlp` \| `none` |
 
-> SMTP / magic-link estão **fora do MVP** (ver `.env.example`). Em dev, o Mailpit
-> captura os e-mails.
+> SMTP / magic-link ainda **não estão habilitados** (planejados no roadmap; ver
+> `.env.example`). Em desenvolvimento, o Mailpit captura os e-mails localmente.
 
 ---
 
@@ -275,8 +308,8 @@ arquivo (CSV / JSON / XLSX) em background e o disponibiliza via
 
 Os **metadados** do job são persistidos no Redis quando disponível, então
 **sobrevivem a um restart da API**. O **arquivo** gerado fica em disco local do nó
-(por instância) — adequado ao MVP single-node; multi-réplica exigiria um storage de
-arquivos compartilhado.
+(por instância) — adequado a uma implantação single-node; um cenário multi-réplica
+usaria um storage de arquivos compartilhado (S3/MinIO), já suportado para os XMLs.
 
 ---
 
