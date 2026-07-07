@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-EPIC-22
   kind: epic
-  state: OPEN
+  state: CLOSED
   title: >-
     Fundamentos de UX (inspiração upcv-pro): enquadramento, Insights contextual,
     ritmo visual, PageHeader, EmptyState
@@ -23,6 +23,6 @@ mnema:
     copiar troca de tema, só estrutura.
   metadata: {}
   created_at: '2026-07-06T21:42:56.637Z'
-  closed_at: null
+  closed_at: '2026-07-07T00:24:44.184Z'
 ---
 # Fundamentos de UX (inspiração upcv-pro): enquadramento, Insights contextual, ritmo visual, PageHeader, EmptyState

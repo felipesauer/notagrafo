@@ -20,10 +20,10 @@ mnema:
   priority: 2
   assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
-  epic_key: null
+  epic_key: NOTA-EPIC-22
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-07T00:13:52.784Z'
+  updated_at: '2026-07-07T00:24:29.621Z'
 ---
 # Insights só na Home (Visão Geral); demais telas ocupam largura total
