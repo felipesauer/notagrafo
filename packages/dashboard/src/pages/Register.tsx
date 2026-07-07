@@ -1,6 +1,6 @@
 import { useState, type FormEvent, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useSearch, Link } from '@tanstack/react-router';
+import { useNavigate, Link } from '@tanstack/react-router';
 import { apiFetch, ApiError } from '../api/api.client.js';
 import { useAuthStore, type Usuario } from '../stores/auth.store.js';
 import { Button } from '../components/ui/button.js';
@@ -8,32 +8,49 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Input } from '../components/ui/input.js';
 import { Label } from '../components/ui/label.js';
 
-interface LoginResponse {
+interface RegisterResponse {
     token: string;
     user: Usuario;
 }
 
-/** Página de login: e-mail + senha, erro inline, redirect para a rota de origem. */
-export function LoginPage(): JSX.Element {
+/**
+ * Página de cadastro: cria a conta própria (POST /auth/register) e já autentica
+ * (guarda o token no auth.store), saindo do usuário demo. Espelha o visual do
+ * Login. Confirmação de senha é validada no cliente antes de enviar.
+ */
+export function RegisterPage(): JSX.Element {
     const { t } = useTranslation();
     const navigate = useNavigate();
-    const search = useSearch({ strict: false }) as { redirect?: string };
     const setSession = useAuthStore((s) => s.setSession);
+    const [nome, setNome] = useState('');
     const [email, setEmail] = useState('');
     const [senha, setSenha] = useState('');
+    const [confirmar, setConfirmar] = useState('');
     const [erro, setErro] = useState<string | null>(null);
     const [carregando, setCarregando] = useState(false);
 
     async function onSubmit(e: FormEvent): Promise<void> {
         e.preventDefault();
         setErro(null);
+        if (senha !== confirmar) {
+            setErro(t('cadastro.senhasDiferentes'));
+            return;
+        }
         setCarregando(true);
         try {
-            const res = await apiFetch<LoginResponse>('/auth/login', { method: 'POST', body: { email, password: senha }, skipAuthRefresh: true });
+            const res = await apiFetch<RegisterResponse>('/auth/register', {
+                method: 'POST',
+                body: { nome, email, password: senha },
+                skipAuthRefresh: true,
+            });
             setSession(res.token, res.user);
-            void navigate({ to: search.redirect ?? '/' });
+            void navigate({ to: '/' });
         } catch (err) {
-            setErro(err instanceof ApiError && err.status === 401 ? t('login.erroCredenciais') : t('comum.erro'));
+            setErro(
+                err instanceof ApiError && err.status === 409
+                    ? t('cadastro.emailEmUso')
+                    : t('comum.erro'),
+            );
         } finally {
             setCarregando(false);
         }
@@ -45,17 +62,25 @@ export function LoginPage(): JSX.Element {
                 <CardHeader className="items-center text-center">
                     <img src="/notagrafo-logo.png" alt="notagrafo" className="mx-auto mb-1 h-11 w-auto" />
                     <CardTitle className="sr-only">notagrafo</CardTitle>
-                    <CardDescription>{t('login.titulo')}</CardDescription>
+                    <CardDescription>{t('cadastro.titulo')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={onSubmit} className="grid gap-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="nome">{t('cadastro.nome')}</Label>
+                            <Input id="nome" value={nome} onChange={(e) => setNome(e.target.value)} required autoComplete="name" />
+                        </div>
                         <div className="grid gap-2">
                             <Label htmlFor="email">{t('login.email')}</Label>
                             <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="senha">{t('login.senha')}</Label>
-                            <Input id="senha" type="password" value={senha} onChange={(e) => setSenha(e.target.value)} required autoComplete="current-password" />
+                            <Input id="senha" type="password" value={senha} onChange={(e) => setSenha(e.target.value)} required minLength={6} autoComplete="new-password" />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="confirmar">{t('cadastro.confirmarSenha')}</Label>
+                            <Input id="confirmar" type="password" value={confirmar} onChange={(e) => setConfirmar(e.target.value)} required minLength={6} autoComplete="new-password" />
                         </div>
                         {erro && (
                             <p role="alert" className="text-sm text-destructive">
@@ -63,12 +88,12 @@ export function LoginPage(): JSX.Element {
                             </p>
                         )}
                         <Button type="submit" disabled={carregando} className="w-full">
-                            {carregando ? t('comum.carregando') : t('login.entrar')}
+                            {carregando ? t('comum.carregando') : t('cadastro.criar')}
                         </Button>
                         <p className="text-center text-sm text-muted-foreground">
-                            {t('cadastro.semConta')}{' '}
-                            <Link to={'/cadastro' as string} className="font-medium text-primary hover:underline">
-                                {t('cadastro.criar')}
+                            {t('cadastro.jaTenhoConta')}{' '}
+                            <Link to={'/login' as string} className="font-medium text-primary hover:underline">
+                                {t('login.entrar')}
                             </Link>
                         </p>
                     </form>

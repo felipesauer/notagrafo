@@ -15,6 +15,7 @@ const NFDetailPage = lazyRouteComponent(() => import('./pages/NFDetail.js'), 'NF
 const GraphPage = lazyRouteComponent(() => import('./pages/Graph.js'), 'GraphPage');
 const ExportsPage = lazyRouteComponent(() => import('./pages/Exports.js'), 'ExportsPage');
 const SettingsPage = lazyRouteComponent(() => import('./pages/Settings.js'), 'SettingsPage');
+const RegisterPage = lazyRouteComponent(() => import('./pages/Register.js'), 'RegisterPage');
 
 const rootRoute = createRootRoute({ component: Outlet });
 
@@ -25,6 +26,13 @@ const loginRoute = createRoute({
         redirect: typeof search.redirect === 'string' ? search.redirect : undefined,
     }),
     component: LoginPage,
+});
+
+// Cadastro: rota PÚBLICA (irmã do login, fora do guard) — criar conta própria.
+const cadastroRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/cadastro',
+    component: RegisterPage,
 });
 
 /**
@@ -116,6 +124,7 @@ const configuracoesRoute = childRoute('/configuracoes', SettingsPage);
 
 const routeTree = rootRoute.addChildren([
     loginRoute,
+    cadastroRoute,
     protectedLayout.addChildren([
         homeRoute,
         explorarRoute,
