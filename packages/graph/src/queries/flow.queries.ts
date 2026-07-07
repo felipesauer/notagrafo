@@ -121,15 +121,22 @@ export async function getRedeGlobal(
         const cnpjs = [...new Set(arestas.flatMap((a) => [a.de, a.para]))];
         let nos: RedeNo[] = [];
         if (cnpjs.length > 0) {
+            // O tamanho do nó (emitidas + recebidas) respeita o mesmo recorte
+            // temporal das arestas e exclui NFs stub (status IS NULL) — senão um
+            // nó pareceria "grande" no período por atividade de fora dele.
+            const nfPred = (v: string) =>
+                `${v}.status IS NOT NULL` +
+                (opts.dataInicio ? ` AND ${v}.dataEmissao >= $dataInicio` : '') +
+                (opts.dataFim ? ` AND ${v}.dataEmissao <= $dataFim` : '');
             const nosRes = await session.run(
                 `MATCH (e:Empresa) WHERE e.cnpj IN $cnpjs
-                 OPTIONAL MATCH (e)-[:EMITIU]->(nfE:NotaFiscal)
+                 OPTIONAL MATCH (e)-[:EMITIU]->(nfE:NotaFiscal) WHERE ${nfPred('nfE')}
                  WITH e, count(nfE) AS emitidas
-                 OPTIONAL MATCH (e)<-[:DESTINADA_A]-(nfR:NotaFiscal)
+                 OPTIONAL MATCH (e)<-[:DESTINADA_A]-(nfR:NotaFiscal) WHERE ${nfPred('nfR')}
                  WITH e, emitidas, count(nfR) AS recebidas
                  RETURN e.cnpj AS cnpj, e.razaoSocial AS razaoSocial, e.uf AS uf,
                         (emitidas + recebidas) AS totalNFs`,
-                { cnpjs },
+                { cnpjs, ...params },
             );
             nos = nosRes.records.map((r) => ({
                 cnpj: r.get('cnpj') as string,
