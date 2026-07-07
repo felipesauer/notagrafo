@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-100
-  state: READY
+  state: DONE
   title: 'Impostos: KPIs por tributo com sparkline + composição'
   description: >-
     Faixa de KPI cards por tributo (só os com valor > 0), cada um com total +
@@ -19,12 +19,12 @@ mnema:
     - tipo:polish
   estimate: 3
   priority: 3
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
   epic_key: NOTA-EPIC-14
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-07T20:33:14.384Z'
+  updated_at: '2026-07-07T20:46:30.986Z'
 ---
 # Impostos: KPIs por tributo com sparkline + composição (donut/stacked)
