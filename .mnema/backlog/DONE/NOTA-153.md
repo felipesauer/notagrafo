@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-153
-  state: READY
+  state: DONE
   title: Insights só na Home (Visão Geral); demais telas ocupam largura total
   description: >-
     O InsightsPanel renderiza em TODAS as rotas hoje (ruído em
@@ -18,12 +18,12 @@ mnema:
     - ux
   estimate: 2
   priority: 2
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
   epic_key: null
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-06T22:03:38.503Z'
+  updated_at: '2026-07-07T00:13:52.784Z'
 ---
 # Insights só na Home (Visão Geral); demais telas ocupam largura total
