@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-180
-  state: IN_REVIEW
+  state: DONE
   title: Detecção de NF-e duplicadas/suspeitas
   description: >-
     findDuplicateInvoices: mesmo emitente+data+valor, 2+ NF (heurística de
@@ -24,6 +24,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-07T17:57:01.407Z'
+  updated_at: '2026-07-07T18:33:08.699Z'
 ---
 # Detecção de NF-e duplicadas/suspeitas

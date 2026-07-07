@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-182
-  state: IN_PROGRESS
+  state: DONE
   title: Tela/aba de Anomalias no dashboard
   description: >-
     Nova entidade 'anomalias' no Explorer (grupo análise) consolidando
@@ -25,6 +25,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-07T17:56:52.770Z'
+  updated_at: '2026-07-07T18:33:13.392Z'
 ---
 # Tela/aba de Anomalias no dashboard (agrega duplicatas + gaps)

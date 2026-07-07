@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-181
-  state: IN_REVIEW
+  state: DONE
   title: Gaps de numeração de NF-e (sequência com buracos)
   description: >-
     findNumberingGaps: por emitente+série, detecta saltos na sequência de nNF
@@ -24,6 +24,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-07T17:57:02.441Z'
+  updated_at: '2026-07-07T18:33:11.615Z'
 ---
 # Gaps de numeração de NF-e (sequência com buracos)

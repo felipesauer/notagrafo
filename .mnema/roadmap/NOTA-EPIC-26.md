@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-EPIC-26
   kind: epic
-  state: OPEN
+  state: CLOSED
   title: Análises comparativas e detecção de anomalias (BI fiscal)
   description: >-
     Direção de produto: ferramenta de ANÁLISE fiscal (não SaaS/multi-tenant).
@@ -20,6 +20,6 @@ mnema:
     sinaliza.
   metadata: {}
   created_at: '2026-07-07T16:31:44.839Z'
-  closed_at: null
+  closed_at: '2026-07-07T18:33:18.830Z'
 ---
 # Análises comparativas e detecção de anomalias (BI fiscal)

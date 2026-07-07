@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-178
-  state: IN_REVIEW
+  state: DONE
   title: Comparação de períodos (mês vs anterior / YoY) nos KPIs
   description: >-
     getPeriodComparison no graph (atual/previous/yearAgo + variações) +
@@ -21,10 +21,10 @@ mnema:
   priority: 2
   assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
-  epic_key: null
+  epic_key: NOTA-EPIC-26
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-07T17:56:59.413Z'
+  updated_at: '2026-07-07T18:33:51.795Z'
 ---
 # Comparação de períodos (mês vs anterior / YoY) nos KPIs e séries

@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-179
-  state: IN_REVIEW
+  state: DONE
   title: 'Drill-down temporal: clicar no gráfico de volume abre as NF do período'
   description: >-
     onClick no ComposedChart de volume → navega para /explore?entity=notas com
@@ -23,6 +23,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-07T17:57:00.421Z'
+  updated_at: '2026-07-07T18:33:04.362Z'
 ---
 # Drill-down temporal: clicar no gráfico de volume abre as NF do período
