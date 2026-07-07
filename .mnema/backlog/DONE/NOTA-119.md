@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-119
-  state: IN_REVIEW
+  state: DONE
   title: >-
     Fase 1 — Shell & navegação: AppShell novo, rotas / e /explorar, Insights
     panel
@@ -35,6 +35,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-04T06:46:14.931Z'
+  updated_at: '2026-07-07T20:56:49.986Z'
 ---
 # Fase 1 — Shell & navegação: AppShell novo, rotas / e /explorar, Insights panel

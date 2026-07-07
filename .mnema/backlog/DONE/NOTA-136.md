@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-136
-  state: IN_REVIEW
+  state: DONE
   title: 'UX: densidade das tabelas com efeito visível'
   description: >-
     Regras d-compact/d-relaxed venciam o utilitário p-2 e a altura h-10;
@@ -19,6 +19,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-06T16:47:07.911Z'
+  updated_at: '2026-07-07T20:58:06.963Z'
 ---
 # UX: densidade das tabelas sem efeito percebido

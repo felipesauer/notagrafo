@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-134
-  state: IN_REVIEW
+  state: DONE
   title: 'UX: retirar timeline de Eventos do detalhe da NF'
   description: >-
     Remove EventosTimeline do NFDetail (ADR-15); auditoria fica na lente
@@ -21,6 +21,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-06T16:47:05.970Z'
+  updated_at: '2026-07-07T20:57:31.067Z'
 ---
 # UX: retirar timeline de Eventos da tela de detalhe da NF

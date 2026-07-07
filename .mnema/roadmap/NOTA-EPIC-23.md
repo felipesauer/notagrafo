@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-EPIC-23
   kind: epic
-  state: OPEN
+  state: CLOSED
   title: >-
     Perfil e conta: cadastro (register) + edição de nome/email/senha (sair do
     modo demo)
@@ -21,6 +21,6 @@ mnema:
     i18n pt-BR/en. Testes de rota + repo.
   metadata: {}
   created_at: '2026-07-07T14:07:46.412Z'
-  closed_at: null
+  closed_at: '2026-07-07T20:58:21.401Z'
 ---
 # Perfil e conta: cadastro (register) + edição de nome/email/senha (sair do modo demo)

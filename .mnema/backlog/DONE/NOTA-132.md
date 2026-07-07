@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-132
-  state: IN_REVIEW
+  state: DONE
   title: 'UX: Home ''Últimas NFs'' com colunas/ações do padrão'
   description: >-
     Enriquece endpoint /stats/overview (emitente+status) e a tabela com ações
@@ -19,6 +19,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-06T16:47:03.911Z'
+  updated_at: '2026-07-07T20:57:26.559Z'
 ---
 # UX: Home 'Últimas NFs processadas' sem colunas/ações do padrão da listagem

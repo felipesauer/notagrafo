@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-120
-  state: IN_REVIEW
+  state: DONE
   title: >-
     Fase 2 — Home/Overview: bento + KPIs + Insights panel (dados reais) + Bar
     List
@@ -38,6 +38,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-04T15:34:43.692Z'
+  updated_at: '2026-07-07T20:56:53.316Z'
 ---
 # Fase 2 — Home/Overview: bento + KPIs + Insights panel (dados reais) + Bar List

@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-118
-  state: IN_REVIEW
+  state: DONE
   title: 'Fase 0 — Design system: tokens oklch da paleta BI vibrante'
   description: >-
     Reescrever packages/dashboard/src/styles/globals.css para a nova linguagem
@@ -36,6 +36,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-04T06:27:54.833Z'
+  updated_at: '2026-07-07T20:56:48.064Z'
 ---
 # Fase 0 — Design system: tokens oklch da paleta BI vibrante

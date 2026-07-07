@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-123
-  state: IN_REVIEW
+  state: DONE
   title: 'Fase 5 — Telas secundárias: NFDetail, Exportações, Configurações'
   description: >-
     Refinar as telas secundárias com a linguagem BI. NFDetail: cabeçalho com
@@ -30,6 +30,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-04T16:23:34.611Z'
+  updated_at: '2026-07-07T20:56:59.268Z'
 ---
 # Fase 5 — Telas secundárias: NFDetail, Exportações (wizard), Configurações

@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-128
-  state: IN_REVIEW
+  state: DONE
   title: 'BUG: botão de grafo no peek da NF-e é morto'
   description: Botão sem ação → Link para /grafo?cnpj do emitente.
   acceptance_criteria:
@@ -17,6 +17,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-06T16:46:59.911Z'
+  updated_at: '2026-07-07T20:57:15.113Z'
 ---
 # BUG: botão de grafo no peek da NF-e é morto (sem onClick/Link)

@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-130
-  state: IN_REVIEW
+  state: DONE
   title: 'BUG: Sankey (Fluxo de valor) ilegível no dark'
   description: >-
     Causa: linkBlendMode multiply default do Nivo (preto sobre fundo escuro).
@@ -21,6 +21,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-06T16:47:01.910Z'
+  updated_at: '2026-07-07T20:57:19.375Z'
 ---
 # BUG: Sankey (Fluxo de valor) ilegível no dark — faixas quase invisíveis

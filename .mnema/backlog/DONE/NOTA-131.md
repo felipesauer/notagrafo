@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-131
-  state: IN_REVIEW
+  state: DONE
   title: 'UX: reorganizar navegação — Explorar como hub de Análise'
   description: >-
     Rail agrupado (ADR-14): Análise=entidades do Explorer; Grafo→Geral;
@@ -22,6 +22,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-06T16:47:02.913Z'
+  updated_at: '2026-07-07T20:57:22.657Z'
 ---
 # UX: reorganizar navegação — Explorar como hub de Análise, Grafo→Geral, Eventos→Sistema

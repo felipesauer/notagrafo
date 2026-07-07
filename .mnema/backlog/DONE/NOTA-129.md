@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-129
-  state: IN_REVIEW
+  state: DONE
   title: 'BUG: card Sistema (health) não carrega no dev'
   description: 'fetch(''/health'') sem proxy no Vite. Fix: proxy /health + tolera 503.'
   acceptance_criteria:
@@ -18,6 +18,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-06T16:47:00.914Z'
+  updated_at: '2026-07-07T20:57:17.044Z'
 ---
 # BUG: card Sistema (health) não carrega no dev — proxy /health ausente no Vite

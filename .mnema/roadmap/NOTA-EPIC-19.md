@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-EPIC-19
   kind: epic
-  state: OPEN
+  state: CLOSED
   title: Auditoria UX/UI rodada 2 — bugs, reorganização de navegação e fricção
   description: >-
     Segunda auditoria crítica do dashboard (pós-redesign BI, base b6e1b5c), a
@@ -17,6 +17,6 @@ mnema:
     de investigação. Camada lógica mantida.
   metadata: {}
   created_at: '2026-07-06T16:16:48.410Z'
-  closed_at: null
+  closed_at: '2026-07-07T20:58:18.374Z'
 ---
 # Auditoria UX/UI rodada 2 — bugs, reorganização de navegação e fricção

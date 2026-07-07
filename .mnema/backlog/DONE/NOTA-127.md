@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-127
-  state: IN_REVIEW
+  state: DONE
   title: >-
     BUG: export não preenche cnpjEmitente/cnpjDestinatario + XLSX é CSV
     disfarçado
@@ -24,6 +24,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-06T16:46:58.912Z'
+  updated_at: '2026-07-07T20:57:12.954Z'
 ---
 # BUG: export não preenche cnpjEmitente/cnpjDestinatario (colunas vazias) + XLSX é CSV disfarçado

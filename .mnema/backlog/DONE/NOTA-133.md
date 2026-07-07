@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-133
-  state: IN_REVIEW
+  state: DONE
   title: 'UX: tabela de Itens da NF no padrão das tabelas'
   description: Aplica densityClass à tabela de itens do detalhe.
   acceptance_criteria:
@@ -17,6 +17,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-06T16:47:04.911Z'
+  updated_at: '2026-07-07T20:57:28.989Z'
 ---
 # UX: tabela de Itens da NF (detalhe) fora do padrão das tabelas do Explorer

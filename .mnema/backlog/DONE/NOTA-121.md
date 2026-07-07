@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-121
-  state: IN_REVIEW
+  state: DONE
   title: >-
     Fase 3 — Explorer & tabelas densas: DensityToggle, 1px lines, sticky header,
     peek
@@ -37,6 +37,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-04T15:51:40.408Z'
+  updated_at: '2026-07-07T20:56:55.315Z'
 ---
 # Fase 3 — Explorer & tabelas densas: DensityToggle, 1px lines, sticky header, peek

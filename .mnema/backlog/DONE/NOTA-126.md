@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-126
-  state: IN_REVIEW
+  state: DONE
   title: >-
     BUG: crash da Rede completa no dev (Vite 8 corrompe método import() do
     graphology)
@@ -24,6 +24,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-06T16:46:57.932Z'
+  updated_at: '2026-07-07T20:57:11.123Z'
 ---
 # BUG: crash da Rede completa no dev (Vite 8 corrompe método import() do graphology)

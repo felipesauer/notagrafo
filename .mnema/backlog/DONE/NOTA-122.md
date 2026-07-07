@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-122
-  state: IN_REVIEW
+  state: DONE
   title: 'Fase 4 — Grafo/Rede: anti-hairball + cores novas'
   description: >-
     Aplicar princípios anti-hairball (Cambridge Intelligence) ao grafo ego
@@ -32,6 +32,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-04T15:58:46.142Z'
+  updated_at: '2026-07-07T20:56:57.299Z'
 ---
 # Fase 4 — Grafo/Rede: anti-hairball + cores novas

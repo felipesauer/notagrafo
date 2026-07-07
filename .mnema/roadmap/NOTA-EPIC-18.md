@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-EPIC-18
   kind: epic
-  state: OPEN
+  state: CLOSED
   title: Redesign UX/UI "BI denso e vibrante" (do zero)
   description: >-
     Redesign completo (do zero) da UX/UI do @notagrafo/dashboard, aprovado pelo
@@ -66,6 +66,6 @@ mnema:
     pequeno; commitar .mnema/ junto.
   metadata: {}
   created_at: '2026-07-04T05:38:29.156Z'
-  closed_at: null
+  closed_at: '2026-07-07T20:58:15.874Z'
 ---
 # Redesign UX/UI "BI denso e vibrante" (do zero)
