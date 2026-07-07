@@ -135,11 +135,22 @@ URLs no modo dev:
 Para subir **apenas a infraestrutura** e rodar os serviços manualmente:
 
 ```bash
-docker compose up -d --wait     # redis, neo4j, minio, mailpit
+pnpm docker:up                  # sobe redis, neo4j, minio, mailpit (e espera healthy)
 pnpm dev:libs                   # builda core + graph
 pnpm dev:seed                   # popula o grafo (opcional)
 pnpm dev:packages               # api + worker + dashboard em watch
 ```
+
+Como `Ctrl+C` encerra só os processos locais (a infra sobe *detached*), derrube
+os containers e **libere as portas** quando terminar:
+
+```bash
+pnpm docker:down                # para e remove os containers (libera as portas)
+```
+
+> Os containers usam `restart: "no"` — não voltam sozinhos no boot da máquina.
+> As portas do host são configuráveis via `.env` (veja `.env.example`), então
+> o notagrafo não atropela outras aplicações locais.
 
 ---
 
