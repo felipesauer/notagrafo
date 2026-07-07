@@ -53,6 +53,8 @@ const GRUPOS: { key: string; campos: string[] }[] = [
     { key: 'datas', campos: ['dataEmissao', 'dataSaida', 'importadaEm', 'processadaEm'] },
     { key: 'emitente', campos: ['cnpjEmitente', 'razaoSocialEmitente', 'ufEmitente'] },
     { key: 'destinatario', campos: ['cnpjDestinatario', 'razaoSocialDestinatario', 'ufDestinatario'] },
+    // Tributos (totais da NF) — inclui a Reforma (IBS/CBS/IS). EPIC-25.
+    { key: 'tributos', campos: ['vICMS', 'vICMSST', 'vIPI', 'vPIS', 'vCOFINS', 'vFCP', 'vIBS', 'vIBSUF', 'vIBSMun', 'vCBS', 'vIS'] },
 ];
 const CAMPOS: CampoDef[] = GRUPOS.flatMap((g) => g.campos.map((id) => ({ id, grupoKey: g.key })));
 const TODOS_CAMPOS = CAMPOS.map((c) => c.id);

@@ -306,7 +306,7 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
                 taxByNcm(driver, filtros, limit),
                 taxByCfop(driver, filtros, limit),
             ]);
-            return { totais: resumo.totais, serie: resumo.serie, topNcm: porNcm, topCfop: porCfop };
+            return { totais: resumo.totais, serie: resumo.serie, transicao: resumo.transicao, topNcm: porNcm, topCfop: porCfop };
         },
     );
 

@@ -92,12 +92,12 @@ export const ptBR = {
         produto: 'Produto', qtd: 'Qtd', miniGrafo: 'Grafo', verNoGrafo: 'Ver no grafo',
         notaN: 'Nota fiscal {{n}}', fluxo: 'Fluxo', abrirDetalhe: 'Abrir detalhe',
         ncm: 'NCM', cfop: 'CFOP', icms: 'ICMS', ipi: 'IPI', pis: 'PIS', cofins: 'COFINS',
-        totais: 'Totais', valorNF: 'Valor da NF',
+        totais: 'Totais', valorNF: 'Valor da NF', cstReforma: 'CST/Class.',
         filtros: {
             titulo: 'Filtros',
             grupoIdent: 'Identificação', grupoDatas: 'Datas', grupoValores: 'Valores',
             grupoPartes: 'Partes', grupoFiscais: 'Itens fiscais',
-            ativos: '{{count}} filtro(s) ativo(s):', remover: 'Remover filtro', comImposto: 'Com ICMS',
+            ativos: '{{count}} filtro(s) ativo(s):', remover: 'Remover filtro', comImposto: 'Com ICMS', comReforma: 'Com IBS/CBS (reforma)',
             buscaUnica: 'Buscar por número, chave ou empresa…', maisFiltros: 'Filtros',
             limparTudo: 'Limpar tudo', contagem: '{{shown}} de {{total}}',
             numero: 'Número', serie: 'Série',
@@ -130,6 +130,8 @@ export const ptBR = {
         serieTitulo: 'Carga tributária por mês',
         topNcm: 'Top NCM por imposto', topCfop: 'Top CFOP por imposto',
         totalImposto: 'Imposto total', serieMensal: 'Evolução mensal',
+        transicaoTitulo: 'Transição para a Reforma Tributária',
+        transicaoLegenda: '{{com}} de {{total}} NF-e já com IBS/CBS',
     },
     grafo: {
         buscarEmpresa: 'Buscar empresa (CNPJ)', profundidade: 'Profundidade',
@@ -182,7 +184,7 @@ export const ptBR = {
         todos: 'Todos', limparTodos: 'Limpar',
         grupo: {
             identificacao: 'Identificação', valores: 'Valores', datas: 'Datas',
-            emitente: 'Emitente', destinatario: 'Destinatário',
+            emitente: 'Emitente', destinatario: 'Destinatário', tributos: 'Tributos',
         },
         campo: {
             chaveAcesso: 'Chave de acesso', numero: 'Número', serie: 'Série',
@@ -193,6 +195,8 @@ export const ptBR = {
             importadaEm: 'Importada em', processadaEm: 'Processada em',
             cnpjEmitente: 'CNPJ emitente', razaoSocialEmitente: 'Razão social emitente', ufEmitente: 'UF emitente',
             cnpjDestinatario: 'CNPJ destinatário', razaoSocialDestinatario: 'Razão social destinatário', ufDestinatario: 'UF destinatário',
+            vICMS: 'ICMS', vICMSST: 'ICMS-ST', vIPI: 'IPI', vPIS: 'PIS', vCOFINS: 'COFINS', vFCP: 'FCP',
+            vIBS: 'IBS', vIBSUF: 'IBS UF', vIBSMun: 'IBS Municipal', vCBS: 'CBS', vIS: 'IS (Seletivo)',
         },
     },
     config: {

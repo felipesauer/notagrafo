@@ -26,6 +26,8 @@ export interface NFFilters {
     vICMSMin?: number; // nf.total_vICMS >=
     vICMSMax?: number; // nf.total_vICMS <=
     comImposto?: boolean; // true: total_vICMS > 0; false: sem ICMS (0 ou ausente)
+    // Reforma Tributária (EPIC-25): recorta NF-e já sob a reforma.
+    comReforma?: boolean; // true: total_vIBS>0 OU total_vCBS>0; false: sem IBS/CBS
 }
 
 export interface NFPageOptions {
@@ -50,6 +52,12 @@ export interface NFListItem {
     destinatario?: { cnpj: string; razaoSocial: string; uf: string };
     importadaEm: string;
     processadaEm?: string;
+    // Totais de tributo da NF (props total_* achatadas na gravação) — expostos
+    // para a exportação (EPIC-25). Ausentes viram 0. Inclui a Reforma (IBS/CBS/IS).
+    tributos: {
+        vICMS: number; vICMSST: number; vIPI: number; vPIS: number; vCOFINS: number; vFCP: number;
+        vIBS: number; vIBSUF: number; vIBSMun: number; vCBS: number; vIS: number;
+    };
 }
 
 export interface NFPage {
@@ -110,6 +118,11 @@ function buildWhere(f: NFFilters): { clauses: string[]; params: Record<string, u
     if (f.vICMSMin !== undefined) (c.push('coalesce(nf.total_vICMS, 0) >= $vICMSMin'), (p.vICMSMin = f.vICMSMin));
     if (f.vICMSMax !== undefined) (c.push('coalesce(nf.total_vICMS, 0) <= $vICMSMax'), (p.vICMSMax = f.vICMSMax));
     if (f.comImposto !== undefined) c.push(f.comImposto ? 'coalesce(nf.total_vICMS, 0) > 0' : 'coalesce(nf.total_vICMS, 0) = 0');
+    if (f.comReforma !== undefined) {
+        c.push(f.comReforma
+            ? '(coalesce(nf.total_vIBS, 0) > 0 OR coalesce(nf.total_vCBS, 0) > 0)'
+            : '(coalesce(nf.total_vIBS, 0) = 0 AND coalesce(nf.total_vCBS, 0) = 0)');
+    }
     return { clauses: c, params: p };
 }
 
@@ -220,6 +233,12 @@ export async function listInvoices(
                 ...(empresa(dest) ? { destinatario: empresa(dest) } : {}),
                 importadaEm: String(nf.importadaEm ?? ''),
                 ...(nf.processadaEm ? { processadaEm: String(nf.processadaEm) } : {}),
+                tributos: {
+                    vICMS: toNum(nf.total_vICMS), vICMSST: toNum(nf.total_vST), vIPI: toNum(nf.total_vIPI),
+                    vPIS: toNum(nf.total_vPIS), vCOFINS: toNum(nf.total_vCOFINS), vFCP: toNum(nf.total_vFCP),
+                    vIBS: toNum(nf.total_vIBS), vIBSUF: toNum(nf.total_vIBSUF), vIBSMun: toNum(nf.total_vIBSMun),
+                    vCBS: toNum(nf.total_vCBS), vIS: toNum(nf.total_vIS),
+                },
             };
         });
 

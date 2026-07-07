@@ -178,6 +178,17 @@ describe('ExportService — serialização', () => {
         expect(parsed[0]).toEqual({ cnpjEmitente: '11222333000144', cnpjDestinatario: '55666777000188' });
     });
 
+    it('exporta os tributos (ICMS + Reforma IBS/CBS/IS) a partir de total_* (EPIC-25)', async () => {
+        const service = new ExportService(driverComNos([
+            { nf: { chaveAcesso: 'k1', total_vICMS: 180, total_vIBS: 105, total_vCBS: 93, total_vIS: 10 } },
+        ]));
+        const job = service.create('csv', undefined, ['chaveAcesso', 'vICMS', 'vIBS', 'vCBS', 'vIS']);
+        await vi.waitFor(() => expect(job.status).toBe('ready'));
+        const linhas = (await service.read(job)).toString().split('\r\n');
+        expect(linhas[0]).toBe('chaveAcesso,vICMS,vIBS,vCBS,vIS');
+        expect(linhas[1]).toBe('k1,180,105,93,10');
+    });
+
     it('xlsx prefixa diretiva sep= + BOM para o Excel abrir em colunas', async () => {
         const service = new ExportService(driverComRegistros(registros));
         const job = service.create('xlsx');

@@ -26,6 +26,7 @@ export const nfListQuerySchema = {
         vICMSMin: { type: 'number' },
         vICMSMax: { type: 'number' },
         comImposto: { type: 'boolean' },
+        comReforma: { type: 'boolean' },
         cursor: { type: 'string' },
         limit: { type: 'integer', minimum: 1, maximum: 200 },
         orderBy: { type: 'string' },

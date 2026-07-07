@@ -219,6 +219,9 @@ function pick(obj: Record<string, unknown>, keys: string[]): Record<string, unkn
 function flattenRow(row: Record<string, unknown>): Record<string, unknown> {
     const emit = (row.emitente ?? undefined) as { cnpj?: string; razaoSocial?: string; uf?: string } | undefined;
     const dest = (row.destinatario ?? undefined) as { cnpj?: string; razaoSocial?: string; uf?: string } | undefined;
+    // Tributos vêm aninhados em `tributos` (listInvoices) — achatados como chaves
+    // de topo (vICMS, vIBS, …) para serem selecionáveis no export (EPIC-25).
+    const trib = (row.tributos ?? {}) as Record<string, number>;
     return {
         ...row,
         cnpjEmitente: emit?.cnpj ?? '',
@@ -227,6 +230,7 @@ function flattenRow(row: Record<string, unknown>): Record<string, unknown> {
         cnpjDestinatario: dest?.cnpj ?? '',
         razaoSocialDestinatario: dest?.razaoSocial ?? '',
         ufDestinatario: dest?.uf ?? '',
+        ...trib,
     };
 }
 
