@@ -109,12 +109,12 @@ export const en = {
         produto: 'Product', qtd: 'Qty', miniGrafo: 'Graph', verNoGrafo: 'View in graph',
         notaN: 'Invoice {{n}}', fluxo: 'Flow', abrirDetalhe: 'Open detail',
         ncm: 'NCM', cfop: 'CFOP', icms: 'ICMS', ipi: 'IPI', pis: 'PIS', cofins: 'COFINS',
-        totais: 'Totals', valorNF: 'Invoice total',
+        totais: 'Totals', valorNF: 'Invoice total', cstReforma: 'CST/Class.',
         filtros: {
             titulo: 'Filters',
             grupoIdent: 'Identification', grupoDatas: 'Dates', grupoValores: 'Values',
             grupoPartes: 'Parties', grupoFiscais: 'Tax items',
-            ativos: '{{count}} active filter(s):', remover: 'Remove filter', comImposto: 'With ICMS',
+            ativos: '{{count}} active filter(s):', remover: 'Remove filter', comImposto: 'With ICMS', comReforma: 'With IBS/CBS (reform)',
             buscaUnica: 'Search by number, key or company…', maisFiltros: 'Filters',
             limparTudo: 'Clear all', contagem: '{{shown}} of {{total}}',
             numero: 'Number', serie: 'Series',
@@ -147,6 +147,8 @@ export const en = {
         serieTitulo: 'Tax burden per month',
         topNcm: 'Top NCM by tax', topCfop: 'Top CFOP by tax',
         totalImposto: 'Total tax', serieMensal: 'Monthly trend',
+        transicaoTitulo: 'Transition to the Tax Reform',
+        transicaoLegenda: '{{com}} of {{total}} invoices already with IBS/CBS',
     },
     grafo: {
         buscarEmpresa: 'Search company (Tax ID)', profundidade: 'Depth',
@@ -199,7 +201,7 @@ export const en = {
         todos: 'All', limparTodos: 'Clear',
         grupo: {
             identificacao: 'Identification', valores: 'Amounts', datas: 'Dates',
-            emitente: 'Issuer', destinatario: 'Recipient',
+            emitente: 'Issuer', destinatario: 'Recipient', tributos: 'Taxes',
         },
         campo: {
             chaveAcesso: 'Access key', numero: 'Number', serie: 'Series',
@@ -210,6 +212,8 @@ export const en = {
             importadaEm: 'Imported at', processadaEm: 'Processed at',
             cnpjEmitente: 'Issuer tax ID', razaoSocialEmitente: 'Issuer legal name', ufEmitente: 'Issuer state',
             cnpjDestinatario: 'Recipient tax ID', razaoSocialDestinatario: 'Recipient legal name', ufDestinatario: 'Recipient state',
+            vICMS: 'ICMS', vICMSST: 'ICMS-ST', vIPI: 'IPI', vPIS: 'PIS', vCOFINS: 'COFINS', vFCP: 'FCP',
+            vIBS: 'IBS', vIBSUF: 'IBS State', vIBSMun: 'IBS Municipal', vCBS: 'CBS', vIS: 'IS (Excise)',
         },
     },
     config: {

@@ -78,7 +78,7 @@ const explorarRoute = createRoute({
     path: '/explore',
     validateSearch: (search: Record<string, unknown>): {
         entity?: string; peek?: string; q?: string; status?: string;
-        ufEmitente?: string; cnpjEmitente?: string; ncm?: string; comImposto?: boolean;
+        ufEmitente?: string; cnpjEmitente?: string; ncm?: string; comImposto?: boolean; comReforma?: boolean;
         dataEmissaoInicio?: string; dataEmissaoFim?: string;
         valorTotalMin?: string; valorTotalMax?: string; tipoNF?: string; finalidade?: string; cfop?: string;
     } => ({
@@ -90,6 +90,7 @@ const explorarRoute = createRoute({
         cnpjEmitente: typeof search.cnpjEmitente === 'string' ? search.cnpjEmitente : undefined,
         ncm: typeof search.ncm === 'string' ? search.ncm : undefined,
         comImposto: search.comImposto === true || search.comImposto === 'true' ? true : undefined,
+        comReforma: search.comReforma === true || search.comReforma === 'true' ? true : undefined,
         // Filtros avançados de NF (NOTA-125 D) — mantidos como string na URL.
         dataEmissaoInicio: typeof search.dataEmissaoInicio === 'string' ? search.dataEmissaoInicio : undefined,
         dataEmissaoFim: typeof search.dataEmissaoFim === 'string' ? search.dataEmissaoFim : undefined,

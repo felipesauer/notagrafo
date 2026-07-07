@@ -62,9 +62,31 @@ export function ExplorerImpostos(): JSX.Element {
     const serie = data?.serie ?? [];
     const topNcm = data?.topNcm ?? [];
     const topCfop = data?.topCfop ?? [];
+    const transicao = data?.transicao;
+    const pctReforma = transicao && transicao.total > 0 ? Math.round((transicao.comReforma / transicao.total) * 100) : 0;
 
     return (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+            {/* Transição da Reforma Tributária: % de NF-e já com IBS/CBS (EPIC-25).
+                Só aparece quando há alguma nota sob a reforma na base. */}
+            {transicao && transicao.comReforma > 0 && (
+                <Card className="gap-3 lg:col-span-12">
+                    <CardHeader className="space-y-0 pb-0">
+                        <h3 className="text-base font-semibold leading-none">{t('impostos.transicaoTitulo')}</h3>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        <div className="flex items-baseline justify-between text-sm">
+                            <span className="text-muted-foreground">
+                                {t('impostos.transicaoLegenda', { com: transicao.comReforma, total: transicao.total })}
+                            </span>
+                            <span className="font-mono text-lg font-semibold tabular-nums text-chart-4">{pctReforma}%</span>
+                        </div>
+                        <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                            <div className="h-full rounded-full bg-chart-4 transition-all" style={{ width: `${pctReforma}%` }} />
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
             {/* Carga por tributo (barras) */}
             <Card data-testid="chart" className="gap-4 lg:col-span-5">
                 <CardHeader className="flex flex-row items-baseline justify-between space-y-0">

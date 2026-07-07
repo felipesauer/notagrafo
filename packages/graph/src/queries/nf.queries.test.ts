@@ -56,6 +56,33 @@ describe('listInvoices (unit, driver fake)', () => {
         expect(runs[0]!.cypher).toContain('ORDER BY nf.chaveAcesso asc');
     });
 
+    it('expõe os totais de tributo (incl. Reforma) no campo tributos, com 0 quando ausente (EPIC-25)', async () => {
+        const rows = [fakeRecord({
+            nf: nfNode({ total_vICMS: 180, total_vIBS: 105, total_vCBS: 93, total_vIS: 10 }),
+            emit: empNode('111', 'SP'), dest: null,
+        })];
+        const { driver } = makeFakeDriver(() => rows);
+        const page = await listInvoices(driver, {}, { limit: 20 });
+        const t = page.data[0]!.tributos;
+        expect(t.vICMS).toBe(180);
+        expect(t.vIBS).toBe(105);
+        expect(t.vCBS).toBe(93);
+        expect(t.vIS).toBe(10);
+        // ausentes → 0 (não undefined)
+        expect(t.vIPI).toBe(0);
+        expect(t.vIBSUF).toBe(0);
+    });
+
+    it('filtro comReforma recorta NF-e com IBS ou CBS (EPIC-25)', async () => {
+        const { driver, runs } = makeFakeDriver(() => []);
+        await listInvoices(driver, { comReforma: true }, { limit: 20 });
+        expect(runs[0]!.cypher).toContain('coalesce(nf.total_vIBS, 0) > 0 OR coalesce(nf.total_vCBS, 0) > 0');
+        // comReforma=false → sem IBS/CBS
+        const { driver: d2, runs: r2 } = makeFakeDriver(() => []);
+        await listInvoices(d2, { comReforma: false }, { limit: 20 });
+        expect(r2[0]!.cypher).toContain('coalesce(nf.total_vIBS, 0) = 0 AND coalesce(nf.total_vCBS, 0) = 0');
+    });
+
     it('orderBy inválido cai no default dataEmissao; sem hasMore quando vem <= limit', async () => {
         const rows = [fakeRecord({ nf: nfNode(), emit: empNode('111', 'SP'), dest: null })];
         const { driver, runs } = makeFakeDriver(() => rows);

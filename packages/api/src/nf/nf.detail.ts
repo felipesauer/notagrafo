@@ -9,6 +9,9 @@
 const TRIBUTO_KEYS = [
     'vICMS', 'vBCICMS', 'pICMS', 'vBCST', 'vICMSST', 'vFCP', 'vICMSDeson',
     'vIPI', 'vPIS', 'vCOFINS', 'vII', 'vISSQN',
+    // Reforma Tributária (EPIC-25): IBS/CBS/IS + classificação do item.
+    'cstIBSCBS', 'cClassTrib', 'vBCIBSCBS',
+    'vIBS', 'vIBSUF', 'pIBSUF', 'vIBSMun', 'pIBSMun', 'vCBS', 'pCBS', 'vIS', 'pIS',
 ] as const;
 
 /** Demais campos da aresta CONTÉM que ficam no item (fora de `tributos`). */

@@ -47,9 +47,16 @@ export interface TaxSeriePonto {
     vIS: number;
 }
 
+/** Progresso da transição para a Reforma (EPIC-25): quantas NF já vêm com IBS/CBS. */
+export interface TaxTransicao {
+    comReforma: number; // NF com total_vIBS>0 OU total_vCBS>0
+    total: number; // NF no recorte
+}
+
 export interface TaxSummary {
     totais: TaxTotais;
     serie: TaxSeriePonto[];
+    transicao: TaxTransicao;
 }
 
 /** Ranking de imposto agregado por NCM (via aresta CONTÉM). */
@@ -170,7 +177,21 @@ export async function taxSummary(driver: Driver, filters: TaxFilters = {}): Prom
             vIS: toNum(r.get('vIS')),
         }));
 
-        return { totais, serie };
+        // Transição da Reforma: quantas NF do recorte já vêm com IBS/CBS.
+        const transRes = await session.run(
+            `${match}
+             ${where}
+             RETURN count(nf) AS total,
+                    sum(CASE WHEN coalesce(nf.total_vIBS, 0) > 0 OR coalesce(nf.total_vCBS, 0) > 0 THEN 1 ELSE 0 END) AS comReforma`,
+            params,
+        );
+        const tr = transRes.records[0];
+        const transicao: TaxTransicao = {
+            total: toNum(tr?.get('total')),
+            comReforma: toNum(tr?.get('comReforma')),
+        };
+
+        return { totais, serie, transicao };
     } finally {
         await session.close();
     }

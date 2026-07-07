@@ -9,6 +9,7 @@ import { useDebouncedValue } from '../../hooks/useDebouncedValue.js';
 import { Button } from '../../components/ui/button.js';
 import { Input } from '../../components/ui/input.js';
 import { Label } from '../../components/ui/label.js';
+import { Checkbox } from '../../components/ui/checkbox.js';
 import { NativeSelect } from '../../components/ui/native-select.js';
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover.js';
 import {
@@ -57,7 +58,7 @@ export function ExplorerPage(): JSX.Element {
     const navigate = useNavigate();
     const search = useSearch({ strict: false }) as {
         entity?: string; peek?: string; q?: string; status?: string;
-        ufEmitente?: string; cnpjEmitente?: string; ncm?: string; comImposto?: boolean;
+        ufEmitente?: string; cnpjEmitente?: string; ncm?: string; comImposto?: boolean; comReforma?: boolean;
         dataEmissaoInicio?: string; dataEmissaoFim?: string; valorTotalMin?: string;
         valorTotalMax?: string; tipoNF?: string; finalidade?: string; cfop?: string;
     };
@@ -69,6 +70,7 @@ export function ExplorerPage(): JSX.Element {
         ...(search.cnpjEmitente ? { cnpjEmitente: search.cnpjEmitente } : {}),
         ...(search.ncm ? { ncm: search.ncm } : {}),
         ...(search.comImposto ? { comImposto: search.comImposto } : {}),
+        ...(search.comReforma ? { comReforma: search.comReforma } : {}),
         ...(search.dataEmissaoInicio ? { dataEmissaoInicio: search.dataEmissaoInicio } : {}),
         ...(search.dataEmissaoFim ? { dataEmissaoFim: search.dataEmissaoFim } : {}),
         ...(search.valorTotalMin ? { valorTotalMin: search.valorTotalMin } : {}),
@@ -191,6 +193,7 @@ export function ExplorerPage(): JSX.Element {
                     {search.cnpjEmitente && <FilterChip label={t('nf.filtros.cnpjEmitente')} value={cnpjChip(search.cnpjEmitente)} />}
                     {search.ncm && <FilterChip label={t('nf.ncm')} value={search.ncm} />}
                     {search.comImposto && <FilterChip label={t('grafo.nfsComImposto')} value="" />}
+                    {search.comReforma && <FilterChip label={t('nf.filtros.comReforma')} value="" />}
                     <Button type="button" variant="ghost" size="sm" className="ml-auto h-7 text-xs" onClick={limparRecorte}>
                         <X /> {t('nf.filtros.limparTudo')}
                     </Button>
@@ -233,6 +236,7 @@ function cnpjChip(c: string): string {
 interface NFSearch {
     dataEmissaoInicio?: string; dataEmissaoFim?: string; valorTotalMin?: string;
     valorTotalMax?: string; tipoNF?: string; finalidade?: string; cfop?: string; ncm?: string;
+    comReforma?: boolean;
 }
 
 /**
@@ -280,6 +284,11 @@ function NFFilters({ search, onChange, onClearAll, t }: { search: NFSearch; onCh
                         </NativeSelect>
                     </div>
                 </div>
+                {/* Reforma Tributária (EPIC-25): recorta NF-e já com IBS/CBS. */}
+                <Label className="flex cursor-pointer items-center gap-2 text-sm font-normal">
+                    <Checkbox checked={!!search.comReforma} onCheckedChange={(v) => onChange('comReforma', v ? 'true' : '')} />
+                    {t('nf.filtros.comReforma')}
+                </Label>
                 {ativos > 0 && (
                     <Button type="button" variant="ghost" size="sm" className="w-full" onClick={onClearAll}>
                         <X /> {t('nf.filtros.limparTudo')}

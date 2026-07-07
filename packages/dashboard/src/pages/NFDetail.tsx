@@ -61,6 +61,12 @@ interface Tributos {
     vCOFINS?: number;
     vII?: number;
     vISSQN?: number;
+    // Reforma Tributária (EPIC-25).
+    cstIBSCBS?: string;
+    cClassTrib?: string;
+    vIBS?: number;
+    vCBS?: number;
+    vIS?: number;
 }
 
 interface Item {
@@ -78,6 +84,10 @@ interface Totais {
     vPIS?: number;
     vCOFINS?: number;
     vDesc?: number;
+    // Reforma Tributária (EPIC-25).
+    vIBS?: number;
+    vCBS?: number;
+    vIS?: number;
 }
 
 /** Valor monetário compacto para células (— quando ausente). */
@@ -203,6 +213,9 @@ function ItensTable({ itens, totais, density, valorNF, t }: { itens: Item[]; tot
         quantidade: (i) => i.quantidade ?? 0,
         valorTotal: (i) => i.valorTotal ?? 0,
     });
+    // Colunas IBS/CBS/IS (Reforma) só aparecem se ALGUM item da NF as tiver —
+    // não poluem NF-e pré-reforma (EPIC-25).
+    const temReforma = itens.some((i) => i.tributos?.vIBS !== undefined || i.tributos?.vCBS !== undefined || i.tributos?.vIS !== undefined);
     return (
         <Card className="py-4">
             <CardHeader className="px-4 pb-0"><CardTitle className="text-base"><h3>{t('nf.itens')}</h3></CardTitle></CardHeader>
@@ -218,21 +231,40 @@ function ItensTable({ itens, totais, density, valorNF, t }: { itens: Item[]; tot
                             <TableHead className="text-right">{t('nf.icms')}</TableHead>
                             <TableHead className="text-right">{t('nf.ipi')}</TableHead>
                             <TableHead className="text-right">{t('nf.pis')}</TableHead>
-                            <TableHead className="pr-4 text-right">{t('nf.cofins')}</TableHead>
+                            <TableHead className={temReforma ? 'text-right' : 'pr-4 text-right'}>{t('nf.cofins')}</TableHead>
+                            {temReforma && <>
+                                <TableHead className="text-right">IBS</TableHead>
+                                <TableHead className="text-right">CBS</TableHead>
+                                <TableHead className="pr-4 text-right">IS</TableHead>
+                            </>}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {sorted.map((item, i) => (
                             <TableRow key={i}>
                                 <TableCell className="pl-4">{item.numeroItem ?? i + 1}</TableCell>
-                                <TableCell>{item.produto?.descricao ?? '—'}</TableCell>
+                                <TableCell>
+                                    {item.produto?.descricao ?? '—'}
+                                    {/* Classificação da reforma (CST/cClassTrib) quando presente. */}
+                                    {(item.tributos?.cstIBSCBS || item.tributos?.cClassTrib) && (
+                                        <span className="mt-0.5 block font-mono text-3xs text-muted-foreground">
+                                            {t('nf.cstReforma')} {item.tributos?.cstIBSCBS ?? '—'}
+                                            {item.tributos?.cClassTrib ? ` · ${item.tributos.cClassTrib}` : ''}
+                                        </span>
+                                    )}
+                                </TableCell>
                                 <TableCell title={item.produto?.ncm?.descricao ?? ''} className="tabular-nums">{item.produto?.ncm?.codigo ?? '—'}</TableCell>
                                 <TableCell className="text-right tabular-nums">{item.quantidade ?? 0}</TableCell>
                                 <TableCell className="text-right"><CurrencyValue value={item.valorTotal ?? 0} /></TableCell>
                                 <TableCell className="text-right"><Money value={item.tributos?.vICMS} /></TableCell>
                                 <TableCell className="text-right"><Money value={item.tributos?.vIPI} /></TableCell>
                                 <TableCell className="text-right"><Money value={item.tributos?.vPIS} /></TableCell>
-                                <TableCell className="pr-4 text-right"><Money value={item.tributos?.vCOFINS} /></TableCell>
+                                <TableCell className={temReforma ? 'text-right' : 'pr-4 text-right'}><Money value={item.tributos?.vCOFINS} /></TableCell>
+                                {temReforma && <>
+                                    <TableCell className="text-right"><Money value={item.tributos?.vIBS} /></TableCell>
+                                    <TableCell className="text-right"><Money value={item.tributos?.vCBS} /></TableCell>
+                                    <TableCell className="pr-4 text-right"><Money value={item.tributos?.vIS} /></TableCell>
+                                </>}
                             </TableRow>
                         ))}
                     </TableBody>
@@ -245,7 +277,12 @@ function ItensTable({ itens, totais, density, valorNF, t }: { itens: Item[]; tot
                                 <TableCell className="text-right"><Money value={totais.vICMS} /></TableCell>
                                 <TableCell className="text-right"><Money value={totais.vIPI} /></TableCell>
                                 <TableCell className="text-right"><Money value={totais.vPIS} /></TableCell>
-                                <TableCell className="pr-4 text-right"><Money value={totais.vCOFINS} /></TableCell>
+                                <TableCell className={temReforma ? 'text-right' : 'pr-4 text-right'}><Money value={totais.vCOFINS} /></TableCell>
+                                {temReforma && <>
+                                    <TableCell className="text-right"><Money value={totais.vIBS} /></TableCell>
+                                    <TableCell className="text-right"><Money value={totais.vCBS} /></TableCell>
+                                    <TableCell className="pr-4 text-right"><Money value={totais.vIS} /></TableCell>
+                                </>}
                             </TableRow>
                         </TableFooter>
                     )}
