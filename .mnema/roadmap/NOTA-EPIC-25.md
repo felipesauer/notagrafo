@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-EPIC-25
   kind: epic
-  state: OPEN
+  state: CLOSED
   title: >-
     Melhorias do cenário da Reforma Tributária (export de tributos, filtros
     IBS/CBS, transição, CST)
@@ -22,6 +22,6 @@ mnema:
     implementação depois.
   metadata: {}
   created_at: '2026-07-07T15:40:13.502Z'
-  closed_at: null
+  closed_at: '2026-07-07T16:25:04.779Z'
 ---
 # Melhorias do cenário da Reforma Tributária (export de tributos, filtros IBS/CBS, transição, CST)

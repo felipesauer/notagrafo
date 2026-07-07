@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-EPIC-24
   kind: epic
-  state: OPEN
+  state: CLOSED
   title: 'Reforma Tributária na NF-e: leitura e análise de IBS, CBS e IS'
   description: >-
     Suporte à Reforma Tributária (LC 214/2025, NT 2025.002) por leitura —
@@ -17,6 +17,6 @@ mnema:
     reforma para testar. Ver ADR-18.
   metadata: {}
   created_at: '2026-07-07T15:07:58.485Z'
-  closed_at: null
+  closed_at: '2026-07-07T16:25:13.210Z'
 ---
 # Reforma Tributária na NF-e: leitura e análise de IBS, CBS e IS
