@@ -77,6 +77,8 @@ describe('evaluateAlerts — volume_spike', () => {
         expect(alerts).toHaveLength(1);
         expect(alerts[0]!.type).toBe('volume_spike');
         expect(alerts[0]!.data.change).toBeCloseTo(4, 5);
+        // fingerprint is stable across re-evaluations (no month-count in it)
+        expect(alerts[0]!.fingerprint).toBe('volume_spike:up');
     });
 
     it('stays silent when the deviation is under the threshold', async () => {
@@ -123,7 +125,8 @@ describe('evaluateAlerts — duplicate & numbering_gap (reuse analysis.queries)'
         expect(alerts[0]).toMatchObject({
             type: 'duplicate',
             severity: 'critical',
-            fingerprint: 'duplicate:444:2026-06-01:500',
+            // fingerprint = sorted access keys (stable, no float)
+            fingerprint: 'duplicate:a,b,c',
             refs: { chaves: ['a', 'b', 'c'], cnpjEmitente: '444' },
         });
     });

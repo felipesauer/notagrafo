@@ -1,6 +1,7 @@
 import { type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from '@tanstack/react-router';
+import { toast } from 'sonner';
 import {
     AlertTriangle, Bell, CheckCheck, CopyCheck, DollarSign, Hash, RefreshCw, ShieldCheck, TrendingUp,
 } from 'lucide-react';
@@ -76,7 +77,7 @@ export function NotificationCenter(): JSX.Element {
                             type="button" variant="ghost" size="icon" className="size-7"
                             aria-label={t('alertas.reavaliar')}
                             disabled={evaluate.isPending}
-                            onClick={() => evaluate.mutate()}
+                            onClick={() => evaluate.mutate(undefined, { onError: () => toast.error(t('comum.erro')) })}
                         >
                             <RefreshCw className={evaluate.isPending ? 'animate-spin' : ''} />
                         </Button>
@@ -135,9 +136,11 @@ function AlertItem({ alert, onRead }: { alert: Alert; onRead: () => void }): JSX
     );
 
     return (
+        // Hover marks it read (covers non-linked alerts too); the click only
+        // navigates — no second mark, since a hover always precedes a click.
         <li className="transition-colors hover:bg-muted/40" onMouseEnter={alert.read ? undefined : onRead}>
             {link ? (
-                <Link to={link.to as string} params={link.params as never} search={link.search as never} onClick={onRead}>
+                <Link to={link.to as string} params={link.params as never} search={link.search as never}>
                     {body}
                 </Link>
             ) : (

@@ -44,14 +44,22 @@ export function AlertsCard(): JSX.Element {
     const setEnabled = (rule: RuleKey, enabled: boolean) =>
         setDraft((d) => (d ? { ...d, [rule]: { ...d[rule], enabled } } : d));
 
-    const setThreshold = (rule: RuleKey, inputValue: number) => {
+    const setThreshold = (rule: RuleKey, raw: string) => {
         const conv = THRESHOLD_RULES[rule];
         if (!conv) return;
-        setDraft((d) => (d ? { ...d, [rule]: { ...d[rule], threshold: conv.fromInput(inputValue) } } : d));
+        // Ignore an empty/invalid field mid-edit so clearing the input to retype
+        // does not silently persist a 0 threshold (which disables the rule).
+        if (raw.trim() === '') return;
+        const n = Number(raw);
+        if (!Number.isFinite(n) || n < 0) return;
+        setDraft((d) => (d ? { ...d, [rule]: { ...d[rule], threshold: conv.fromInput(n) } } : d));
     };
 
     const onSave = () => {
-        save.mutate(draft, { onSuccess: () => toast.success(t('alertas.config.salvo')) });
+        save.mutate(draft, {
+            onSuccess: () => toast.success(t('alertas.config.salvo')),
+            onError: () => toast.error(t('comum.erro')),
+        });
     };
 
     return (
@@ -82,7 +90,7 @@ export function AlertsCard(): JSX.Element {
                                                 min={0}
                                                 step={conv.step}
                                                 value={conv.toInput(threshold)}
-                                                onChange={(e) => setThreshold(rule, Number(e.target.value))}
+                                                onChange={(e) => setThreshold(rule, e.target.value)}
                                                 aria-label={t(conv.labelKey)}
                                             />
                                         </div>

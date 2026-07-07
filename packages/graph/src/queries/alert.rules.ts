@@ -171,8 +171,10 @@ async function ruleVolumeSpike(driver: Driver, threshold: number): Promise<Alert
             {
                 type: 'volume_spike',
                 severity: 'info',
-                // window count keeps the fingerprint stable within the same dataset
-                fingerprint: `volume_spike:${series.length}:${up ? 'up' : 'down'}`,
+                // Singleton alert (whole dataset): keep the fingerprint stable
+                // across re-evaluations so a new month does not resurrect it as
+                // unread. Only the direction distinguishes a spike from a drop.
+                fingerprint: `volume_spike:${up ? 'up' : 'down'}`,
                 message: up
                     ? `Pico de volume: emissões subiram ${(change * 100).toFixed(0)}% no período recente`
                     : `Queda de volume: emissões caíram ${(Math.abs(change) * 100).toFixed(0)}% no período recente`,
@@ -224,7 +226,10 @@ async function ruleDuplicates(driver: Driver, limit: number): Promise<Alert[]> {
     return groups.map((g): Alert => ({
         type: 'duplicate',
         severity: 'critical',
-        fingerprint: `duplicate:${g.cnpjEmitente}:${g.dataEmissao}:${g.valorTotal}`,
+        // The set of access keys uniquely identifies the group and is stable
+        // across re-evaluations (sorted); a float valorTotal in the fingerprint
+        // could vary its string form or collide across distinct same-value groups.
+        fingerprint: `duplicate:${[...g.chaves].sort().join(',')}`,
         message: `${g.count} NF-e possivelmente duplicadas (${g.razaoSocial || g.cnpjEmitente}, ${g.dataEmissao})`,
         refs: { chaves: g.chaves, cnpjEmitente: g.cnpjEmitente },
         data: { count: g.count, valorTotal: g.valorTotal, dataEmissao: g.dataEmissao, razaoSocial: g.razaoSocial },

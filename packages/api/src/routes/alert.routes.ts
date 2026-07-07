@@ -121,6 +121,18 @@ export async function alertRoutes(app: FastifyInstance, driver: Driver): Promise
     );
 
     // PUT /alerts/config — atualiza a configuração global (merge sobre os defaults).
+    // Body validado: cada regra aceita apenas enabled (bool) e threshold (número
+    // >= 0). Rejeita limiar de tipo errado ou negativo (400) — os vetores reais de
+    // corrupção; o Fastify remove chaves desconhecidas, então o merge preserva os
+    // defaults e a regra nunca fica com um limiar inválido.
+    const ruleSchema = (withThreshold: boolean) => ({
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+            enabled: { type: 'boolean' },
+            ...(withThreshold ? { threshold: { type: 'number', minimum: 0 } } : {}),
+        },
+    });
     app.put<{ Body: Partial<AlertConfig> }>(
         '/alerts/config',
         {
@@ -128,6 +140,18 @@ export async function alertRoutes(app: FastifyInstance, driver: Driver): Promise
             schema: {
                 tags: ['alerts'],
                 summary: 'Atualiza a configuração global das regras de alerta',
+                body: {
+                    type: 'object',
+                    additionalProperties: false,
+                    properties: {
+                        highValue: ruleSchema(true),
+                        supplierConcentration: ruleSchema(true),
+                        volumeSpike: ruleSchema(true),
+                        zeroTax: ruleSchema(false),
+                        duplicate: ruleSchema(false),
+                        numberingGap: ruleSchema(false),
+                    },
+                },
                 security: [{ bearerAuth: [] }],
             },
         },

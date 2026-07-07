@@ -109,4 +109,28 @@ describe('GET/PUT /alerts/config (unit)', () => {
         expect(res.json().config.highValue).toEqual({ enabled: false, threshold: 5000 });
         expect(runs[0]!.cypher).toContain("MERGE (c:AlertConfig {id: 'global'})");
     });
+
+    it('rejects a wrong-typed threshold with 400', async () => {
+        const { driver, runs } = makeFakeDriver(() => []);
+        app = await buildTestApi((a) => alertRoutes(a, driver));
+        const res = await app.inject({
+            method: 'PUT',
+            url: '/alerts/config',
+            payload: { highValue: { threshold: 'not-a-number' } },
+        });
+        expect(res.statusCode).toBe(400);
+        // body validation rejects before touching the driver
+        expect(runs).toHaveLength(0);
+    });
+
+    it('rejects a negative threshold with 400 (minimum: 0)', async () => {
+        const { driver } = makeFakeDriver(() => []);
+        app = await buildTestApi((a) => alertRoutes(a, driver));
+        const res = await app.inject({
+            method: 'PUT',
+            url: '/alerts/config',
+            payload: { supplierConcentration: { threshold: -1 } },
+        });
+        expect(res.statusCode).toBe(400);
+    });
 });
