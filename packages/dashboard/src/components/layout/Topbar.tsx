@@ -6,6 +6,7 @@ import { useThemeStore } from '../../stores/theme.store.js';
 import { useUIStore } from '../../stores/ui.store.js';
 import { setIdioma, type Idioma } from '../../i18n/index.js';
 import { Button } from '../ui/button.js';
+import { NotificationCenter } from './NotificationCenter.js';
 
 /** Rótulo da página atual pelo primeiro segmento do path (breadcrumb). */
 function pageLabelKey(pathname: string): string {
@@ -67,6 +68,7 @@ export function Topbar(): JSX.Element {
                 <Button type="button" variant="ghost" size="icon" className="md:hidden" onClick={openCommand} aria-label={t('comando.placeholder')}>
                     <Search />
                 </Button>
+                <NotificationCenter />
                 <Button type="button" variant="ghost" size="icon" onClick={toggleTema} aria-label={t('header.alternarTema')}>
                     {tema === 'claro' ? <Moon /> : <Sun />}
                 </Button>

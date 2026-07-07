@@ -17,6 +17,7 @@ import { Switch } from '../components/ui/switch.js';
 import { Label } from '../components/ui/label.js';
 import { NativeSelect } from '../components/ui/native-select.js';
 import { DensityToggle } from '../components/DensityToggle.js';
+import { AlertsCard } from './settings/AlertsCard.js';
 
 interface Health {
     status: string;
@@ -88,6 +89,9 @@ export function SettingsPage(): JSX.Element {
 
                 {/* Perfil — editável (nome/email/senha) */}
                 <PerfilCard />
+
+                {/* Alertas — regras e limiares (EPIC-27) */}
+                <AlertsCard />
 
                 {/* Sistema (health) */}
                 <Card className="py-4">

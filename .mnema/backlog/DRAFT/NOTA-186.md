@@ -19,10 +19,10 @@ mnema:
   priority: 3
   assignee: null
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
-  epic_key: null
+  epic_key: NOTA-EPIC-27
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-07T16:33:04.344Z'
+  updated_at: '2026-07-07T18:40:04.133Z'
 ---
 # Configuração de alertas em Configurações (ligar/limiares)

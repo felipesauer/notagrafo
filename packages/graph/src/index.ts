@@ -8,3 +8,5 @@ export * from './queries/nf.queries.js';
 export * from './queries/product.queries.js';
 export * from './queries/tax.queries.js';
 export * from './queries/analysis.queries.js';
+export * from './queries/alert.rules.js';
+export * from './queries/alert.repository.js';

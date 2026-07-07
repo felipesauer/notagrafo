@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from './api.client.js';
 
 export interface Overview {
@@ -75,6 +75,94 @@ export interface Anomalias {
 /** Anomalias fiscais: duplicatas prováveis + gaps de numeração (EPIC-26). */
 export function useAnomalias() {
     return useQuery({ queryKey: ['stats', 'anomalias'], queryFn: () => apiFetch<Anomalias>('/stats/anomalies') });
+}
+
+// ── Alertas proativos (EPIC-27) ──────────────────────────────────────
+export type AlertType =
+    | 'high_value' | 'supplier_concentration' | 'volume_spike' | 'zero_tax' | 'duplicate' | 'numbering_gap';
+export type AlertSeverity = 'info' | 'warning' | 'critical';
+
+export interface Alert {
+    id: string;
+    type: AlertType;
+    severity: AlertSeverity;
+    message: string;
+    refs: { chaves?: string[]; cnpjEmitente?: string; serie?: string };
+    data: Record<string, number | string>;
+    read: boolean;
+    createdAt: string;
+}
+
+/** Lista de alertas (mais severos e recentes primeiro). */
+export function useAlerts(params: { read?: boolean; severity?: AlertSeverity } = {}) {
+    return useQuery({
+        queryKey: ['alerts', params],
+        queryFn: () => apiFetch<{ alerts: Alert[] }>(`/alerts${qs({ read: params.read, severity: params.severity })}`),
+    });
+}
+
+/** Contagem de não-lidos, com polling (badge do sino). */
+export function useAlertCount() {
+    return useQuery({
+        queryKey: ['alerts', 'count'],
+        queryFn: () => apiFetch<{ unread: number }>('/alerts/count'),
+        refetchInterval: 30_000,
+    });
+}
+
+/** Marca um alerta como lido/não-lido e invalida lista + contagem. */
+export function useMarkAlertRead() {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: (vars: { id: string; read?: boolean }) =>
+            apiFetch(`/alerts/${vars.id}`, { method: 'PATCH', body: { read: vars.read ?? true } }),
+        onSuccess: () => void qc.invalidateQueries({ queryKey: ['alerts'] }),
+    });
+}
+
+/** Marca todos os alertas como lidos. */
+export function useMarkAllAlertsRead() {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: () => apiFetch('/alerts/read-all', { method: 'POST' }),
+        onSuccess: () => void qc.invalidateQueries({ queryKey: ['alerts'] }),
+    });
+}
+
+/** Dispara a reavaliação das regras (persiste os alertas) e invalida a lista. */
+export function useEvaluateAlerts() {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: () => apiFetch<{ evaluated: number; stored: number }>('/alerts/evaluate', { method: 'POST' }),
+        onSuccess: () => void qc.invalidateQueries({ queryKey: ['alerts'] }),
+    });
+}
+
+export interface AlertConfig {
+    highValue: { enabled: boolean; threshold: number };
+    supplierConcentration: { enabled: boolean; threshold: number };
+    volumeSpike: { enabled: boolean; threshold: number };
+    zeroTax: { enabled: boolean };
+    duplicate: { enabled: boolean };
+    numberingGap: { enabled: boolean };
+}
+
+/** Configuração global das regras de alerta. */
+export function useAlertConfig() {
+    return useQuery({
+        queryKey: ['alerts', 'config'],
+        queryFn: () => apiFetch<{ config: AlertConfig }>('/alerts/config'),
+    });
+}
+
+/** Salva a configuração global das regras. */
+export function useSaveAlertConfig() {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: (config: Partial<AlertConfig>) =>
+            apiFetch<{ config: AlertConfig }>('/alerts/config', { method: 'PUT', body: config }),
+        onSuccess: () => void qc.invalidateQueries({ queryKey: ['alerts'] }),
+    });
 }
 
 export function useTopCompanies() {
