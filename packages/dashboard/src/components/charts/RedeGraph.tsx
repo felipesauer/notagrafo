@@ -9,37 +9,65 @@ const cnpjFmt = (c: string): string =>
     c.length === 14 ? c.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : c;
 
 /**
- * Rede comercial completa em WebGL (Reagraph): layout de força, comunidades por
- * UF (clusterAttribute) coloridas com os tokens --chart-*, nós dimensionados
- * pela atividade (totalNFs) e busca de caminho — clicar em duas empresas
- * destaca o caminho comercial entre elas. Tema claro/escuro sincronizado.
+ * Rede comercial completa em WebGL (Reagraph): layout de força, coloração por UF
+ * ou por comunidade detectada (EPIC-28), nós dimensionados pela centralidade de
+ * grau (ou atividade) e busca de caminho — clicar em duas empresas destaca o
+ * caminho comercial entre elas. Tema claro/escuro sincronizado.
+ *
+ * `centrality` (cnpj→grau) dimensiona os nós quando presente; `communityOf`
+ * (cnpj→id da comunidade) permite colorir por cluster quando colorBy='community'.
  */
-export function RedeGraph({ nos, arestas }: { nos: RedeNo[]; arestas: RedeAresta[] }): JSX.Element {
+export function RedeGraph({
+    nos,
+    arestas,
+    centrality,
+    communityOf,
+    colorBy = 'uf',
+}: {
+    nos: RedeNo[];
+    arestas: RedeAresta[];
+    centrality?: Map<string, number>;
+    communityOf?: Map<string, string>;
+    colorBy?: 'uf' | 'community';
+}): JSX.Element {
     const { t } = useTranslation();
     const tema = useThemeStore((s) => s.tema);
     const ref = useRef<GraphCanvasRef | null>(null);
 
     const { nodes, edges, theme, legenda } = useMemo(() => {
         const cores = resolveTokenColorsRGB();
-        // Uma cor por UF (comunidade), ciclando na paleta de tokens.
-        const ufs = [...new Set(nos.map((n) => n.uf || '—'))].sort();
-        const corDaUf = new Map(ufs.map((uf, i) => [uf, cores.chart[i % 8]!]));
-        // Legenda: nº de empresas por UF, para o usuário ler a cor (não confiar só nela).
-        const contUf = new Map<string, number>();
-        for (const n of nos) contUf.set(n.uf || '—', (contUf.get(n.uf || '—') ?? 0) + 1);
-        const legenda = ufs
-            .map((uf) => ({ uf, cor: corDaUf.get(uf)!, total: contUf.get(uf) ?? 0 }))
+        const byCommunity = colorBy === 'community' && !!communityOf;
+
+        // Chave de agrupamento por nó: UF ou id da comunidade (fallback '—').
+        const groupOf = (cnpj: string, uf: string): string =>
+            byCommunity ? communityOf!.get(cnpj) ?? '—' : uf || '—';
+
+        const grupos = [...new Set(nos.map((n) => groupOf(n.cnpj, n.uf)))].sort();
+        const corDoGrupo = new Map(grupos.map((g, i) => [g, cores.chart[i % 8]!]));
+        // Legenda: nº de empresas por grupo, para o usuário ler a cor (não confiar só nela).
+        const cont = new Map<string, number>();
+        for (const n of nos) {
+            const g = groupOf(n.cnpj, n.uf);
+            cont.set(g, (cont.get(g) ?? 0) + 1);
+        }
+        const legenda = grupos
+            .map((g) => ({ grupo: g, cor: corDoGrupo.get(g)!, total: cont.get(g) ?? 0 }))
             .sort((a, b) => b.total - a.total)
             .slice(0, 8);
 
-        const nodes: GraphNode[] = nos.map((n) => ({
-            id: n.cnpj,
-            label: n.razaoSocial || cnpjFmt(n.cnpj),
-            size: n.totalNFs,
-            fill: corDaUf.get(n.uf || '—'),
-            // clusterAttribute e sizeAttribute leem de node.data[attr] no Reagraph.
-            data: { uf: n.uf || '—', totalNFs: n.totalNFs, cnpj: n.cnpj },
-        }));
+        const nodes: GraphNode[] = nos.map((n) => {
+            // Tamanho por centralidade (grau) quando disponível; senão atividade.
+            const sizeVal = centrality?.get(n.cnpj) ?? n.totalNFs;
+            const group = groupOf(n.cnpj, n.uf);
+            return {
+                id: n.cnpj,
+                label: n.razaoSocial || cnpjFmt(n.cnpj),
+                size: sizeVal,
+                fill: corDoGrupo.get(group),
+                // clusterAttribute e sizeAttribute leem de node.data[attr] no Reagraph.
+                data: { group, sizeVal, cnpj: n.cnpj },
+            };
+        });
 
         const edges: GraphEdge[] = arestas.map((a, i) => ({
             id: `e${i}`,
@@ -69,7 +97,7 @@ export function RedeGraph({ nos, arestas }: { nos: RedeNo[]; arestas: RedeAresta
         };
 
         return { nodes, edges, theme, legenda };
-    }, [nos, arestas, tema]);
+    }, [nos, arestas, tema, centrality, communityOf, colorBy]);
 
     const { selections, actives, onNodeClick, onCanvasClick, clearSelections } = useSelection({
         ref,
@@ -87,10 +115,10 @@ export function RedeGraph({ nos, arestas }: { nos: RedeNo[]; arestas: RedeAresta
                 layoutType="forceDirected2d"
                 layoutOverrides={{ linkDistance: 180, nodeStrength: -650, clusterStrength: 0.35 }}
                 sizingType="attribute"
-                sizingAttribute="totalNFs"
+                sizingAttribute="sizeVal"
                 minNodeSize={6}
                 maxNodeSize={18}
-                clusterAttribute="uf"
+                clusterAttribute="group"
                 labelType="all"
                 edgeArrowPosition="end"
                 draggable
@@ -114,15 +142,19 @@ export function RedeGraph({ nos, arestas }: { nos: RedeNo[]; arestas: RedeAresta
                 </div>
             )}
 
-            {/* Legenda de cor por UF (anti-hairball: nunca cor sozinha — parear com rótulo). */}
+            {/* Legenda de cor por UF/comunidade (anti-hairball: nunca cor sozinha — parear com rótulo). */}
             {legenda.length > 0 && (
                 <div className="pointer-events-none absolute bottom-3 left-3 max-w-[220px] rounded-md border bg-background/85 p-2 text-2xs shadow-sm backdrop-blur">
-                    <p className="mb-1 font-semibold text-muted-foreground">{t('rede.legendaUf')}</p>
+                    <p className="mb-1 font-semibold text-muted-foreground">
+                        {colorBy === 'community' ? t('rede.legendaComunidade') : t('rede.legendaUf')}
+                    </p>
                     <ul className="grid grid-cols-2 gap-x-3 gap-y-0.5">
                         {legenda.map((l) => (
-                            <li key={l.uf} className="flex items-center gap-1.5">
+                            <li key={l.grupo} className="flex items-center gap-1.5">
                                 <span className="size-2 shrink-0 rounded-[3px]" style={{ background: l.cor }} />
-                                <span className="font-medium">{l.uf}</span>
+                                <span className="truncate font-medium">
+                                    {colorBy === 'community' ? cnpjFmt(l.grupo) : l.grupo}
+                                </span>
                                 <span className="ml-auto tabular-nums text-muted-foreground">{l.total}</span>
                             </li>
                         ))}

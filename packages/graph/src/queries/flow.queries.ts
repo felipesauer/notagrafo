@@ -84,19 +84,30 @@ export interface RedeGlobal {
  * (as `limite` de maior valor) e traz apenas os nós que participam delas — o
  * suficiente para uma exploração em força/WebGL sem carregar a base inteira.
  */
-export async function getRedeGlobal(driver: Driver, opts: { limite?: number } = {}): Promise<RedeGlobal> {
+export async function getRedeGlobal(
+    driver: Driver,
+    opts: { limite?: number; dataInicio?: string; dataFim?: string } = {},
+): Promise<RedeGlobal> {
     const limite = Math.min(Math.max(opts.limite ?? 150, 1), 500);
     const session = driver.session();
     try {
+        // Recorte temporal opcional (EPIC-28): restringe as arestas às NF emitidas
+        // na janela [dataInicio, dataFim], para ver como a rede cresceu no período.
+        const dateFilter: string[] = [];
+        const params: Record<string, unknown> = { limite: neo4j.int(limite) };
+        if (opts.dataInicio) (dateFilter.push('nf.dataEmissao >= $dataInicio'), (params.dataInicio = opts.dataInicio));
+        if (opts.dataFim) (dateFilter.push('nf.dataEmissao <= $dataFim'), (params.dataFim = opts.dataFim + '￿'));
+        const dateClause = dateFilter.length ? ` AND ${dateFilter.join(' AND ')}` : '';
+
         // Arestas: top-N relações por valor (mesmo padrão do fluxo, sem laços).
         const arestasRes = await session.run(
             `MATCH (a:Empresa)-[:EMITIU]->(nf:NotaFiscal)-[:DESTINADA_A]->(b:Empresa)
-             WHERE a.cnpj <> b.cnpj
+             WHERE a.cnpj <> b.cnpj${dateClause}
              WITH a, b, count(nf) AS totalNFs, sum(nf.valorTotal) AS valorTotal
              RETURN a.cnpj AS de, b.cnpj AS para, totalNFs, valorTotal
              ORDER BY valorTotal DESC
              LIMIT $limite`,
-            { limite: neo4j.int(limite) },
+            params,
         );
         const arestas: RedeAresta[] = arestasRes.records.map((r) => ({
             de: r.get('de') as string,

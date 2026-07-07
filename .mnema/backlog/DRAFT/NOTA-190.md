@@ -19,10 +19,10 @@ mnema:
   priority: 4
   assignee: null
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
-  epic_key: null
+  epic_key: NOTA-EPIC-28
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-07T16:33:45.172Z'
+  updated_at: '2026-07-07T19:43:35.044Z'
 ---
 # Métricas de centralidade no peek/detalhe da empresa

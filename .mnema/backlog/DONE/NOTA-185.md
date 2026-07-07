@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-185
-  state: IN_REVIEW
+  state: DONE
   title: Centro de notificações no dashboard (sino + lista)
   description: >-
     NotificationCenter: sino na Topbar com badge de não-lidos (polling 30s) +
@@ -25,6 +25,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-07T18:59:12.725Z'
+  updated_at: '2026-07-07T19:41:47.343Z'
 ---
 # Centro de notificações no dashboard (sino + lista)

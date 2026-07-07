@@ -87,4 +87,20 @@ describe('getRedeGlobal (unit)', () => {
         const { driver: d2 } = makeFakeDriver(() => []);
         expect((await getRedeGlobal(d2, { limite: 0 })).limite).toBe(1);
     });
+
+    it('aplica recorte temporal na query de arestas (EPIC-28)', async () => {
+        const { driver, runs } = makeFakeDriver(() => []);
+        await getRedeGlobal(driver, { dataInicio: '2026-06-01', dataFim: '2026-06-30' });
+        // a cláusula de data entra no WHERE das arestas com os params
+        expect(runs[0]!.cypher).toContain('nf.dataEmissao >= $dataInicio');
+        expect(runs[0]!.cypher).toContain('nf.dataEmissao <= $dataFim');
+        expect(runs[0]!.params.dataInicio).toBe('2026-06-01');
+        expect(String(runs[0]!.params.dataFim).startsWith('2026-06-30')).toBe(true);
+    });
+
+    it('sem datas não injeta cláusula temporal', async () => {
+        const { driver, runs } = makeFakeDriver(() => []);
+        await getRedeGlobal(driver, { limite: 10 });
+        expect(runs[0]!.cypher).not.toContain('dataEmissao');
+    });
 });
