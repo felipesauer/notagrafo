@@ -183,3 +183,30 @@ describe('GET /stats/events (unit)', () => {
         expect(res.statusCode).toBe(400);
     });
 });
+
+describe('GET /stats/centrality (unit)', () => {
+    it('retorna ranking de empresas-hub por grau', async () => {
+        const { driver, runs } = makeFakeDriver(() => [
+            rec({ cnpj: '111', razaoSocial: 'Hub SA', uf: 'SP', degree: 9, totalNFs: 30, valorTotal: 70000 }),
+        ]);
+        app = await buildTestApi((a) => statsRoutes(a, driver));
+        const res = await app.inject({ method: 'GET', url: '/stats/centrality?limit=10' });
+        expect(res.statusCode).toBe(200);
+        expect(res.json().ranking[0]).toMatchObject({ cnpj: '111', degree: 9 });
+        expect(runs[0]!.cypher).toContain('count(DISTINCT partner) AS degree');
+    });
+});
+
+describe('GET /stats/communities (unit)', () => {
+    it('agrupa empresas em comunidades (componentes conexos)', async () => {
+        const { driver } = makeFakeDriver(() => [
+            rec({ a: '111', b: '222' }),
+            rec({ a: '222', b: '333' }),
+        ]);
+        app = await buildTestApi((a) => statsRoutes(a, driver));
+        const res = await app.inject({ method: 'GET', url: '/stats/communities' });
+        expect(res.statusCode).toBe(200);
+        const j = res.json();
+        expect(j.communities[0].members).toEqual(['111', '222', '333']);
+    });
+});

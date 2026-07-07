@@ -21,10 +21,10 @@ mnema:
   priority: 3
   assignee: null
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
-  epic_key: null
+  epic_key: NOTA-EPIC-28
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-07T16:33:45.168Z'
+  updated_at: '2026-07-07T19:43:29.872Z'
 ---
 # Centralidade: ranking de empresas-hub + destaque no grafo

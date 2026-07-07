@@ -87,4 +87,33 @@ describe('getRedeGlobal (unit)', () => {
         const { driver: d2 } = makeFakeDriver(() => []);
         expect((await getRedeGlobal(d2, { limite: 0 })).limite).toBe(1);
     });
+
+    it('aplica recorte temporal na query de arestas (EPIC-28)', async () => {
+        const { driver, runs } = makeFakeDriver(() => []);
+        await getRedeGlobal(driver, { dataInicio: '2026-06-01', dataFim: '2026-06-30' });
+        // a cláusula de data entra no WHERE das arestas com os params
+        expect(runs[0]!.cypher).toContain('nf.dataEmissao >= $dataInicio');
+        expect(runs[0]!.cypher).toContain('nf.dataEmissao <= $dataFim');
+        expect(runs[0]!.params.dataInicio).toBe('2026-06-01');
+        expect(String(runs[0]!.params.dataFim).startsWith('2026-06-30')).toBe(true);
+    });
+
+    it('sem datas não injeta cláusula temporal', async () => {
+        const { driver, runs } = makeFakeDriver(() => []);
+        await getRedeGlobal(driver, { limite: 10 });
+        expect(runs[0]!.cypher).not.toContain('dataEmissao');
+    });
+
+    it('o tamanho do nó respeita status e recorte temporal (não conta atividade de fora)', async () => {
+        // responder com 1 aresta para forçar a 2ª query (nós)
+        const responder = (_c: string, _p: Record<string, unknown>, i: number) =>
+            i === 0 ? [fakeRecord({ de: '111', para: '222', totalNFs: 1, valorTotal: 10 })] : [];
+        const { driver, runs } = makeFakeDriver(responder);
+        await getRedeGlobal(driver, { dataInicio: '2026-06-01', dataFim: '2026-06-30' });
+        // a query de nós (runs[1]) filtra por status e pela janela nas duas direções
+        expect(runs[1]!.cypher).toContain('nfE.status IS NOT NULL');
+        expect(runs[1]!.cypher).toContain('nfE.dataEmissao >= $dataInicio');
+        expect(runs[1]!.cypher).toContain('nfR.dataEmissao <= $dataFim');
+        expect(runs[1]!.params.dataInicio).toBe('2026-06-01');
+    });
 });

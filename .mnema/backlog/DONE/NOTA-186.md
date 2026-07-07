@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-186
-  state: IN_REVIEW
+  state: DONE
   title: Configuração de alertas em Configurações (ligar/limiares)
   description: >-
     AlertsCard em Configurações: liga/desliga cada regra e ajusta limiares
@@ -23,6 +23,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-07T18:59:13.178Z'
+  updated_at: '2026-07-07T19:41:49.448Z'
 ---
 # Configuração de alertas em Configurações (ligar/limiares)

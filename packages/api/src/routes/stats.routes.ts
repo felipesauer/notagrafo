@@ -13,6 +13,8 @@ import {
     getPeriodComparison,
     findDuplicateInvoices,
     findNumberingGaps,
+    getCentrality,
+    getCommunities,
     type MetricaProduto,
     type TaxFilters,
 } from '@notagrafo/graph';
@@ -404,7 +406,7 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
     );
 
     // GET /stats/network — rede comercial completa (nós + arestas) para exploração WebGL
-    app.get<{ Querystring: { limite?: number } }>(
+    app.get<{ Querystring: { limite?: number; dataInicio?: string; dataFim?: string } }>(
         '/stats/network',
         {
             preHandler: app.authenticate,
@@ -413,7 +415,11 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
                 summary: 'Rede comercial: empresas (nós) e relações agregadas (arestas), top-N por valor',
                 querystring: {
                     type: 'object',
-                    properties: { limite: { type: 'integer', minimum: 1, maximum: 500 } },
+                    properties: {
+                        limite: { type: 'integer', minimum: 1, maximum: 500 },
+                        dataInicio: { type: 'string' },
+                        dataFim: { type: 'string' },
+                    },
                 },
                 security: [{ bearerAuth: [] }],
             },
@@ -421,7 +427,51 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
         async (request) => {
             return getRedeGlobal(driver, {
                 ...(request.query.limite ? { limite: Number(request.query.limite) } : {}),
+                ...(request.query.dataInicio ? { dataInicio: request.query.dataInicio } : {}),
+                ...(request.query.dataFim ? { dataFim: request.query.dataFim } : {}),
             });
+        },
+    );
+
+    // GET /stats/centrality — ranking de empresas-hub por centralidade de grau (EPIC-28)
+    app.get<{ Querystring: { limit?: number } }>(
+        '/stats/centrality',
+        {
+            preHandler: app.authenticate,
+            schema: {
+                tags: ['stats'],
+                summary: 'Empresas mais centrais na rede (centralidade por grau)',
+                querystring: {
+                    type: 'object',
+                    properties: { limit: { type: 'integer', minimum: 1, maximum: 200 } },
+                },
+                security: [{ bearerAuth: [] }],
+            },
+        },
+        async (request) => {
+            const limit = request.query.limit ? Number(request.query.limit) : 50;
+            return { ranking: await getCentrality(driver, limit) };
+        },
+    );
+
+    // GET /stats/communities — clusters de empresas (componentes conexos) (EPIC-28)
+    app.get<{ Querystring: { edgeLimit?: number } }>(
+        '/stats/communities',
+        {
+            preHandler: app.authenticate,
+            schema: {
+                tags: ['stats'],
+                summary: 'Comunidades: clusters de empresas que transacionam entre si',
+                querystring: {
+                    type: 'object',
+                    properties: { edgeLimit: { type: 'integer', minimum: 1, maximum: 5000 } },
+                },
+                security: [{ bearerAuth: [] }],
+            },
+        },
+        async (request) => {
+            const edgeLimit = request.query.edgeLimit ? Number(request.query.edgeLimit) : 2000;
+            return { communities: await getCommunities(driver, edgeLimit) };
         },
     );
 

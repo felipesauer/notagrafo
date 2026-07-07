@@ -314,10 +314,45 @@ export interface RedeAresta {
     valorTotal: number;
 }
 
-export function useRede(limite = 150) {
+export function useRede(limite = 150, period?: { dataInicio?: string; dataFim?: string }) {
     return useQuery({
-        queryKey: ['stats', 'rede', limite],
-        queryFn: () => apiFetch<{ nos: RedeNo[]; arestas: RedeAresta[]; limite: number }>(`/stats/network${qs({ limite })}`),
+        queryKey: ['stats', 'rede', limite, period?.dataInicio, period?.dataFim],
+        queryFn: () =>
+            apiFetch<{ nos: RedeNo[]; arestas: RedeAresta[]; limite: number }>(
+                `/stats/network${qs({ limite, dataInicio: period?.dataInicio, dataFim: period?.dataFim })}`,
+            ),
+    });
+}
+
+// ── Grafo rico: centralidade e comunidades (EPIC-28) ─────────────────
+export interface CentralityNode {
+    cnpj: string;
+    razaoSocial: string;
+    uf: string;
+    degree: number;
+    totalNFs: number;
+    valorTotal: number;
+}
+
+/** Ranking de empresas-hub por centralidade de grau. */
+export function useCentrality(limit = 50) {
+    return useQuery({
+        queryKey: ['stats', 'centrality', limit],
+        queryFn: () => apiFetch<{ ranking: CentralityNode[] }>(`/stats/centrality${qs({ limit })}`),
+    });
+}
+
+export interface Community {
+    id: string;
+    members: string[];
+    size: number;
+}
+
+/** Comunidades (clusters de empresas que transacionam entre si). */
+export function useCommunities() {
+    return useQuery({
+        queryKey: ['stats', 'communities'],
+        queryFn: () => apiFetch<{ communities: Community[] }>('/stats/communities'),
     });
 }
 

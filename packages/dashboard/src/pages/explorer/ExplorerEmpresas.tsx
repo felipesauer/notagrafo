@@ -2,7 +2,7 @@ import { type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from '@tanstack/react-router';
 import { Building2, Network, Search, X } from 'lucide-react';
-import { useTopCompanies, useCompany, type TopEmpresa } from '../../api/hooks.js';
+import { useTopCompanies, useCompany, useCentrality, useCommunities, type TopEmpresa } from '../../api/hooks.js';
 import { LoadingSkeleton, InlineError, EmptyState } from '../../components/shared.js';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table.js';
 import { SortableHead } from '../../components/SortableHead.js';
@@ -21,6 +21,17 @@ function EmpresaPeek({ cnpj, empresa, onClose, onOpenChange }: { cnpj: string | 
     const { t } = useTranslation();
     const { data } = useCompany(cnpj ?? '');
     const stats = (data as { stats?: { totalNFsEmitidas?: number; totalNFsRecebidas?: number } } | undefined)?.stats;
+
+    // Métricas de rede (EPIC-28): grau/posição no ranking de centralidade + comunidade.
+    // Reusa as queries cacheadas pela tela de Rede (mesmas queryKeys).
+    const { data: centralityData } = useCentrality(50);
+    const { data: communitiesData } = useCommunities();
+    const ranking = centralityData?.ranking ?? [];
+    const rankIdx = cnpj ? ranking.findIndex((r) => r.cnpj === cnpj) : -1;
+    const centralNode = rankIdx >= 0 ? ranking[rankIdx] : undefined;
+    const community = cnpj
+        ? (communitiesData?.communities ?? []).find((c) => c.members.includes(cnpj))
+        : undefined;
 
     return (
         <Sheet open={!!cnpj} onOpenChange={onOpenChange}>
@@ -41,6 +52,20 @@ function EmpresaPeek({ cnpj, empresa, onClose, onOpenChange }: { cnpj: string | 
                                 <dt className="text-muted-foreground">{t('empresas.nfsEmitidas')}</dt><dd className="font-mono tabular-nums">{stats?.totalNFsEmitidas ?? empresa.totalNFs}</dd>
                                 <dt className="text-muted-foreground">{t('empresas.nfsRecebidas')}</dt><dd className="font-mono tabular-nums">{stats?.totalNFsRecebidas ?? '—'}</dd>
                                 <dt className="text-muted-foreground">{t('overview.valorTotal')}</dt><dd className="font-mono font-medium tabular-nums">{brlK(empresa.valorTotal)}</dd>
+                                {centralNode && (
+                                    <>
+                                        <dt className="text-muted-foreground">{t('rede.grauMetrica')}</dt>
+                                        <dd className="font-mono tabular-nums">{t('rede.parceiros', { count: centralNode.degree })}</dd>
+                                        <dt className="text-muted-foreground">{t('rede.posicaoHub')}</dt>
+                                        <dd className="font-mono tabular-nums">#{rankIdx + 1}</dd>
+                                    </>
+                                )}
+                                {community && (
+                                    <>
+                                        <dt className="text-muted-foreground">{t('rede.comunidadeMetrica')}</dt>
+                                        <dd className="font-mono tabular-nums">{t('rede.comunidadeTamanho', { count: community.size })}</dd>
+                                    </>
+                                )}
                             </dl>
                         </div>
                         <div className="flex gap-2 border-t p-3">
