@@ -11,7 +11,7 @@ import { Button } from '../ui/button.js';
 function pageLabelKey(pathname: string): string {
     if (pathname === '/') return 'sidebar.inicio';
     if (pathname.startsWith('/explore')) return 'sidebar.explorar';
-    if (pathname.startsWith('/nf/')) return 'comando.nf';
+    if (pathname.startsWith('/invoice/')) return 'comando.nf';
     if (pathname.startsWith('/graph')) return 'sidebar.grafo';
     if (pathname.startsWith('/exports')) return 'sidebar.exportacoes';
     if (pathname.startsWith('/settings')) return 'sidebar.configuracoes';
