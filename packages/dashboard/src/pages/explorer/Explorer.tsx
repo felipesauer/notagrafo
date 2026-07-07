@@ -2,7 +2,7 @@ import { type JSX, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import {
-    Activity, Bookmark, Building2, FileText, Filter, type LucideIcon,
+    Activity, AlertTriangle, Bookmark, Building2, FileText, Filter, type LucideIcon,
     Network, Package, ReceiptText, Search, Star, Upload, X,
 } from 'lucide-react';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue.js';
@@ -25,9 +25,10 @@ import { ExplorerProdutos } from './ExplorerProdutos.js';
 import { ExplorerImpostos } from './ExplorerImpostos.js';
 import { NetworkContent } from '../Network.js';
 import { EventsContent } from '../Events.js';
+import { AnomaliasContent } from './ExplorerAnomalias.js';
 import { useSavedViews } from './useSavedViews.js';
 
-type EntityKey = 'notas' | 'empresas' | 'produtos' | 'impostos' | 'rede' | 'eventos';
+type EntityKey = 'notas' | 'empresas' | 'produtos' | 'impostos' | 'rede' | 'eventos' | 'anomalias';
 
 interface EntityDef {
     key: EntityKey;
@@ -43,6 +44,7 @@ const ENTITIES: EntityDef[] = [
     { key: 'impostos', icon: ReceiptText, labelKey: 'sidebar.impostos', group: 'explorar' },
     { key: 'rede', icon: Network, labelKey: 'sidebar.rede', group: 'analise' },
     { key: 'eventos', icon: Activity, labelKey: 'sidebar.eventos', group: 'analise' },
+    { key: 'anomalias', icon: AlertTriangle, labelKey: 'sidebar.anomalias', group: 'analise' },
 ];
 const ENTITY_KEYS = new Set<string>(ENTITIES.map((e) => e.key));
 
@@ -217,6 +219,8 @@ export function ExplorerPage(): JSX.Element {
                         <ExplorerImpostos />
                     ) : entity === 'rede' ? (
                         <div className="min-h-0"><NetworkContent /></div>
+                    ) : entity === 'anomalias' ? (
+                        <AnomaliasContent />
                     ) : (
                         <EventsContent />
                     )}

@@ -10,6 +10,9 @@ import {
     getFluxoEmpresas,
     getRedeGlobal,
     listEventos,
+    getPeriodComparison,
+    findDuplicateInvoices,
+    findNumberingGaps,
     type MetricaProduto,
     type TaxFilters,
 } from '@notagrafo/graph';
@@ -71,6 +74,56 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
             } finally {
                 await session.close();
             }
+        },
+    );
+
+    // GET /stats/comparison — totais do período vs período anterior e YoY (EPIC-26)
+    app.get<{ Querystring: { dataInicio?: string; dataFim?: string } }>(
+        '/stats/comparison',
+        {
+            preHandler: app.authenticate,
+            schema: {
+                tags: ['stats'],
+                summary: 'Compara totais do período com o anterior e o ano anterior (YoY)',
+                querystring: {
+                    type: 'object',
+                    required: ['dataInicio', 'dataFim'],
+                    properties: {
+                        dataInicio: { type: 'string' },
+                        dataFim: { type: 'string' },
+                    },
+                },
+                security: [{ bearerAuth: [] }],
+            },
+        },
+        async (request) => {
+            const { dataInicio, dataFim } = request.query;
+            return getPeriodComparison(driver, dataInicio!, dataFim!);
+        },
+    );
+
+    // GET /stats/anomalies — duplicatas prováveis + gaps de numeração (EPIC-26)
+    app.get<{ Querystring: { limit?: number } }>(
+        '/stats/anomalies',
+        {
+            preHandler: app.authenticate,
+            schema: {
+                tags: ['stats'],
+                summary: 'Anomalias: NF-e duplicadas prováveis e gaps de numeração',
+                querystring: {
+                    type: 'object',
+                    properties: { limit: { type: 'integer', minimum: 1, maximum: 200 } },
+                },
+                security: [{ bearerAuth: [] }],
+            },
+        },
+        async (request) => {
+            const limit = request.query.limit ? Number(request.query.limit) : 50;
+            const [duplicatas, gaps] = await Promise.all([
+                findDuplicateInvoices(driver, limit),
+                findNumberingGaps(driver, limit),
+            ]);
+            return { duplicatas, gaps };
         },
     );
 
@@ -234,9 +287,9 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
         },
     );
 
-    // GET /stats/por-uf — distribuição de NFs e valor por UF do emitente (Treemap do Overview)
+    // GET /stats/by-uf — distribuição de NFs e valor por UF do emitente (Treemap do Overview)
     app.get<{ Querystring: { tipo?: string } }>(
-        '/stats/por-uf',
+        '/stats/by-uf',
         {
             preHandler: app.authenticate,
             schema: {
@@ -328,9 +381,9 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
         },
     );
 
-    // GET /stats/fluxo — fluxo de valor agregado entre empresas (Sankey)
+    // GET /stats/flow — fluxo de valor agregado entre empresas (Sankey)
     app.get<{ Querystring: { limite?: number } }>(
-        '/stats/fluxo',
+        '/stats/flow',
         {
             preHandler: app.authenticate,
             schema: {
@@ -350,9 +403,9 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
         },
     );
 
-    // GET /stats/rede — rede comercial completa (nós + arestas) para exploração WebGL
+    // GET /stats/network — rede comercial completa (nós + arestas) para exploração WebGL
     app.get<{ Querystring: { limite?: number } }>(
-        '/stats/rede',
+        '/stats/network',
         {
             preHandler: app.authenticate,
             schema: {
@@ -372,9 +425,9 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
         },
     );
 
-    // GET /stats/eventos — feed global de eventos de auditoria (todas as NFs)
+    // GET /stats/events — feed global de eventos de auditoria (todas as NFs)
     app.get<{ Querystring: { limit?: number; offset?: number; tipo?: string } }>(
-        '/stats/eventos',
+        '/stats/events',
         {
             preHandler: app.authenticate,
             schema: {

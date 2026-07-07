@@ -37,9 +37,9 @@ export async function companyRoutes(app: FastifyInstance, driver: Driver): Promi
         },
     );
 
-    // GET /empresa/:cnpj/grafo — vizinhos; depth máx 4 (regra 6 → 400 antes da query)
+    // GET /empresa/:cnpj/graph — vizinhos; depth máx 4 (regra 6 → 400 antes da query)
     app.get<{ Params: { cnpj: string }; Querystring: { depth?: number; direction?: Direction; limit?: number; includeProdutos?: boolean; includeNotas?: boolean } }>(
-        '/empresa/:cnpj/grafo',
+        '/empresa/:cnpj/graph',
         {
             preHandler: app.authenticate,
             schema: {

@@ -18,7 +18,7 @@ test.describe('explorador de NFs', () => {
 
         // do peek, "abrir detalhe" leva à página completa da NF
         await page.getByTestId('nf-peek').getByRole('link').last().click();
-        await expect(page).toHaveURL(/\/nf\//);
+        await expect(page).toHaveURL(/\/invoice\//);
         await expect(page.getByText(/itens|items/i)).toBeVisible();
     });
 

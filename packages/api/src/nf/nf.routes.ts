@@ -201,9 +201,9 @@ export async function nfRoutes(app: FastifyInstance, deps: NFRouteDeps): Promise
         },
     );
 
-    // GET /nf/:chave/eventos — auditoria da NF.
+    // GET /nf/:chave/events — auditoria da NF.
     app.get<{ Params: { chave: string } }>(
-        '/nf/:chave/eventos',
+        '/nf/:chave/events',
         { preHandler: app.authenticate, schema: { tags: ['nf'], summary: 'Eventos de auditoria da NFe', params: { type: 'object', properties: { chave: { type: 'string' } }, required: ['chave'] }, security: [{ bearerAuth: [] }] } },
         async (request) => {
             const session = driver.session();

@@ -154,7 +154,7 @@ function initials(nome: string): string {
 }
 
 /**
- * Converte a resposta de /empresa/:cnpj/grafo em nós-card e arestas com peso,
+ * Converte a resposta de /empresa/:cnpj/graph em nós-card e arestas com peso,
  * mesclando com os já existentes SEM duplicar (por id = cnpj). A raiz é marcada
  * com relacao='raiz' para o nó-card destacá-la.
  */

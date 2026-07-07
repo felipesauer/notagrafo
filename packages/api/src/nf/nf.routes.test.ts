@@ -169,13 +169,13 @@ describe('GET /nf/jobs/:jobId (unit)', () => {
     });
 });
 
-describe('GET /nf/:chave/eventos (unit)', () => {
+describe('GET /nf/:chave/events (unit)', () => {
     it('retorna chaveAcesso no topo e eventos com timestamp ISO8601', async () => {
         const { driver } = makeFakeDriver(() => [
             { get: (k: string) => ({ tipo: 'consultada', timestamp: '2026-06-01T10:00:00.000Z', autor: 'a@b.com', ipOrigem: '1.2.3.4' }[k]) },
         ]);
         app = await build(makeQueue(() => null), fakeStorage(), driver);
-        const res = await app.inject({ method: 'GET', url: `/nf/${CHAVE}/eventos` });
+        const res = await app.inject({ method: 'GET', url: `/nf/${CHAVE}/events` });
         expect(res.statusCode).toBe(200);
         const j = res.json();
         expect(j.chaveAcesso).toBe(CHAVE);
@@ -186,7 +186,7 @@ describe('GET /nf/:chave/eventos (unit)', () => {
     it('404 NF_NOT_FOUND quando a NF não existe (0 linhas)', async () => {
         const { driver } = makeFakeDriver(() => []);
         app = await build(makeQueue(() => null), fakeStorage(), driver);
-        const res = await app.inject({ method: 'GET', url: `/nf/${CHAVE}/eventos` });
+        const res = await app.inject({ method: 'GET', url: `/nf/${CHAVE}/events` });
         expect(res.statusCode).toBe(404);
         expect(res.json().error).toBe('NF_NOT_FOUND');
     });
@@ -194,7 +194,7 @@ describe('GET /nf/:chave/eventos (unit)', () => {
     it('200 com eventos:[] quando a NF existe mas não tem eventos (linha sentinela ev=null)', async () => {
         const { driver } = makeFakeDriver(() => [{ get: () => null }]);
         app = await build(makeQueue(() => null), fakeStorage(), driver);
-        const res = await app.inject({ method: 'GET', url: `/nf/${CHAVE}/eventos` });
+        const res = await app.inject({ method: 'GET', url: `/nf/${CHAVE}/events` });
         expect(res.statusCode).toBe(200);
         expect(res.json()).toEqual({ chaveAcesso: CHAVE, eventos: [] });
     });

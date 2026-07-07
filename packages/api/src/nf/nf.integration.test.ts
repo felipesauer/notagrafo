@@ -149,7 +149,7 @@ describe('rotas de NF', () => {
 
         // o evento consultada é assíncrono — aguarda um tick e verifica
         await new Promise((r) => setTimeout(r, 300));
-        const eventos = await app.inject({ method: 'GET', url: `${API_PREFIX}/nf/${CHAVE}/eventos`, headers: bearer() });
+        const eventos = await app.inject({ method: 'GET', url: `${API_PREFIX}/nf/${CHAVE}/events`, headers: bearer() });
         const body = eventos.json();
         // chaveAcesso no topo (contrato §4)
         expect(body.chaveAcesso).toBe(CHAVE);
@@ -186,8 +186,8 @@ describe('rotas de NF', () => {
         expect(res.json().error).toBe('NF_NOT_FOUND');
     });
 
-    it('GET /nf/:chave/eventos de NF inexistente → 404 NF_NOT_FOUND', async () => {
-        const res = await app.inject({ method: 'GET', url: `${API_PREFIX}/nf/00000000000000000000000000000000000000000000/eventos`, headers: bearer() });
+    it('GET /nf/:chave/events de NF inexistente → 404 NF_NOT_FOUND', async () => {
+        const res = await app.inject({ method: 'GET', url: `${API_PREFIX}/nf/00000000000000000000000000000000000000000000/events`, headers: bearer() });
         expect(res.statusCode).toBe(404);
         expect(res.json().error).toBe('NF_NOT_FOUND');
     });

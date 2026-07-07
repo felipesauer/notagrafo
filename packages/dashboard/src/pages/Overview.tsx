@@ -13,7 +13,7 @@ import {
     YAxis,
 } from 'recharts';
 import { Building2, FileText, Package, Receipt } from 'lucide-react';
-import { useOverview, useVolume, useTopCompanies, useByUf, useTaxStats } from '../api/hooks.js';
+import { useOverview, useVolume, useTopCompanies, useByUf, useTaxStats, usePeriodComparison, type PeriodComparison } from '../api/hooks.js';
 import { NFStatusBadge, CurrencyValue, DateDisplay, LoadingSkeleton, InlineError, EmptyState } from '../components/shared.js';
 import { NFRowActions } from '../components/NFRowActions.js';
 import { SortableHead } from '../components/SortableHead.js';
@@ -82,6 +82,16 @@ export function OverviewPage(): JSX.Element {
     const topCompanies = useTopCompanies();
     const byUf = useByUf('emitente');
     const taxes = useTaxStats();
+    // Comparativo dos últimos 30 dias vs os 30 anteriores (EPIC-26) — variação
+    // real nos KPIs, no lugar da tendência interna da série. Datas em useMemo
+    // para não recriar a cada render (Date.now indireto via janela fixa de hoje).
+    const { compStart, compEnd } = useMemo(() => {
+        const today = new Date();
+        const end = today.toISOString().slice(0, 10);
+        const start = new Date(today.getTime() - 29 * 86_400_000).toISOString().slice(0, 10);
+        return { compStart: start, compEnd: end };
+    }, []);
+    const comparison = usePeriodComparison(compStart, compEnd);
 
     return (
         // canvas: moldura de report (estilo Power BI). Um gradiente sutil +
@@ -102,6 +112,8 @@ export function OverviewPage(): JSX.Element {
                     ranking={topCompanies.data?.ranking ?? []}
                     byUf={byUf}
                     taxTotals={taxes.data?.totais}
+                    comparison={comparison.data}
+                    gran={gran}
                 />
             )}
         </div>
@@ -118,12 +130,16 @@ function OverviewContent({
     ranking,
     byUf,
     taxTotals,
+    comparison,
+    gran,
 }: {
     o: NonNullable<OverviewData>;
     volumeSeries: { periodo: string; totalNFs: number; valorTotal: number; canceladas?: number }[];
     ranking: { cnpj: string; razaoSocial: string; valorTotal: number }[];
     byUf: ByUfQuery;
     taxTotals?: TaxTotals;
+    comparison?: PeriodComparison;
+    gran: Gran;
 }): JSX.Element {
     const { t } = useTranslation();
     const navigate = useNavigate();
@@ -163,6 +179,40 @@ function OverviewContent({
           ].filter((d) => d.valor > 0))
         : [];
 
+    // KPI delta: real change of the last 30d vs the previous 30d (comparison).
+    // Falls back to the in-series trend while loading or when there is no
+    // baseline (empty previous period → change is undefined).
+    const deltaNFs = comparison?.changeVsPrevious.totalNFs ?? trend(nfSpark);
+    const deltaValor = comparison?.changeVsPrevious.valorTotal ?? trend(valSpark);
+    const deltaHint = comparison ? t('overview.vs30d') : t('overview.periodoAnterior');
+
+    // Drill-down temporal (EPIC-26): clicar numa barra/ponto do gráfico de volume
+    // abre o Explorer filtrado pela janela de data daquele período. O rótulo
+    // `periodo` da série varia por granularidade (dia=YYYY-MM-DD, mês=YYYY-MM…).
+    function periodWindow(periodo: string): { dataEmissaoInicio: string; dataEmissaoFim: string } | null {
+        if (!periodo) return null;
+        if (gran === 'mes') {
+            // YYYY-MM → primeiro ao último dia do mês
+            const [y, m] = periodo.split('-').map(Number);
+            if (!y || !m) return null;
+            const inicio = `${periodo}-01`;
+            const fim = new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10); // dia 0 do mês seguinte = último dia
+            return { dataEmissaoInicio: inicio, dataEmissaoFim: fim };
+        }
+        if (gran === 'semana') {
+            // YYYY-MM-DD (início da semana) → +6 dias
+            const fim = new Date(new Date(periodo + 'T00:00:00Z').getTime() + 6 * 86_400_000).toISOString().slice(0, 10);
+            return { dataEmissaoInicio: periodo, dataEmissaoFim: fim };
+        }
+        // dia (ou hora): o próprio dia
+        return { dataEmissaoInicio: periodo.slice(0, 10), dataEmissaoFim: periodo.slice(0, 10) };
+    }
+    function drillToPeriod(periodo: string): void {
+        const w = periodWindow(periodo);
+        if (!w) return;
+        void navigate({ to: '/explore' as string, search: { entity: 'notas', ...w } as never });
+    }
+
     return (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-12">
             {/* ── KPIs headline (topo, zona F) — entram em stagger sutil ── */}
@@ -171,8 +221,8 @@ function OverviewContent({
                     label={t('overview.totalNFs')}
                     value={o.totalNFs.toLocaleString('pt-BR')}
                     icon={<FileText />}
-                    delta={trend(nfSpark)}
-                    hint={t('overview.periodoAnterior')}
+                    delta={deltaNFs}
+                    hint={deltaHint}
                     spark={nfSpark}
                     sparkColor="var(--chart-1)"
                 />
@@ -182,8 +232,8 @@ function OverviewContent({
                     label={t('overview.valorTotal')}
                     value={brlCompact(o.valorTotalProcessado)}
                     icon={<Receipt />}
-                    delta={trend(valSpark)}
-                    hint={t('overview.periodoAnterior')}
+                    delta={deltaValor}
+                    hint={deltaHint}
                     spark={valSpark}
                     sparkColor="var(--chart-3)"
                 />
@@ -208,7 +258,12 @@ function OverviewContent({
             {/* ── Área grande: volume + valor (8 col) ── */}
             <FadeIn className="h-full sm:col-span-12 lg:col-span-8" delay={0.2}>
                 <ChartCard title={t('overview.volumeTitulo')} config={volumeConfig} className="h-[280px] w-full">
-                    <ComposedChart data={volumeSeries} margin={{ left: 4, right: 8, top: 8 }}>
+                    <ComposedChart
+                        data={volumeSeries}
+                        margin={{ left: 4, right: 8, top: 8 }}
+                        onClick={(e: { activeLabel?: string | number }) => { if (e?.activeLabel != null) drillToPeriod(String(e.activeLabel)); }}
+                        className="cursor-pointer"
+                    >
                         <defs>
                             <linearGradient id="ov-val" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="0%" stopColor="var(--color-valorTotal)" stopOpacity={0.3} />
