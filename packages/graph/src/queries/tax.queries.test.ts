@@ -7,16 +7,16 @@ describe('taxSummary (unit)', () => {
         // call 0 = totais; call 1 = série
         const responder = (_c: string, _p: Record<string, unknown>, i: number) =>
             i === 0
-                ? [fakeRecord({ vICMS: 180, vICMSST: 72, vIPI: 50, vPIS: 16.5, vCOFINS: 76, vII: 0, vFCP: 20 })]
+                ? [fakeRecord({ vICMS: 180, vICMSST: 72, vIPI: 50, vPIS: 16.5, vCOFINS: 76, vII: 0, vFCP: 20, vIBS: 105, vIBSUF: 85, vIBSMun: 20, vCBS: 93, vIS: 10 })]
                 : [
-                      fakeRecord({ periodo: '2026-05', vICMS: 100, vIPI: 30, vPIS: 10, vCOFINS: 40 }),
-                      fakeRecord({ periodo: '2026-06', vICMS: 80, vIPI: 20, vPIS: 6.5, vCOFINS: 36 }),
+                      fakeRecord({ periodo: '2026-05', vICMS: 100, vIPI: 30, vPIS: 10, vCOFINS: 40, vIBS: 50, vCBS: 45, vIS: 5 }),
+                      fakeRecord({ periodo: '2026-06', vICMS: 80, vIPI: 20, vPIS: 6.5, vCOFINS: 36, vIBS: 55, vCBS: 48, vIS: 5 }),
                   ];
         const { driver } = makeFakeDriver(responder);
         const out = await taxSummary(driver, {});
-        expect(out.totais).toEqual({ vICMS: 180, vICMSST: 72, vIPI: 50, vPIS: 16.5, vCOFINS: 76, vII: 0, vFCP: 20 });
+        expect(out.totais).toEqual({ vICMS: 180, vICMSST: 72, vIPI: 50, vPIS: 16.5, vCOFINS: 76, vII: 0, vFCP: 20, vIBS: 105, vIBSUF: 85, vIBSMun: 20, vCBS: 93, vIS: 10 });
         expect(out.serie).toHaveLength(2);
-        expect(out.serie[0]).toEqual({ periodo: '2026-05', vICMS: 100, vIPI: 30, vPIS: 10, vCOFINS: 40 });
+        expect(out.serie[0]).toEqual({ periodo: '2026-05', vICMS: 100, vIPI: 30, vPIS: 10, vCOFINS: 40, vIBS: 50, vCBS: 45, vIS: 5 });
     });
 
     it('sem filtro de UF não liga o emitente; com UF liga e parametriza', async () => {

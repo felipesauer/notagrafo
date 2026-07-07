@@ -6,8 +6,9 @@ import neo4j, { type Driver } from 'neo4j-driver';
  * o que mantém os KPIs a um `sum()` de distância. As agregações por NCM usam
  * os tributos granulares da aresta CONTÉM (imposto por item).
  *
- * Escopo fiscal: só tributos com XSD vigente (ICMS, IPI, PIS, COFINS, II,
- * ISSQN) — Reforma Tributária (CBS/IBS/IS) fora (ADR-3).
+ * Escopo fiscal: tributos com XSD vigente (ICMS, IPI, PIS, COFINS, II, ISSQN) +
+ * Reforma Tributária (IBS, CBS, IS — grupos gIBSCBS/IBSCBSTot/ISTot, ADR-18).
+ * Os total_v* da reforma são opcionais (coalesce 0 em NF-e pré-reforma).
  */
 
 export interface TaxFilters {
@@ -25,6 +26,12 @@ export interface TaxTotais {
     vCOFINS: number;
     vII: number;
     vFCP: number;
+    // Reforma Tributária (ADR-18): IBS (UF+Mun), CBS e IS.
+    vIBS: number;
+    vIBSUF: number;
+    vIBSMun: number;
+    vCBS: number;
+    vIS: number;
 }
 
 /** Um ponto da série temporal mensal de carga tributária. */
@@ -34,6 +41,10 @@ export interface TaxSeriePonto {
     vIPI: number;
     vPIS: number;
     vCOFINS: number;
+    // Reforma Tributária (ADR-18).
+    vIBS: number;
+    vCBS: number;
+    vIS: number;
 }
 
 export interface TaxSummary {
@@ -109,7 +120,12 @@ export async function taxSummary(driver: Driver, filters: TaxFilters = {}): Prom
                     sum(coalesce(nf.total_vPIS, 0)) AS vPIS,
                     sum(coalesce(nf.total_vCOFINS, 0)) AS vCOFINS,
                     sum(coalesce(nf.total_vII, 0)) AS vII,
-                    sum(coalesce(nf.total_vFCP, 0)) AS vFCP`,
+                    sum(coalesce(nf.total_vFCP, 0)) AS vFCP,
+                    sum(coalesce(nf.total_vIBS, 0)) AS vIBS,
+                    sum(coalesce(nf.total_vIBSUF, 0)) AS vIBSUF,
+                    sum(coalesce(nf.total_vIBSMun, 0)) AS vIBSMun,
+                    sum(coalesce(nf.total_vCBS, 0)) AS vCBS,
+                    sum(coalesce(nf.total_vIS, 0)) AS vIS`,
             params,
         );
         const t = totaisRes.records[0];
@@ -121,6 +137,11 @@ export async function taxSummary(driver: Driver, filters: TaxFilters = {}): Prom
             vCOFINS: toNum(t?.get('vCOFINS')),
             vII: toNum(t?.get('vII')),
             vFCP: toNum(t?.get('vFCP')),
+            vIBS: toNum(t?.get('vIBS')),
+            vIBSUF: toNum(t?.get('vIBSUF')),
+            vIBSMun: toNum(t?.get('vIBSMun')),
+            vCBS: toNum(t?.get('vCBS')),
+            vIS: toNum(t?.get('vIS')),
         };
 
         const serieRes = await session.run(
@@ -130,8 +151,11 @@ export async function taxSummary(driver: Driver, filters: TaxFilters = {}): Prom
                   sum(coalesce(nf.total_vICMS, 0)) AS vICMS,
                   sum(coalesce(nf.total_vIPI, 0)) AS vIPI,
                   sum(coalesce(nf.total_vPIS, 0)) AS vPIS,
-                  sum(coalesce(nf.total_vCOFINS, 0)) AS vCOFINS
-             RETURN periodo, vICMS, vIPI, vPIS, vCOFINS
+                  sum(coalesce(nf.total_vCOFINS, 0)) AS vCOFINS,
+                  sum(coalesce(nf.total_vIBS, 0)) AS vIBS,
+                  sum(coalesce(nf.total_vCBS, 0)) AS vCBS,
+                  sum(coalesce(nf.total_vIS, 0)) AS vIS
+             RETURN periodo, vICMS, vIPI, vPIS, vCOFINS, vIBS, vCBS, vIS
              ORDER BY periodo ASC`,
             params,
         );
@@ -141,6 +165,9 @@ export async function taxSummary(driver: Driver, filters: TaxFilters = {}): Prom
             vIPI: toNum(r.get('vIPI')),
             vPIS: toNum(r.get('vPIS')),
             vCOFINS: toNum(r.get('vCOFINS')),
+            vIBS: toNum(r.get('vIBS')),
+            vCBS: toNum(r.get('vCBS')),
+            vIS: toNum(r.get('vIS')),
         }));
 
         return { totais, serie };

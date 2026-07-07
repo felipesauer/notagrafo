@@ -91,6 +91,22 @@ describe('mergeInvoice (unit, driver fake)', () => {
         expect(dados.total_vICMSST ?? dados.total_vST).toBeDefined();
     });
 
+    it('achata os totais da Reforma Tributária (IBS/CBS/IS) como total_* (EPIC-24)', async () => {
+        const { driver, runs } = makeFakeDriver(() => []);
+        // injeta totais da reforma no payload (o serializeInvoice é genérico:
+        // achata todo campo de TotaisNF, então os novos fluem sem código extra).
+        const dados = payload();
+        dados.totais = { ...dados.totais, vIBS: 105, vIBSUF: 85, vIBSMun: 20, vCBS: 93, vIS: 10 };
+        await mergeInvoice(driver, dados);
+        const setNF = runs.find((r) => r.cypher.includes('MERGE (nf:NotaFiscal'))!;
+        const p = setNF.params.dados as Record<string, unknown>;
+        expect(p.total_vIBS).toBe(105);
+        expect(p.total_vIBSUF).toBe(85);
+        expect(p.total_vIBSMun).toBe(20);
+        expect(p.total_vCBS).toBe(93);
+        expect(p.total_vIS).toBe(10);
+    });
+
     it('grava aresta DEVOLVE (idempotente) para a NF referenciada numa devolução', async () => {
         const { driver, runs } = makeFakeDriver(() => []);
         await mergeInvoice(driver, payloadFrom('nfe-devolucao-ref-v4.00.xml'));

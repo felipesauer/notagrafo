@@ -181,4 +181,74 @@ describe('parseNFe', () => {
             ]);
         });
     });
+
+    describe('Reforma Tributária — IBS/CBS/IS (EPIC-24 / ADR-18)', () => {
+        const base = () => fixture('nfe-valida-v4.00.xml');
+
+        // Injeta o grupo gIBSCBS no <imposto> do item e os totais IBSCBSTot/ISTot
+        // no <total>. Sobrepõe o leiaute real da NT 2025.002 (por leitura).
+        function comReforma(): string {
+            let xml = base();
+            xml = xml.replace(
+                '</imposto>',
+                `  <IBSCBS>
+                    <gIBSCBS>
+                      <CST>000</CST>
+                      <cClassTrib>000001</cClassTrib>
+                      <vBCIBSCBS>1000.00</vBCIBSCBS>
+                      <gIBS>
+                        <gIBSUF><pIBSUF>8.50</pIBSUF><vIBSUF>85.00</vIBSUF></gIBSUF>
+                        <gIBSMun><pIBSMun>2.00</pIBSMun><vIBSMun>20.00</vIBSMun></gIBSMun>
+                      </gIBS>
+                      <gCBS><pCBS>9.30</pCBS><vCBS>93.00</vCBS></gCBS>
+                      <gIS><pIS>1.00</pIS><vIS>10.00</vIS></gIS>
+                    </gIBSCBS>
+                  </IBSCBS>\n        </imposto>`,
+            );
+            xml = xml.replace(
+                '</total>',
+                `  <IBSCBSTot>
+                    <vBCIBSCBS>1000.00</vBCIBSCBS>
+                    <gIBS><vIBS>105.00</vIBS><vIBSUF>85.00</vIBSUF><vIBSMun>20.00</vIBSMun></gIBS>
+                    <gCBS><vCBS>93.00</vCBS></gCBS>
+                  </IBSCBSTot>
+                  <ISTot><vIS>10.00</vIS></ISTot>\n      </total>`,
+            );
+            return xml;
+        }
+
+        it('extrai IBS (UF+Mun), CBS e IS do item', () => {
+            const item = parseNFe(comReforma(), IMPORTADO_EM).itens[0]!.contem;
+            expect(item.cstIBSCBS).toBe('000');
+            expect(item.cClassTrib).toBe('000001');
+            expect(item.vBCIBSCBS).toBe(1000);
+            expect(item.vIBSUF).toBe(85);
+            expect(item.pIBSUF).toBe(8.5);
+            expect(item.vIBSMun).toBe(20);
+            expect(item.vCBS).toBe(93);
+            expect(item.vIS).toBe(10);
+            // vIBS consolidado = UF + Mun quando não vem explícito
+            expect(item.vIBS).toBe(105);
+        });
+
+        it('extrai os totais da reforma (IBSCBSTot + ISTot)', () => {
+            const { totais } = parseNFe(comReforma(), IMPORTADO_EM);
+            expect(totais.vIBS).toBe(105);
+            expect(totais.vIBSUF).toBe(85);
+            expect(totais.vIBSMun).toBe(20);
+            expect(totais.vCBS).toBe(93);
+            expect(totais.vIS).toBe(10);
+        });
+
+        it('NF-e pré-reforma (sem gIBSCBS) não cria campos IBS/CBS/IS (tolerante)', () => {
+            const item = parseNFe(base(), IMPORTADO_EM).itens[0]!.contem;
+            const { totais } = parseNFe(base(), IMPORTADO_EM);
+            for (const k of ['vIBS', 'vCBS', 'vIS', 'cstIBSCBS', 'cClassTrib'] as const) {
+                expect(k in item).toBe(false);
+            }
+            expect('vIBS' in totais).toBe(false);
+            expect('vCBS' in totais).toBe(false);
+            expect('vIS' in totais).toBe(false);
+        });
+    });
 });

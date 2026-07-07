@@ -94,6 +94,11 @@ const COFINS = 0.076;
 const IPI = 0.05;
 const FCP = 0.02;
 const MVA_ST = 0.4;
+// Reforma Tributária (alíquotas de referência para o seed — só demonstração).
+const IBS_UF = 0.085; // IBS estadual
+const IBS_MUN = 0.02; // IBS municipal
+const CBS = 0.093; // CBS federal
+const IS_ALIQ = 0.01; // Imposto Seletivo (só em parte dos produtos)
 
 /** Calcula os tributos de um item do regime normal a partir do produto e quantidade. */
 function calcTaxes(prod: ProdutoFicticio, qtd: number): ItemTaxes {
@@ -118,8 +123,47 @@ function round2(v: number): number {
     return Math.round(v * 100) / 100;
 }
 
-/** Bloco <imposto> do item (regime normal): ICMS00 ou ICMS10 (com ST/FCP) + IPI/PIS/COFINS. */
-function impostoXml(prod: ProdutoFicticio, tx: ItemTaxes): string {
+/** Valores IBS/CBS/IS de um item (Reforma Tributária) sobre a base vProd. */
+function calcReforma(vProd: number): { vIBSUF: number; vIBSMun: number; vIBS: number; vCBS: number; vIS: number } {
+    const vIBSUF = round2(vProd * IBS_UF);
+    const vIBSMun = round2(vProd * IBS_MUN);
+    const vCBS = round2(vProd * CBS);
+    const vIS = round2(vProd * IS_ALIQ);
+    return { vIBSUF, vIBSMun, vIBS: round2(vIBSUF + vIBSMun), vCBS, vIS };
+}
+
+/**
+ * Grupo det/imposto/IBSCBS (tipo TTribNFe) → gIBSCBS (tipo TCIBS), Reforma
+ * Tributária (ADR-18). Estrutura EXATA do XSD: TCIBS = vBC, gIBSUF{pIBSUF,
+ * vIBSUF}, gIBSMun{pIBSMun, vIBSMun}, vIBS, gCBS{pCBS, vCBS}. O IS não vive aqui.
+ */
+function ibsCbsXml(vProd: number): string {
+    const r = calcReforma(vProd);
+    return `        <IBSCBS>
+          <CST>000</CST>
+          <cClassTrib>000001</cClassTrib>
+          <gIBSCBS>
+            <vBC>${fmt(vProd)}</vBC>
+            <gIBSUF>
+              <pIBSUF>${fmt(IBS_UF * 100)}</pIBSUF>
+              <vIBSUF>${fmt(r.vIBSUF)}</vIBSUF>
+            </gIBSUF>
+            <gIBSMun>
+              <pIBSMun>${fmt(IBS_MUN * 100)}</pIBSMun>
+              <vIBSMun>${fmt(r.vIBSMun)}</vIBSMun>
+            </gIBSMun>
+            <vIBS>${fmt(r.vIBS)}</vIBS>
+            <gCBS>
+              <pCBS>${fmt(CBS * 100)}</pCBS>
+              <vCBS>${fmt(r.vCBS)}</vCBS>
+            </gCBS>
+          </gIBSCBS>
+        </IBSCBS>`;
+}
+
+/** Bloco <imposto> do item (regime normal): ICMS00 ou ICMS10 (com ST/FCP) + IPI/PIS/COFINS.
+ *  Quando `comReforma`, anexa o grupo IBSCBS (IBS/CBS/IS) — transição da NT 2025.002. */
+function impostoXml(prod: ProdutoFicticio, tx: ItemTaxes, comReforma = false): string {
     const icms = prod.comST
         ? `        <ICMS10>
           <orig>0</orig>
@@ -174,11 +218,11 @@ ${icms}
             <vCOFINS>${fmt(tx.vCOFINS)}</vCOFINS>
           </COFINSAliq>
         </COFINS>
-      </imposto>`;
+${comReforma ? ibsCbsXml(tx.vProd) + '\n' : ''}      </imposto>`;
 }
 
 /** Bloco <det> de um item. */
-function detXml(nItem: number, prod: ProdutoFicticio, qtd: number, tx: ItemTaxes, cfop: string): string {
+function detXml(nItem: number, prod: ProdutoFicticio, qtd: number, tx: ItemTaxes, cfop: string, comReforma = false): string {
     return `    <det nItem="${nItem}">
       <prod>
         <cProd>${prod.codigo}</cProd>
@@ -196,7 +240,7 @@ function detXml(nItem: number, prod: ProdutoFicticio, qtd: number, tx: ItemTaxes
         <vUnTrib>${prod.valorUnitario.toFixed(10)}</vUnTrib>
         <indTot>1</indTot>
       </prod>
-${impostoXml(prod, tx)}
+${impostoXml(prod, tx, comReforma)}
     </det>`;
 }
 
@@ -226,15 +270,21 @@ export function generateNFe(seq: number, rng: () => number = makeRng(seq), opts:
     // Devolução tem 1 item; venda tem 1–3 itens.
     const numItens = ehDevolucao ? 1 : 1 + Math.floor(rng() * 3);
 
+    // Transição da Reforma Tributária: ~60% das VENDAS já saem com o grupo
+    // gIBSCBS (IBS/CBS/IS); devoluções e o restante ficam no leiaute pré-reforma,
+    // espelhando o período de convivência dos dois modelos.
+    const comReforma = !ehDevolucao && rng() < 0.6;
+
     const dets: string[] = [];
     const tot = { vProd: 0, vICMS: 0, vICMSST: 0, vFCP: 0, vIPI: 0, vPIS: 0, vCOFINS: 0, vBC: 0, vBCST: 0 };
+    const totR = { vBC: 0, vIBSUF: 0, vIBSMun: 0, vIBS: 0, vCBS: 0, vIS: 0 };
     for (let n = 1; n <= numItens; n++) {
         const prod = pick(PRODUTOS, rng);
         const qtd = 1 + Math.floor(rng() * 10);
         const tx = calcTaxes(prod, qtd);
         // CFOP: devolução usa 1202 (entrada/devolução); venda usa o CFOP do produto.
         const cfop = ehDevolucao ? '1202' : prod.cfop;
-        dets.push(detXml(n, prod, qtd, tx, cfop));
+        dets.push(detXml(n, prod, qtd, tx, cfop, comReforma));
         tot.vProd += tx.vProd;
         tot.vICMS += tx.vICMS;
         tot.vICMSST += tx.vICMSST;
@@ -244,6 +294,15 @@ export function generateNFe(seq: number, rng: () => number = makeRng(seq), opts:
         tot.vCOFINS += tx.vCOFINS;
         tot.vBC += tx.vBC;
         tot.vBCST += tx.vBCST;
+        if (comReforma) {
+            const r = calcReforma(tx.vProd);
+            totR.vBC += tx.vProd;
+            totR.vIBSUF += r.vIBSUF;
+            totR.vIBSMun += r.vIBSMun;
+            totR.vIBS += r.vIBS;
+            totR.vCBS += r.vCBS;
+            totR.vIS += r.vIS;
+        }
     }
     // vNF = produtos + IPI + ST + FCP (ICMS próprio é embutido no preço; PIS/COFINS não somam ao total).
     const vNF = round2(tot.vProd + tot.vIPI + tot.vICMSST + tot.vFCP);
@@ -328,7 +387,34 @@ ${dets.join('\n')}
         <vOutro>0.00</vOutro>
         <vNF>${fmt(vNF)}</vNF>
       </ICMSTot>
-    </total>
+${comReforma ? `      <ISTot>
+        <vIS>${fmt(round2(totR.vIS))}</vIS>
+      </ISTot>
+      <IBSCBSTot>
+        <vBCIBSCBS>${fmt(round2(totR.vBC))}</vBCIBSCBS>
+        <gIBS>
+          <gIBSUF>
+            <vDif>0.00</vDif>
+            <vDevTrib>0.00</vDevTrib>
+            <vIBSUF>${fmt(round2(totR.vIBSUF))}</vIBSUF>
+          </gIBSUF>
+          <gIBSMun>
+            <vDif>0.00</vDif>
+            <vDevTrib>0.00</vDevTrib>
+            <vIBSMun>${fmt(round2(totR.vIBSMun))}</vIBSMun>
+          </gIBSMun>
+          <vIBS>${fmt(round2(totR.vIBS))}</vIBS>
+          <vCredPres>0.00</vCredPres>
+          <vCredPresCondSus>0.00</vCredPresCondSus>
+        </gIBS>
+        <gCBS>
+          <vDif>0.00</vDif>
+          <vDevTrib>0.00</vDevTrib>
+          <vCBS>${fmt(round2(totR.vCBS))}</vCBS>
+          <vCredPres>0.00</vCredPres>
+          <vCredPresCondSus>0.00</vCredPresCondSus>
+        </gCBS>
+      </IBSCBSTot>\n` : ''}    </total>
     <transp>
       <modFrete>9</modFrete>
     </transp>

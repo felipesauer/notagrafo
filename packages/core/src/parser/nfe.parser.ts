@@ -172,24 +172,66 @@ function extractTaxes(imposto: unknown): Partial<ContemEdge> {
         const val = findTaxValue(imposto[group], tag);
         if (val !== undefined) (out[field] as number) = val;
     }
+
+    // ── Reforma Tributária: grupo det/imposto/IBSCBS/gIBSCBS (tipo TCIBS) ──
+    // NF-e pré-reforma não têm o grupo → tudo opcional. CST/cClassTrib ficam no
+    // nível de gIBSCBS; os valores em subgrupos gIBS (gIBSUF/gIBSMun), gCBS, gIS.
+    const ibsCbs = isObj(imposto.IBSCBS) ? imposto.IBSCBS : undefined;
+    const g = isObj(ibsCbs?.gIBSCBS) ? ibsCbs.gIBSCBS : undefined;
+    if (g) {
+        const cst = asString(g.CST);
+        const cClass = asString(g.cClassTrib);
+        if (cst !== undefined) out.cstIBSCBS = cst;
+        if (cClass !== undefined) out.cClassTrib = cClass;
+        // valores (busca recursiva cobre os subgrupos gIBS/gIBSUF/gIBSMun/gCBS/gIS)
+        const num: Array<keyof ContemEdge> = [
+            'vBCIBSCBS', 'vIBS', 'vIBSUF', 'pIBSUF', 'vIBSMun', 'pIBSMun',
+            'vCBS', 'pCBS', 'vIS', 'pIS',
+        ];
+        for (const f of num) {
+            const v = findTaxValue(g, f);
+            if (v !== undefined) (out[f] as number) = v;
+        }
+        // vIBS total: se o XML não trouxer o consolidado, soma UF+Mun.
+        if (out.vIBS === undefined && (out.vIBSUF !== undefined || out.vIBSMun !== undefined)) {
+            out.vIBS = (out.vIBSUF ?? 0) + (out.vIBSMun ?? 0);
+        }
+    }
     return out;
 }
 
 /**
- * Extrai os totais da NF do grupo total/ICMSTot. Só inclui campos presentes
- * (sem propriedade null/undefined, regra 6). Mapeia vBC→vBC e vST→vST etc.
+ * Extrai os totais da NF a partir do grupo `total`. Os tributos tradicionais
+ * vêm de `total/ICMSTot`; os da Reforma Tributária de `total/IBSCBSTot` (IBS/CBS)
+ * e `total/ISTot` (Imposto Seletivo) — grupos IRMÃOS do ICMSTot (ADR-18). Só
+ * inclui campos presentes (sem propriedade null/undefined, regra 6).
  */
-function extractTotals(icmsTot: unknown): TotaisNF {
-    if (!isObj(icmsTot)) return {};
+function extractTotals(totalNode: unknown): TotaisNF {
+    if (!isObj(totalNode)) return {};
     const out: TotaisNF = {};
-    const fields: Array<keyof TotaisNF> = [
+
+    // Tributos tradicionais — total/ICMSTot.
+    const icmsTot = isObj(totalNode.ICMSTot) ? totalNode.ICMSTot : {};
+    const icmsFields: Array<keyof TotaisNF> = [
         'vNF', 'vProd', 'vBC', 'vICMS', 'vICMSDeson', 'vFCP', 'vBCST', 'vST',
         'vIPI', 'vPIS', 'vCOFINS', 'vII', 'vFrete', 'vSeg', 'vDesc', 'vOutro',
     ];
-    for (const f of fields) {
+    for (const f of icmsFields) {
         const v = asString(icmsTot[f]);
         if (v !== undefined) out[f] = Number(v);
     }
+
+    // Reforma — total/IBSCBSTot: procura vBCIBSCBS/vIBS/vIBSUF/vIBSMun/vCBS em
+    // qualquer profundidade do grupo (a estrutura tem subgrupos gIBS/gCBS).
+    const ibsCbsTot = totalNode.IBSCBSTot;
+    for (const f of ['vBCIBSCBS', 'vIBS', 'vIBSUF', 'vIBSMun', 'vCBS'] as const) {
+        const v = findTaxValue(ibsCbsTot, f);
+        if (v !== undefined) out[f] = v;
+    }
+    // total/ISTot → vIS (Imposto Seletivo).
+    const vIS = findTaxValue(totalNode.ISTot, 'vIS');
+    if (vIS !== undefined) out.vIS = vIS;
+
     return out;
 }
 
@@ -233,7 +275,6 @@ export function parseNFe(xml: string, importadoEm: Date): ParsedNF {
     const emit = isObj(infNFe.emit) ? infNFe.emit : {};
     const dest = isObj(infNFe.dest) ? infNFe.dest : undefined;
     const totalNode = isObj(infNFe.total) ? infNFe.total : undefined;
-    const total = isObj(totalNode?.ICMSTot) ? totalNode.ICMSTot : {};
     const infAdic = isObj(infNFe.infAdic) ? infNFe.infAdic : undefined;
 
     const chaveAcesso = extractAccessKey(asString(infNFe['@_Id']));
@@ -245,7 +286,7 @@ export function parseNFe(xml: string, importadoEm: Date): ParsedNF {
         serie: asString(ide.serie) ?? '',
         dataEmissao: new Date(asString(ide.dhEmi) ?? importadoEm.toISOString()),
         dataSaida: new Date(asString(ide.dhSaiEnt) ?? asString(ide.dhEmi) ?? importadoEm.toISOString()),
-        valorTotal: Number(asString(total.vNF) ?? '0'),
+        valorTotal: Number(asString(isObj(totalNode?.ICMSTot) ? totalNode.ICMSTot.vNF : undefined) ?? '0'),
         status: 'ativa',
         tipoNF: mapTipoNF(asString(ide.tpNF)),
         finalidade: mapFinalidade(asString(ide.finNFe)),
@@ -268,7 +309,7 @@ export function parseNFe(xml: string, importadoEm: Date): ParsedNF {
         emitente,
         ...(destinatario ? { destinatario } : {}),
         itens,
-        totais: extractTotals(total),
+        totais: extractTotals(totalNode),
         referencias: extractReferences(ide),
     };
 }
