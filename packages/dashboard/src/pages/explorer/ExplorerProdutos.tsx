@@ -1,12 +1,13 @@
 import { type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from '@tanstack/react-router';
+import { Package, Search } from 'lucide-react';
 import { Area, AreaChart, XAxis, YAxis } from 'recharts';
 import { useTopProducts, usePriceHistory, useProductCompanies } from '../../api/hooks.js';
 import { LoadingSkeleton, InlineError, EmptyState } from '../../components/shared.js';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table.js';
 import { SortableHead } from '../../components/SortableHead.js';
-import { TablePagination } from '../../components/TablePagination.js';
+import { TableCard } from '../../components/TableCard.js';
 import { useClientTable } from '../../hooks/useClientTable.js';
 import { Card } from '../../components/ui/card.js';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '../../components/ui/sheet.js';
@@ -55,18 +56,18 @@ export function ExplorerProdutos({ peek, onPeek, busca }: { peek?: string; onPee
 
     if (isLoading) return <LoadingSkeleton variant="table" linhas={8} colunas={4} />;
     if (isError) return <InlineError onRetry={() => void refetch()} />;
-    if (todos.length === 0) return <EmptyState />;
-    if (rows.length === 0) return <EmptyState mensagem={t('explorer.semResultados')} />;
+    if (todos.length === 0) return <EmptyState icon={Package} titulo={t('explorer.vazioProdutosTitulo')} descricao={t('explorer.vazioProdutosDescricao')} />;
+    if (rows.length === 0) return <EmptyState icon={Search} titulo={t('explorer.semResultadosTitulo')} descricao={t('explorer.semResultadosDescricao')} />;
 
     const sel = peek ? rows.find((p) => p.idUnico === peek) : undefined;
 
     return (
         <>
-            <div className="hidden h-full md:block">
-                <Table data-testid="data-table" data-sticky data-zebra className={densityClass(density)}>
+            <TableCard className="hidden md:block" pagination={pagination}>
+                <Table data-testid="data-table" data-zebra className={densityClass(density)}>
                     <TableHeader>
                         <TableRow>
-                            <SortableHead sortKey="descricao" ariaSort={ariaSort} onToggle={toggle}>{t('produtos.descricao')}</SortableHead>
+                            <SortableHead sortKey="descricao" ariaSort={ariaSort} onToggle={toggle} className="pl-4">{t('produtos.descricao')}</SortableHead>
                             <TableHead className="w-40">{t('produtos.codigo')}</TableHead>
                             <SortableHead sortKey="ncm" ariaSort={ariaSort} onToggle={toggle} className="w-28">{t('produtos.ncm')}</SortableHead>
                             <SortableHead sortKey="totalNFs" ariaSort={ariaSort} onToggle={toggle} align="right" className="w-20 text-right">{t('produtos.totalNFs')}</SortableHead>
@@ -83,27 +84,26 @@ export function ExplorerProdutos({ peek, onPeek, busca }: { peek?: string; onPee
                                 onClick={() => onPeek(p.idUnico)}
                             >
                                 <TableCell className="font-medium">{p.descricao || '—'}</TableCell>
-                                <TableCell className="font-mono text-[11px] text-muted-foreground">
+                                <TableCell className="font-mono text-2xs text-muted-foreground">
                                     {codigo}{cnpj && <span className="block text-muted-foreground/70">{cnpjFmt(cnpj)}</span>}
                                 </TableCell>
                                 <TableCell onClick={(e) => e.stopPropagation()}>
-                                    {p.ncm ? <Link className="font-mono text-[12px] text-primary hover:underline" to={'/explorar' as string} search={{ entity: 'notas', ncm: p.ncm } as never}>{p.ncm}</Link> : <span className="text-muted-foreground">—</span>}
+                                    {p.ncm ? <Link className="font-mono text-xs text-primary hover:underline" to={'/explorar' as string} search={{ entity: 'notas', ncm: p.ncm } as never}>{p.ncm}</Link> : <span className="text-muted-foreground">—</span>}
                                 </TableCell>
                                 <TableCell className="text-right font-mono tabular-nums">{p.totalNFs ?? 0}</TableCell>
-                                <TableCell className="text-right font-mono font-medium tabular-nums">{brlK(p.valorTotal ?? 0)}</TableCell>
+                                <TableCell className="pr-4 text-right font-mono font-medium tabular-nums">{brlK(p.valorTotal ?? 0)}</TableCell>
                             </TableRow>
                             );
                         })}
                     </TableBody>
                 </Table>
-                <TablePagination {...pagination} />
-            </div>
+            </TableCard>
 
             <div className="grid gap-2.5 p-3 md:hidden" data-testid="data-cards">
                 {pageRows.map((p) => (
                     <Card key={p.idUnico} className="cursor-pointer gap-0 p-3.5" onClick={() => onPeek(p.idUnico)}>
                         <p className="font-medium leading-tight">{p.descricao || '—'}</p>
-                        <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">{parseIdUnico(p.idUnico).codigo}{parseIdUnico(p.idUnico).cnpj ? ` · ${cnpjFmt(parseIdUnico(p.idUnico).cnpj!)}` : ''}</p>
+                        <p className="mt-0.5 font-mono text-2xs text-muted-foreground">{parseIdUnico(p.idUnico).codigo}{parseIdUnico(p.idUnico).cnpj ? ` · ${cnpjFmt(parseIdUnico(p.idUnico).cnpj!)}` : ''}</p>
                         <div className="mt-2 flex items-center justify-between border-t pt-2 text-xs">
                             {p.ncm ? <Link className="font-mono text-primary" to={'/explorar' as string} search={{ entity: 'notas', ncm: p.ncm } as never} onClick={(e) => e.stopPropagation()}>NCM {p.ncm}</Link> : <span className="text-muted-foreground">—</span>}
                             <span className="font-mono font-medium tabular-nums">{brlK(p.valorTotal ?? 0)} · {p.totalNFs ?? 0} NF-e</span>
@@ -131,11 +131,11 @@ function ProdutoPeek({ produto, onClose }: { produto?: Produto; onClose: () => v
                     <>
                         <SheetHeader className="border-b px-4 py-3">
                             <SheetTitle className="truncate text-base" title={produto.descricao}>{produto.descricao || produto.idUnico}</SheetTitle>
-                            <p className="font-mono text-[11px] text-muted-foreground">{produto.ncm ? `NCM ${produto.ncm} · ` : ''}{brlK(produto.valorTotal ?? 0)} · {produto.totalNFs ?? 0} NF-e</p>
+                            <p className="font-mono text-2xs text-muted-foreground">{produto.ncm ? `NCM ${produto.ncm} · ` : ''}{brlK(produto.valorTotal ?? 0)} · {produto.totalNFs ?? 0} NF-e</p>
                         </SheetHeader>
                         <div className="flex flex-col gap-5 overflow-y-auto p-4">
                             <div>
-                                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{t('produtos.historicoPreco')}</p>
+                                <p className="mb-2 text-2xs font-semibold uppercase tracking-wide text-muted-foreground">{t('produtos.historicoPreco')}</p>
                                 {historico.length === 0 ? <EmptyState /> : (
                                     <ChartContainer config={precoConfig} className="h-[150px] w-full">
                                         <AreaChart data={historico} margin={{ left: 4, right: 8, top: 8 }}>
@@ -154,17 +154,17 @@ function ProdutoPeek({ produto, onClose }: { produto?: Produto; onClose: () => v
                                 )}
                             </div>
                             <div>
-                                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{t('produtos.empresasLigadas')}</p>
+                                <p className="mb-2 text-2xs font-semibold uppercase tracking-wide text-muted-foreground">{t('produtos.empresasLigadas')}</p>
                                 {empresas.length === 0 ? <EmptyState /> : (
                                     <ul className="space-y-1.5">
                                         {empresas.slice(0, 10).map((e) => (
                                             <li key={`${e.cnpj}-${e.papel}`} className="flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs">
-                                                <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${e.papel === 'emitente' ? 'bg-chart-1/10 text-chart-1' : 'bg-chart-2/10 text-chart-2'}`}>
+                                                <span className={`rounded px-1.5 py-0.5 text-3xs font-medium ${e.papel === 'emitente' ? 'bg-chart-1/10 text-chart-1' : 'bg-chart-2/10 text-chart-2'}`}>
                                                     {t(e.papel === 'emitente' ? 'nf.emitente' : 'nf.destinatario')}
                                                 </span>
                                                 <div className="min-w-0 flex-1">
                                                     <p className="truncate font-medium">{e.razaoSocial}</p>
-                                                    <p className="font-mono text-[10px] text-muted-foreground">{cnpjFmt(e.cnpj)}</p>
+                                                    <p className="font-mono text-3xs text-muted-foreground">{cnpjFmt(e.cnpj)}</p>
                                                 </div>
                                                 <span className="font-mono tabular-nums text-muted-foreground">{brlK(e.valor)}</span>
                                             </li>

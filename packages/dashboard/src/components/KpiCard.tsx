@@ -35,7 +35,7 @@ export function KpiCard({
         <Card data-testid="kpi-card" className="h-full gap-0 overflow-hidden py-4">
             <CardContent className="flex h-full flex-col px-4">
                 <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</span>
+                    <span className="text-2xs font-medium uppercase tracking-wider text-muted-foreground">{label}</span>
                     <span className="flex size-7 items-center justify-center rounded-md bg-primary/10 text-primary [&>svg]:size-4">
                         {icon}
                     </span>

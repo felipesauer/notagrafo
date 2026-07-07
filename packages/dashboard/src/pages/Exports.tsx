@@ -5,6 +5,8 @@ import { toast } from 'sonner';
 import { Download, FileDown } from 'lucide-react';
 import { apiFetch, downloadFile } from '../api/api.client.js';
 import { NFStatusBadge, InlineError, EmptyState, LoadingSkeleton } from '../components/shared.js';
+import { PageContainer } from '../components/layout/PageContainer.js';
+import { PageHeader } from '../components/PageHeader.js';
 import { useExportStore } from '../stores/export.store.js';
 import { useDensityStore, densityClass } from '../stores/density.store.js';
 import { Button } from '../components/ui/button.js';
@@ -81,18 +83,15 @@ export function ExportsPage(): JSX.Element {
     }
 
     return (
-        // preenche a altura disponível: o histórico (que cresce com dados) estica
-        // até o rodapé em vez de deixar um vazio grande embaixo.
-        <div className="flex min-h-full flex-col">
-            {/* Header contextual leve (padrão das telas novas), não o h1 gigante. */}
-            <div className="mb-4 flex items-center gap-2 border-b px-1 pb-3">
-                <FileDown className="size-4 text-muted-foreground" />
-                <div>
-                    <h2 className="text-sm font-semibold leading-none tracking-tight">{t('sidebar.exportacoes')}</h2>
-                    <p className="mt-1 text-xs text-muted-foreground">{t('exportacoes.subtitulo')}</p>
-                </div>
-            </div>
-            <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[320px_1fr]">
+        <PageContainer width="wide">
+            <PageHeader
+                title={t('sidebar.exportacoes')}
+                description={t('exportacoes.subtitulo')}
+                icon={FileDown}
+            />
+            {/* items-start: cada card tem a altura do seu conteúdo (form e histórico
+                curtos ficam compactos no topo, sem um vazio grande esticando o card). */}
+            <div className="grid items-start gap-4 lg:grid-cols-[320px_1fr]">
                 <Card className="h-fit gap-4 py-4" data-testid="export-form">
                     <CardHeader className="px-4 pb-0"><CardTitle className="text-base">{t('exportacoes.nova')}</CardTitle></CardHeader>
                     <CardContent className="space-y-4 px-4">
@@ -110,7 +109,7 @@ export function ExportsPage(): JSX.Element {
                                 <Label key={c} className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-sm font-normal hover:bg-muted/50">
                                     <Checkbox checked={campos.includes(c)} onCheckedChange={() => alternarCampo(c)} />
                                     <span>{t(`exportacoes.campo.${c}`, { defaultValue: c })}</span>
-                                    <span className="ml-auto font-mono text-[10px] text-muted-foreground/60">{c}</span>
+                                    <span className="ml-auto font-mono text-3xs text-muted-foreground/60">{c}</span>
                                 </Label>
                             ))}
                         </fieldset>
@@ -121,9 +120,9 @@ export function ExportsPage(): JSX.Element {
                     </CardContent>
                 </Card>
 
-                <Card className="flex flex-col overflow-hidden py-0" data-testid="export-list">
+                <Card className="overflow-hidden py-0" data-testid="export-list">
                     <CardHeader className="border-b px-4 py-3"><CardTitle className="text-base">{t('exportacoes.historico')}</CardTitle></CardHeader>
-                    <CardContent className="flex-1 px-0 pb-0">
+                    <CardContent className="px-0 pb-0">
                         {historico.isLoading ? (
                             <div className="p-4"><LoadingSkeleton variant="table" linhas={3} colunas={4} /></div>
                         ) : historico.isError ? (
@@ -131,7 +130,9 @@ export function ExportsPage(): JSX.Element {
                         ) : registros.length === 0 ? (
                             <div className="p-8">
                                 <EmptyState
-                                    mensagem={t('exportacoes.vazio')}
+                                    icon={FileDown}
+                                    titulo={t('exportacoes.vazio')}
+                                    descricao={t('exportacoes.vazioDescricao')}
                                     action={<Button type="button" variant="outline" size="sm" onClick={() => void gerar()}><FileDown /> {t('exportacoes.primeira')}</Button>}
                                 />
                             </div>
@@ -141,7 +142,7 @@ export function ExportsPage(): JSX.Element {
                     </CardContent>
                 </Card>
             </div>
-        </div>
+        </PageContainer>
     );
 }
 
@@ -189,7 +190,7 @@ function HistoricoTable({ registros, density, onUpdate, t }: { registros: Export
         status: (r) => r.status,
         totalRegistros: (r) => r.totalRegistros ?? 0,
         tamanhoBytes: (r) => r.tamanhoBytes ?? 0,
-    }, { initialPageSize: 25 });
+    }, { initialPageSize: 10 });
     return (
         <>
             <Table data-testid="data-table" data-zebra className={densityClass(density)}>

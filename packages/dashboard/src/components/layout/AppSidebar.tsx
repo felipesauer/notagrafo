@@ -103,7 +103,7 @@ export function AppSidebar(): JSX.Element {
                 {RAIL_GROUPS.map((g) => (
                     <div key={g.labelKey} className="flex flex-col gap-0.5">
                         {expanded ? (
-                            <p className="px-2.5 pb-1 pt-1 text-[10.5px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
+                            <p className="px-2.5 pb-1 pt-1 text-3xs font-semibold uppercase tracking-wider text-sidebar-foreground/40">
                                 {t(g.labelKey)}
                             </p>
                         ) : (
@@ -152,7 +152,7 @@ function RailIcon({ def, expanded, t, entityAtiva }: { def: RailDef; expanded: b
             className={`flex h-9 items-center rounded-[10px] text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground [&>svg]:size-[18px] ${expanded ? 'gap-2.5 px-2.5' : 'w-10 justify-center'} ${isEntity ? (entityActive ? activeClasses : '') : '[&.active]:bg-primary/12 [&.active]:font-medium [&.active]:text-primary'}`}
         >
             <Icon />
-            {expanded && <span className="text-[13px]">{t(labelKey)}</span>}
+            {expanded && <span className="text-2sm">{t(labelKey)}</span>}
         </Link>
     );
     if (expanded) return link;

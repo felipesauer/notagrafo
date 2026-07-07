@@ -17,7 +17,7 @@ function FlowNode({ icon, papel, nome, color }: { icon: JSX.Element; papel: stri
         <div className="flex items-center gap-2.5 rounded-lg border bg-card px-3 py-2">
             <span className="flex size-8 shrink-0 items-center justify-center rounded-md text-white [&>svg]:size-4" style={{ background: color }}>{icon}</span>
             <div className="min-w-0">
-                <p className="text-[10.5px] uppercase tracking-wide text-muted-foreground">{papel}</p>
+                <p className="text-2xs uppercase tracking-wide text-muted-foreground">{papel}</p>
                 <p className="truncate text-sm font-medium" title={nome}>{nome}</p>
             </div>
         </div>
@@ -63,7 +63,9 @@ export function NFPeek({
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent side="right" className="flex w-[440px] max-w-[92vw] flex-col gap-0 p-0" data-testid="nf-peek">
+            {/* showCloseButton=false: o header já tem um X próprio (ao lado das
+                setas ↑/↓); sem isso o Sheet injetaria um SEGUNDO X no canto. */}
+            <SheetContent side="right" showCloseButton={false} className="flex w-[440px] max-w-[92vw] flex-col gap-0 p-0" data-testid="nf-peek">
                 {nf && (
                     <>
                         <div className="flex items-center gap-2 border-b px-4 py-3">
@@ -77,9 +79,9 @@ export function NFPeek({
 
                         <div className="flex-1 overflow-y-auto p-4">
                             <h2 className="text-lg font-semibold leading-tight tracking-tight">{t('nf.notaN', { n: nf.numero })}</h2>
-                            <p className="mt-0.5 break-all font-mono text-[11px] text-muted-foreground">{nf.chaveAcesso}</p>
+                            <p className="mt-0.5 break-all font-mono text-2xs text-muted-foreground">{nf.chaveAcesso}</p>
 
-                            <dl className="mt-4 grid grid-cols-[92px_1fr] gap-x-3 gap-y-2 text-[13px]">
+                            <dl className="mt-4 grid grid-cols-[92px_1fr] gap-x-3 gap-y-2 text-2sm">
                                 <dt className="text-muted-foreground">{t('nf.valor')}</dt>
                                 <dd className="font-mono font-medium tabular-nums"><CurrencyValue value={nf.valorTotal} /></dd>
                                 <dt className="text-muted-foreground">{t('nf.emissao')}</dt>
@@ -88,7 +90,7 @@ export function NFPeek({
                                 <dd className="font-mono tabular-nums">{nf.serie}</dd>
                             </dl>
 
-                            <p className="mt-5 mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{t('nf.fluxo')}</p>
+                            <p className="mt-5 mb-2 text-2xs font-semibold uppercase tracking-wide text-muted-foreground">{t('nf.fluxo')}</p>
                             <div className="space-y-0">
                                 <FlowNode icon={<Building2 />} papel={t('nf.emitente')} nome={nf.emitente?.razaoSocial || cnpjFmt(nf.emitente?.cnpj)} color="var(--chart-1)" />
                                 <div className="ml-[15px] h-3 w-px bg-border" />

@@ -29,7 +29,7 @@ export function MobileNav(): JSX.Element {
                 <nav className="flex flex-col gap-4 p-2">
                     {RAIL_GROUPS.map((g) => (
                         <div key={g.labelKey} className="flex flex-col gap-0.5">
-                            <p className="px-3 pb-1 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground/60">{t(g.labelKey)}</p>
+                            <p className="px-3 pb-1 text-3xs font-semibold uppercase tracking-wider text-muted-foreground/60">{t(g.labelKey)}</p>
                             {g.items.map((r) => {
                                 const isEntity = r.to === '/explorar' && !!r.search?.entity;
                                 const entityActive = isEntity && entityAtiva === r.search!.entity;

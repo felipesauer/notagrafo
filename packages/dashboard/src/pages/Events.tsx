@@ -26,7 +26,7 @@ export function EventsContent(): JSX.Element {
     const { t } = useTranslation();
     const [tipo, setTipo] = useState('');
     const [pagina, setPagina] = useState(0);
-    const [pageSize, setPageSize] = useState(50); // paginação offset/limit server-side (NOTA-150)
+    const [pageSize, setPageSize] = useState(10); // paginação offset/limit server-side (NOTA-150)
     const query = useEventos({ limit: pageSize, offset: pagina * pageSize, ...(tipo ? { tipo } : {}) });
 
     const eventos = query.data?.eventos ?? [];

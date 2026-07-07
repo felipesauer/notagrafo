@@ -44,7 +44,7 @@ export function Topbar(): JSX.Element {
             <Button type="button" variant="ghost" size="icon" className="md:hidden" onClick={() => openMobileNav(true)} aria-label={t('sidebar.grupoGeral')}>
                 <Menu />
             </Button>
-            <div className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
+            <div className="flex items-center gap-1.5 text-2sm text-muted-foreground">
                 <span className="font-semibold text-foreground">notagrafo</span>
                 <ChevronRight className="size-3.5 text-muted-foreground/60" />
                 <span>{t(pageLabelKey(pathname))}</span>
@@ -55,11 +55,11 @@ export function Topbar(): JSX.Element {
             <button
                 type="button"
                 onClick={openCommand}
-                className="absolute left-1/2 top-1/2 hidden w-[340px] max-w-[38vw] -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-lg border bg-muted/60 px-3 py-1.5 text-[13px] text-muted-foreground transition-colors hover:border-border hover:bg-muted md:flex"
+                className="absolute left-1/2 top-1/2 hidden w-[340px] max-w-[38vw] -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-lg border bg-muted/60 px-3 py-1.5 text-2sm text-muted-foreground transition-colors hover:border-border hover:bg-muted md:flex"
             >
                 <Search className="size-4" />
                 <span className="truncate">{t('comando.placeholder')}</span>
-                <kbd className="ml-auto rounded border bg-background px-1.5 font-sans text-[11px] font-semibold text-muted-foreground">⌘K</kbd>
+                <kbd className="ml-auto rounded border bg-background px-1.5 font-sans text-2xs font-semibold text-muted-foreground">⌘K</kbd>
             </button>
 
             <div className="ml-auto flex items-center gap-1">

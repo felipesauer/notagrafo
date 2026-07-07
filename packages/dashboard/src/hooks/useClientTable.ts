@@ -15,7 +15,7 @@ export function useClientTable<T, K extends string>(
     opts: { initialSort?: SortState<NoInfer<K>>; initialPageSize?: number } = {},
 ) {
     const { sorted, sort, toggle: toggleBase, ariaSort } = useTableSort(rows, accessors, opts.initialSort);
-    const [pageSize, setPageSizeState] = useState(opts.initialPageSize ?? 25);
+    const [pageSize, setPageSizeState] = useState(opts.initialPageSize ?? 10);
     const [page, setPage] = useState(0);
 
     const total = sorted.length;

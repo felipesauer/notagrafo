@@ -32,7 +32,7 @@ export function WeightedEdge({
             {rotulo && d.focado && (
                 <EdgeLabelRenderer>
                     <div
-                        className="pointer-events-none absolute rounded-md border border-border bg-background/90 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground tabular-nums shadow-sm backdrop-blur"
+                        className="pointer-events-none absolute rounded-md border border-border bg-background/90 px-1.5 py-0.5 text-3xs font-medium text-muted-foreground tabular-nums shadow-sm backdrop-blur"
                         style={{ transform: `translate(-50%,-50%) translate(${labelX}px,${labelY}px)` }}
                     >
                         {rotulo}

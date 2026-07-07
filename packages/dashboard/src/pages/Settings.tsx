@@ -6,6 +6,8 @@ import { useAuthStore } from '../stores/auth.store.js';
 import { useThemeStore } from '../stores/theme.store.js';
 import { setIdioma, type Idioma } from '../i18n/index.js';
 import { LoadingSkeleton, InlineError } from '../components/shared.js';
+import { PageContainer } from '../components/layout/PageContainer.js';
+import { PageHeader } from '../components/PageHeader.js';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card.js';
 import { Button } from '../components/ui/button.js';
 import { Switch } from '../components/ui/switch.js';
@@ -37,13 +39,13 @@ export function SettingsPage(): JSX.Element {
     const health = useQuery({ queryKey: ['health'], queryFn: fetchHealth });
 
     return (
-        <div>
-            {/* Header contextual leve (padrão das telas novas). */}
-            <div className="mb-4 flex items-center gap-2 border-b px-1 pb-3">
-                <SettingsIcon className="size-4 text-muted-foreground" />
-                <h2 className="text-sm font-semibold leading-none tracking-tight">{t('sidebar.configuracoes')}</h2>
-            </div>
-            <div className="grid max-w-3xl gap-4">
+        <PageContainer width="form">
+            <PageHeader
+                title={t('sidebar.configuracoes')}
+                description={t('config.subtitulo')}
+                icon={SettingsIcon}
+            />
+            <div className="grid gap-4">
                 {/* Aparência */}
                 <Card className="py-4">
                     <CardHeader className="px-4 pb-0"><CardTitle className="text-base">{t('config.aparencia')}</CardTitle></CardHeader>
@@ -147,6 +149,6 @@ export function SettingsPage(): JSX.Element {
                     </CardContent>
                 </Card>
             </div>
-        </div>
+        </PageContainer>
     );
 }

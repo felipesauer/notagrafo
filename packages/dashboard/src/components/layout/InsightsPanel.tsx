@@ -136,7 +136,7 @@ function InsightCard({ it }: { it: Insight }): JSX.Element {
         <div className={`flex flex-col gap-1.5 rounded-lg border p-3 ${tone.ring}`}>
             <div className="flex items-center gap-2">
                 <span className={`flex size-6 items-center justify-center rounded-md ${tone.ico} [&>svg]:size-3.5`}><Icon /></span>
-                <span className="text-[13px] font-semibold">{it.title}</span>
+                <span className="text-2sm font-semibold">{it.title}</span>
             </div>
             <p className="text-xs leading-relaxed text-muted-foreground">{it.body}</p>
         </div>

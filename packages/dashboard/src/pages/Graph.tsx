@@ -4,8 +4,9 @@ import { useSearch, useNavigate } from '@tanstack/react-router';
 import { ReactFlow, Background, Controls, MiniMap, useReactFlow, ReactFlowProvider, MarkerType, useNodesState, useEdgesState, type Node } from '@xyflow/react';
 import { toPng } from 'html-to-image';
 import '@xyflow/react/dist/style.css';
-import { Download, Loader2, RotateCcw, Search } from 'lucide-react';
+import { Download, Loader2, RotateCcw, Search, Waypoints } from 'lucide-react';
 import { apiFetch } from '../api/api.client.js';
+import { EmptyState } from '../components/shared.js';
 import { mergeGraph, type ApiGraph, type EdgeData, type GraphEdge, type GraphNode, type NodeData, type NodeType } from '../graph/layout.js';
 import { CustomNode } from '../graph/CustomNode.js';
 import { WeightedEdge } from '../graph/WeightedEdge.js';
@@ -231,8 +232,10 @@ function GraphInner(): JSX.Element {
 
             <Card className="relative flex-1 overflow-hidden py-0">
                 {nodes.length === 0 ? (
-                    <div className="grid h-full place-items-center text-sm text-muted-foreground">
-                        {loading ? <Loader2 className="size-6 animate-spin" /> : t('grafo.vazio')}
+                    <div className="grid h-full place-items-center">
+                        {loading
+                            ? <Loader2 className="size-6 animate-spin text-muted-foreground" />
+                            : <EmptyState icon={Waypoints} titulo={t('grafo.vazioTitulo')} descricao={t('grafo.vazioDescricao')} />}
                     </div>
                 ) : (
                     <>

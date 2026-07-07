@@ -16,6 +16,7 @@ import {
     DropdownMenuSeparator, DropdownMenuTrigger,
 } from '../../components/ui/dropdown-menu.js';
 import { UploadModal } from '../../components/UploadModal.js';
+import { PageContainer } from '../../components/layout/PageContainer.js';
 import { DensityToggle } from '../../components/DensityToggle.js';
 import { ExplorerNotas } from './ExplorerNotas.js';
 import { ExplorerEmpresas } from './ExplorerEmpresas.js';
@@ -134,14 +135,17 @@ export function ExplorerPage(): JSX.Element {
             <div className="flex items-center gap-1 overflow-x-auto border-b px-3 py-2 md:hidden">
                 {ENTITIES.map((e) => (
                     <button key={e.key} type="button" onClick={() => trocar(e.key)}
-                        className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors ${entity === e.key ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>
+                        className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-2sm font-medium transition-colors ${entity === e.key ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'}`}>
                         <e.icon className="size-4" /> {t(e.labelKey)}
                     </button>
                 ))}
             </div>
 
-            {/* Header contextual da entidade */}
-            <div className="flex flex-wrap items-center gap-2 border-b px-4 py-2.5">
+            {/* Header contextual da entidade. A borda vai de ponta a ponta
+                (separador), mas o conteúdo interno alinha com a tabela abaixo
+                (mesmo PageContainer + padding do conteúdo). */}
+            <div className="border-b">
+              <PageContainer width="wide" className="flex flex-wrap items-center gap-2 px-4 py-2.5 md:px-6 lg:px-8">
                 <span className="flex items-center gap-2 text-sm font-semibold tracking-tight">
                     <meta.icon className="size-4 text-muted-foreground" /> {t(meta.labelKey)}
                 </span>
@@ -175,11 +179,13 @@ export function ExplorerPage(): JSX.Element {
                         </div>
                     )}
                 </div>
+              </PageContainer>
             </div>
 
-            {/* Faixa de filtro ativo (drill-through) */}
+            {/* Faixa de filtro ativo (drill-through) — mesmo enquadramento. */}
             {entity === 'notas' && temRecorte && (
-                <div className="flex flex-wrap items-center gap-2 border-b bg-muted/30 px-4 py-2">
+                <div className="border-b bg-muted/30">
+                  <PageContainer width="wide" className="flex flex-wrap items-center gap-2 px-4 py-2 md:px-6 lg:px-8">
                     <span className="text-xs text-muted-foreground">{t('explorer.filtrandoPor')}</span>
                     {search.ufEmitente && <FilterChip label={t('nf.filtros.ufEmitente')} value={search.ufEmitente} />}
                     {search.cnpjEmitente && <FilterChip label={t('nf.filtros.cnpjEmitente')} value={cnpjChip(search.cnpjEmitente)} />}
@@ -188,26 +194,30 @@ export function ExplorerPage(): JSX.Element {
                     <Button type="button" variant="ghost" size="sm" className="ml-auto h-7 text-xs" onClick={limparRecorte}>
                         <X /> {t('nf.filtros.limparTudo')}
                     </Button>
+                  </PageContainer>
                 </div>
             )}
 
-            {/* Conteúdo da entidade — container flex sem overflow próprio (a tabela
-                sticky faz o seu scroll; Rede/Eventos/Impostos rolam internamente).
-                Padding uniforme aqui = mesma margem das demais telas, um scroll só. */}
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-4 md:p-6">
-                {entity === 'notas' ? (
-                    <ExplorerNotas q={q} status={status} recorte={recorte} peek={search.peek} onPeek={setPeek} />
-                ) : entity === 'empresas' ? (
-                    <ExplorerEmpresas peek={search.peek} onPeek={setPeek} busca={buscaLocal} />
-                ) : entity === 'produtos' ? (
-                    <ExplorerProdutos peek={search.peek} onPeek={setPeek} busca={buscaLocal} />
-                ) : entity === 'impostos' ? (
-                    <div className="min-h-0 flex-1 overflow-auto"><ExplorerImpostos /></div>
-                ) : entity === 'rede' ? (
-                    <div className="min-h-0 flex-1 overflow-auto"><NetworkContent /></div>
-                ) : (
-                    <div className="min-h-0 flex-1 overflow-auto"><EventsContent /></div>
-                )}
+            {/* Conteúdo da entidade — rola na PÁGINA (estilo do feed de Eventos):
+                as tabelas vivem em cards com paginação (10/pág), sem scroll interno
+                próprio. Padding uniforme (p-4 md:p-6 lg:p-8) = mesma margem das
+                demais telas; PageContainer dá o teto de largura (ADR-17). */}
+            <div className="min-h-0 flex-1 overflow-auto p-4 md:p-6 lg:p-8">
+                <PageContainer width={entity === 'rede' ? 'full' : 'wide'}>
+                    {entity === 'notas' ? (
+                        <ExplorerNotas q={q} status={status} recorte={recorte} peek={search.peek} onPeek={setPeek} />
+                    ) : entity === 'empresas' ? (
+                        <ExplorerEmpresas peek={search.peek} onPeek={setPeek} busca={buscaLocal} />
+                    ) : entity === 'produtos' ? (
+                        <ExplorerProdutos peek={search.peek} onPeek={setPeek} busca={buscaLocal} />
+                    ) : entity === 'impostos' ? (
+                        <ExplorerImpostos />
+                    ) : entity === 'rede' ? (
+                        <div className="min-h-0"><NetworkContent /></div>
+                    ) : (
+                        <EventsContent />
+                    )}
+                </PageContainer>
             </div>
 
             {modalAberto && <UploadModal onClose={() => setModalAberto(false)} />}
@@ -252,7 +262,7 @@ function NFFilters({ search, onChange, onClearAll, t }: { search: NFSearch; onCh
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                     <div className="grid gap-1">
-                        <Label className="text-[11px] text-muted-foreground">{t('nf.filtros.tipoNF')}</Label>
+                        <Label className="text-2xs text-muted-foreground">{t('nf.filtros.tipoNF')}</Label>
                         <NativeSelect value={search.tipoNF ?? ''} onChange={(e) => onChange('tipoNF', e.target.value)} wrapperClassName="w-full">
                             <option value="">{t('nf.filtros.todos')}</option>
                             <option value="entrada">{t('nf.filtros.tipoEntrada')}</option>
@@ -260,7 +270,7 @@ function NFFilters({ search, onChange, onClearAll, t }: { search: NFSearch; onCh
                         </NativeSelect>
                     </div>
                     <div className="grid gap-1">
-                        <Label className="text-[11px] text-muted-foreground">{t('nf.filtros.finalidade')}</Label>
+                        <Label className="text-2xs text-muted-foreground">{t('nf.filtros.finalidade')}</Label>
                         <NativeSelect value={search.finalidade ?? ''} onChange={(e) => onChange('finalidade', e.target.value)} wrapperClassName="w-full">
                             <option value="">{t('nf.filtros.todos')}</option>
                             <option value="normal">{t('nf.filtros.finNormal')}</option>
@@ -283,7 +293,7 @@ function NFFilters({ search, onChange, onClearAll, t }: { search: NFSearch; onCh
 function FiltroCampo({ label, type = 'text', value, onChange }: { label: string; type?: string; value?: string; onChange: (v: string) => void }): JSX.Element {
     return (
         <div className="grid gap-1">
-            <Label className="text-[11px] text-muted-foreground">{label}</Label>
+            <Label className="text-2xs text-muted-foreground">{label}</Label>
             <Input type={type} value={value ?? ''} onChange={(e) => onChange(e.target.value)} className="h-8" />
         </div>
     );

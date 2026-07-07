@@ -111,9 +111,46 @@ export function DateDisplay({ value }: { value: string | null | undefined }): JS
     return <span className="tabular-nums">{Number.isNaN(d.getTime()) ? value : d.toLocaleString('pt-BR')}</span>;
 }
 
-/** Estado vazio com mensagem e ação opcional. */
-export function EmptyState({ mensagem, action }: { mensagem?: string; action?: ReactNode }): JSX.Element {
+/**
+ * Estado vazio. Forma rica (inspirada no upcv-pro): `icon` (lucide) em selo tonal
+ * + `titulo` forte + `descricao` (largura limitada p/ leitura) + `action` (CTA).
+ * Forma simples (retrocompatível): só `mensagem` renderiza o texto discreto de
+ * antes — os usos existentes que passam só `mensagem`/nada seguem iguais.
+ */
+export function EmptyState({
+    icon: Icon,
+    titulo,
+    descricao,
+    mensagem,
+    action,
+}: {
+    icon?: LucideIcon;
+    titulo?: string;
+    descricao?: string;
+    mensagem?: string;
+    action?: ReactNode;
+}): JSX.Element {
     const { t } = useTranslation();
+    // Forma rica: quando há título (ou ícone), monta o bloco completo.
+    if (titulo || Icon) {
+        return (
+            <div className="flex flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-border px-6 py-12 text-center">
+                {Icon && (
+                    <span className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary [&>svg]:size-6">
+                        <Icon aria-hidden />
+                    </span>
+                )}
+                <div className="space-y-1">
+                    {titulo && <h3 className="text-base font-semibold text-foreground">{titulo}</h3>}
+                    {(descricao ?? mensagem) && (
+                        <p className="mx-auto max-w-md text-sm text-muted-foreground">{descricao ?? mensagem}</p>
+                    )}
+                </div>
+                {action}
+            </div>
+        );
+    }
+    // Forma simples (legada): só a mensagem discreta.
     return (
         <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border px-6 py-12 text-center">
             <p className="text-sm text-muted-foreground">{mensagem ?? t('comum.vazio')}</p>

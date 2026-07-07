@@ -99,7 +99,7 @@ export function NFFilterBar({
                         onChange={(e) => onQ(e.target.value)}
                         className="h-9 pl-8 pr-8"
                     />
-                    <kbd className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 rounded border border-border bg-muted px-1.5 font-mono text-[10px] text-muted-foreground sm:block">/</kbd>
+                    <kbd className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 rounded border border-border bg-muted px-1.5 font-mono text-3xs text-muted-foreground sm:block">/</kbd>
                 </div>
 
                 <NativeSelect value={status} onChange={(e) => onStatus(e.target.value)} data-testid="nf-status-filter" wrapperClassName="w-40">
