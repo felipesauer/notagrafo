@@ -1,17 +1,35 @@
-<p align="center">
-  <img src="assets/notagrafo-logo.png" alt="notagrafo" width="360" />
+<div align="center">
+
+<img src="assets/notagrafo-logo.png" alt="notagrafo" width="360" />
+
+<p>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg" /></a>
+  <img alt="Node.js >=20" src="https://img.shields.io/badge/node-%3E%3D20-339933?logo=node.js&logoColor=white" />
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" />
+  <img alt="React" src="https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB" />
+  <img alt="Fastify" src="https://img.shields.io/badge/Fastify-000000?logo=fastify&logoColor=white" />
+  <img alt="Neo4j" src="https://img.shields.io/badge/Neo4j-4581C3?logo=neo4j&logoColor=white" />
+  <img alt="Redis" src="https://img.shields.io/badge/Redis-DC382D?logo=redis&logoColor=white" />
+  <img alt="Docker" src="https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white" />
+  <img alt="NF-e v4.00" src="https://img.shields.io/badge/NF--e-v4.00-1f8f4e" />
 </p>
 
-Sistema open-source de processamento e análise de **Notas Fiscais Eletrônicas (NF-e)**.
-Recebe XMLs de NF-e, valida contra os XSDs oficiais da SEFAZ, processa via filas,
-persiste os dados como um **grafo de relacionamentos** no Neo4j e expõe tudo por uma
-API REST e um dashboard interativo com visualização de grafo.
+<p>
+Sistema open-source de processamento e análise de <strong>Notas Fiscais Eletrônicas (NF-e)</strong>.<br />
+Recebe XMLs de NF-e, valida contra os XSDs oficiais da SEFAZ, processa via filas,<br />
+persiste os dados como um <strong>grafo de relacionamentos</strong> no Neo4j e expõe tudo<br />
+por uma API REST e um dashboard interativo com visualização de grafo.
+</p>
 
-**Objetivo:** rastrear relações entre empresas, produtos, CFOPs e NCMs de forma
-visual e consultável — padrões, ligações comuns e caminhos entre emitentes e
-destinatários.
+<p>
+<strong>Objetivo:</strong> rastrear relações entre empresas, produtos, CFOPs e NCMs de<br />
+forma visual e consultável — padrões, ligações comuns e caminhos entre<br />
+emitentes e destinatários.
+</p>
 
-> Documento suportado: **NF-e v4.00**. Licença **MIT**.
+<sub>Documento suportado: <strong>NF-e v4.00</strong> · Licença <strong>MIT</strong></sub>
+
+</div>
 
 ---
 
@@ -135,19 +153,29 @@ URLs no modo dev:
 Para subir **apenas a infraestrutura** e rodar os serviços manualmente:
 
 ```bash
-docker compose up -d --wait     # redis, neo4j, minio, mailpit
+pnpm docker:up                  # sobe redis, neo4j, minio, mailpit (e espera healthy)
 pnpm dev:libs                   # builda core + graph
 pnpm dev:seed                   # popula o grafo (opcional)
 pnpm dev:packages               # api + worker + dashboard em watch
 ```
 
+Como `Ctrl+C` encerra só os processos locais (a infra sobe *detached*), derrube
+os containers e **libere as portas** quando terminar:
+
+```bash
+pnpm docker:down                # para e remove os containers (libera as portas)
+```
+
+> Os containers usam `restart: "no"` — não voltam sozinhos no boot da máquina.
+> As portas do host são configuráveis via `.env` (veja `.env.example`), então
+> o notagrafo não atropela outras aplicações locais.
+
 ---
 
 ## Autenticação
 
-A API usa **JWT Bearer** emitido pelo `@fastify/jwt` (não Better Auth — ver
-[ADR NOTA-ADR-1](.mnema/roadmap)). O login retorna um token; as rotas protegidas
-exigem `Authorization: Bearer <token>`.
+A API usa **JWT Bearer** emitido pelo `@fastify/jwt`. O login retorna um token; as
+rotas protegidas exigem `Authorization: Bearer <token>`.
 
 No profile **demo**, o seed cria um usuário para você entrar de imediato:
 

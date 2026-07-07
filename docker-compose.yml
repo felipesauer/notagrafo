@@ -6,7 +6,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    restart: unless-stopped
+    restart: "no"
     ports:
       # Porta de host configurável (REDIS_PORT) — evita conflito com Redis local.
       # A porta interna na rede do compose continua 6379 (api/worker usam redis:6379).
@@ -22,10 +22,10 @@ services:
 
   neo4j:
     image: neo4j:5-community
-    restart: unless-stopped
+    restart: "no"
     ports:
-      - "7474:7474"   # Neo4j Browser
-      - "7687:7687"   # Bolt
+      - "${NEO4J_BROWSER_PORT:-7474}:7474"   # Neo4j Browser
+      - "${NEO4J_BOLT_PORT:-7687}:7687"      # Bolt
     environment:
       NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-changeme}
       NEO4J_PLUGINS: '["apoc"]'
@@ -42,10 +42,10 @@ services:
 
   minio:
     image: minio/minio:latest
-    restart: unless-stopped
+    restart: "no"
     ports:
-      - "9000:9000"   # API S3
-      - "9001:9001"   # Console web
+      - "${MINIO_API_PORT:-9000}:9000"       # API S3
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"   # Console web
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
@@ -60,7 +60,7 @@ services:
 
   mailpit:
     image: axllent/mailpit:latest
-    restart: unless-stopped
+    restart: "no"
     ports:
       - "${MAILPIT_SMTP_PORT:-1025}:1025"   # SMTP (configurável p/ evitar conflito no host)
       - "${MAILPIT_UI_PORT:-8025}:8025"     # UI web
@@ -74,9 +74,9 @@ services:
       context: .
       dockerfile: packages/api/Dockerfile
       target: production
-    restart: unless-stopped
+    restart: "no"
     ports:
-      - "3000:3000"
+      - "${API_PORT:-3000}:3000"
     env_file: .env
     environment:
       # Sobrepõe os hosts do .env (localhost = dev no host) pelos nomes de
@@ -110,7 +110,7 @@ services:
       context: .
       dockerfile: packages/worker/Dockerfile
       target: production
-    restart: unless-stopped
+    restart: "no"
     env_file: .env
     environment:
       # Mesma sobreposição de hosts da API (ver comentário no serviço api).
@@ -131,9 +131,9 @@ services:
       context: .
       dockerfile: packages/dashboard/Dockerfile
       target: production
-    restart: unless-stopped
+    restart: "no"
     ports:
-      - "8080:80"
+      - "${DASHBOARD_PORT:-8080}:80"
     depends_on:
       - api
 
