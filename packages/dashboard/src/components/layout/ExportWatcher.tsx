@@ -34,19 +34,26 @@ export function ExportWatcher(): null {
         return () => clearInterval(id);
     }, [jobAtivo, atualizarStatus]);
 
-    // Toast quando o job fica pronto.
+    // Toast quando o job fica pronto. Duração finita (não Infinity) para o aviso
+    // sair sozinho; clicar em "Baixar" dispara o download E fecha o toast na hora.
+    // Qualquer forma de saída (timeout, clique, swipe) limpa o job via onAutoClose/
+    // onDismiss, evitando que o mesmo aviso reapareça.
     useEffect(() => {
         if (!jobAtivo || jobAtivo.status !== 'ready') return;
         const { exportId, formato } = jobAtivo;
+        const toastId = `export-${exportId}`;
         toast.success(t('export.pronta'), {
-            id: `export-${exportId}`,
-            duration: Infinity,
+            id: toastId,
+            duration: 15_000,
             action: {
                 label: t('export.baixar'),
-                onClick: () =>
-                    void downloadFile(`/export/${exportId}/download`, `export-${exportId}.${formato}`),
+                onClick: () => {
+                    void downloadFile(`/export/${exportId}/download`, `export-${exportId}.${formato}`);
+                    toast.dismiss(toastId);
+                },
             },
             onDismiss: () => setJob(null),
+            onAutoClose: () => setJob(null),
         });
     }, [jobAtivo, t, setJob]);
 

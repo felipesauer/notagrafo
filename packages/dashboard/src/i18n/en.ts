@@ -172,9 +172,20 @@ export const en = {
         subtitulo: 'Generate extracts of the invoice base as CSV, XLSX or JSON.',
         registros: 'Records', tamanho: 'Size', selecioneCampos: 'Select the fields to export.',
         primeira: 'Create the first', vazioDescricao: 'Pick the format and fields on the left and generate your first extract.',
+        todos: 'All', limparTodos: 'Clear',
+        grupo: {
+            identificacao: 'Identification', valores: 'Amounts', datas: 'Dates',
+            emitente: 'Issuer', destinatario: 'Recipient',
+        },
         campo: {
-            chaveAcesso: 'Access key', numero: 'Number', dataEmissao: 'Issue date',
-            valorTotal: 'Total value', cnpjEmitente: 'Issuer tax ID', cnpjDestinatario: 'Recipient tax ID',
+            chaveAcesso: 'Access key', numero: 'Number', serie: 'Series',
+            status: 'Status', tipoNF: 'Type (in/out)', finalidade: 'Purpose',
+            naturezaOp: 'Operation nature',
+            valorTotal: 'Total value',
+            dataEmissao: 'Issue date', dataSaida: 'Exit date',
+            importadaEm: 'Imported at', processadaEm: 'Processed at',
+            cnpjEmitente: 'Issuer tax ID', razaoSocialEmitente: 'Issuer legal name', ufEmitente: 'Issuer state',
+            cnpjDestinatario: 'Recipient tax ID', razaoSocialDestinatario: 'Recipient legal name', ufDestinatario: 'Recipient state',
         },
     },
     config: {

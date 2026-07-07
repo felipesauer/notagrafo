@@ -155,9 +155,20 @@ export const ptBR = {
         subtitulo: 'Gere extrações da base de NF-e em CSV, XLSX ou JSON.',
         registros: 'Registros', tamanho: 'Tamanho', selecioneCampos: 'Selecione os campos a exportar.',
         primeira: 'Criar a primeira', vazioDescricao: 'Escolha o formato e os campos ao lado e gere sua primeira extração.',
+        todos: 'Todos', limparTodos: 'Limpar',
+        grupo: {
+            identificacao: 'Identificação', valores: 'Valores', datas: 'Datas',
+            emitente: 'Emitente', destinatario: 'Destinatário',
+        },
         campo: {
-            chaveAcesso: 'Chave de acesso', numero: 'Número', dataEmissao: 'Data de emissão',
-            valorTotal: 'Valor total', cnpjEmitente: 'CNPJ emitente', cnpjDestinatario: 'CNPJ destinatário',
+            chaveAcesso: 'Chave de acesso', numero: 'Número', serie: 'Série',
+            status: 'Status', tipoNF: 'Tipo (entrada/saída)', finalidade: 'Finalidade',
+            naturezaOp: 'Natureza da operação',
+            valorTotal: 'Valor total',
+            dataEmissao: 'Data de emissão', dataSaida: 'Data de saída',
+            importadaEm: 'Importada em', processadaEm: 'Processada em',
+            cnpjEmitente: 'CNPJ emitente', razaoSocialEmitente: 'Razão social emitente', ufEmitente: 'UF emitente',
+            cnpjDestinatario: 'CNPJ destinatário', razaoSocialDestinatario: 'Razão social destinatário', ufDestinatario: 'UF destinatário',
         },
     },
     config: {
