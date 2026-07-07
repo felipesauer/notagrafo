@@ -11,6 +11,10 @@ export const MIGRATIONS: readonly string[] = [
     'CREATE CONSTRAINT produto_idUnico_unique IF NOT EXISTS FOR (p:Produto) REQUIRE p.idUnico IS UNIQUE',
     'CREATE CONSTRAINT cfop_codigo_unique IF NOT EXISTS FOR (c:CFOP) REQUIRE c.codigo IS UNIQUE',
     'CREATE CONSTRAINT ncm_codigo_unique IF NOT EXISTS FOR (n:NCM) REQUIRE n.codigo IS UNIQUE',
+    // Alertas (EPIC-27): id único por alerta; fingerprint identifica o mesmo
+    // alerta lógico entre reavaliações (upsert, sem duplicar).
+    'CREATE CONSTRAINT alert_id_unique IF NOT EXISTS FOR (a:Alert) REQUIRE a.id IS UNIQUE',
+    'CREATE CONSTRAINT alert_fingerprint_unique IF NOT EXISTS FOR (a:Alert) REQUIRE a.fingerprint IS UNIQUE',
 
     // ── Índices de texto completo para busca ──────────────────────
     'CREATE FULLTEXT INDEX empresa_search IF NOT EXISTS FOR (e:Empresa) ON EACH [e.cnpj, e.razaoSocial, e.nomeFantasia]',
@@ -21,6 +25,9 @@ export const MIGRATIONS: readonly string[] = [
     'CREATE INDEX nf_dataEmissao IF NOT EXISTS FOR (n:NotaFiscal) ON (n.dataEmissao)',
     'CREATE INDEX nf_status IF NOT EXISTS FOR (n:NotaFiscal) ON (n.status)',
     'CREATE INDEX empresa_uf IF NOT EXISTS FOR (e:Empresa) ON (e.uf)',
+    // Alertas: filtrar por lido/não-lido (badge) e ordenar por data.
+    'CREATE INDEX alert_read IF NOT EXISTS FOR (a:Alert) ON (a.read)',
+    'CREATE INDEX alert_createdAt IF NOT EXISTS FOR (a:Alert) ON (a.createdAt)',
 ];
 
 /**

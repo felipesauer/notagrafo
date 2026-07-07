@@ -16,6 +16,7 @@ import { nfRoutes } from './nf/nf.routes.js';
 import { healthRoutes } from './routes/health.routes.js';
 import { companyRoutes } from './routes/company.routes.js';
 import { statsRoutes } from './routes/stats.routes.js';
+import { alertRoutes } from './routes/alert.routes.js';
 import { exportRoutes } from './export/export.routes.js';
 import { ExportService } from './export/export.service.js';
 
@@ -89,6 +90,7 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<FastifyInsta
                 await authRoutes(api, opts.driver);
                 await companyRoutes(api, opts.driver);
                 await statsRoutes(api, opts.driver);
+                await alertRoutes(api, opts.driver);
                 if (exportService) await exportRoutes(api, exportService);
                 if (opts.queue && opts.storage) {
                     await nfRoutes(api, { driver: opts.driver, queue: opts.queue, storage: opts.storage });

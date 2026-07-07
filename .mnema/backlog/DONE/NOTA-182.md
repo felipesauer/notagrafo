@@ -21,10 +21,10 @@ mnema:
   priority: 3
   assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
-  epic_key: null
+  epic_key: NOTA-EPIC-26
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-07T18:33:13.392Z'
+  updated_at: '2026-07-07T18:34:05.576Z'
 ---
 # Tela/aba de Anomalias no dashboard (agrega duplicatas + gaps)
