@@ -67,11 +67,11 @@ describe('GET /stats/produto/:idUnico/historico (unit)', () => {
     });
 });
 
-describe('GET /stats/por-uf (unit)', () => {
+describe('GET /stats/by-uf (unit)', () => {
     it('distribuição por UF do emitente', async () => {
         const { driver } = makeFakeDriver(() => [rec({ uf: 'SP', totalNFs: 4, valorTotal: 400 })]);
         app = await buildTestApi((a) => statsRoutes(a, driver));
-        const res = await app.inject({ method: 'GET', url: '/stats/por-uf' });
+        const res = await app.inject({ method: 'GET', url: '/stats/by-uf' });
         expect(res.statusCode).toBe(200);
         expect(res.json().tipo).toBe('emitente');
         expect(res.json().porUf[0]).toEqual({ uf: 'SP', totalNFs: 4, valorTotal: 400 });
@@ -114,13 +114,13 @@ describe('GET /stats/produto/:idUnico/empresas (unit)', () => {
     });
 });
 
-describe('GET /stats/fluxo (unit)', () => {
+describe('GET /stats/flow (unit)', () => {
     it('retorna as arestas do fluxo e respeita o limite', async () => {
         const { driver, runs } = makeFakeDriver(() => [
             rec({ de: '111', para: '222', deNome: 'Alpha', paraNome: 'Beta', totalNFs: 5, valorTotal: 9000 }),
         ]);
         app = await buildTestApi((a) => statsRoutes(a, driver));
-        const res = await app.inject({ method: 'GET', url: '/stats/fluxo?limite=15' });
+        const res = await app.inject({ method: 'GET', url: '/stats/flow?limite=15' });
         expect(res.statusCode).toBe(200);
         const j = res.json();
         expect(j.limite).toBe(15);
@@ -132,12 +132,12 @@ describe('GET /stats/fluxo (unit)', () => {
     it('rejeita limite fora do intervalo do schema (0 → 400)', async () => {
         const { driver } = makeFakeDriver(() => []);
         app = await buildTestApi((a) => statsRoutes(a, driver));
-        const res = await app.inject({ method: 'GET', url: '/stats/fluxo?limite=0' });
+        const res = await app.inject({ method: 'GET', url: '/stats/flow?limite=0' });
         expect(res.statusCode).toBe(400);
     });
 });
 
-describe('GET /stats/rede (unit)', () => {
+describe('GET /stats/network (unit)', () => {
     it('retorna nós e arestas da rede', async () => {
         const responder = (_c: string, _p: Record<string, unknown>, i: number) =>
             i === 0
@@ -145,7 +145,7 @@ describe('GET /stats/rede (unit)', () => {
                 : [rec({ cnpj: '111', razaoSocial: 'Alpha', uf: 'SP', totalNFs: 10 }), rec({ cnpj: '222', razaoSocial: 'Beta', uf: 'MG', totalNFs: 7 })];
         const { driver } = makeFakeDriver(responder);
         app = await buildTestApi((a) => statsRoutes(a, driver));
-        const res = await app.inject({ method: 'GET', url: '/stats/rede?limite=100' });
+        const res = await app.inject({ method: 'GET', url: '/stats/network?limite=100' });
         expect(res.statusCode).toBe(200);
         const j = res.json();
         expect(j.arestas).toHaveLength(1);
@@ -156,12 +156,12 @@ describe('GET /stats/rede (unit)', () => {
     it('rejeita limite acima do máximo do schema (501 → 400)', async () => {
         const { driver } = makeFakeDriver(() => []);
         app = await buildTestApi((a) => statsRoutes(a, driver));
-        const res = await app.inject({ method: 'GET', url: '/stats/rede?limite=501' });
+        const res = await app.inject({ method: 'GET', url: '/stats/network?limite=501' });
         expect(res.statusCode).toBe(400);
     });
 });
 
-describe('GET /stats/eventos (unit)', () => {
+describe('GET /stats/events (unit)', () => {
     it('retorna o feed de eventos com total e a NF associada', async () => {
         const responder = (_c: string, _p: Record<string, unknown>, i: number) =>
             i === 0
@@ -169,7 +169,7 @@ describe('GET /stats/eventos (unit)', () => {
                 : [rec({ tipo: 'consultada', timestamp: '2026-06-01T10:00:00Z', autor: 'u1', chaveAcesso: '351', numero: '7' })];
         const { driver } = makeFakeDriver(responder);
         app = await buildTestApi((a) => statsRoutes(a, driver));
-        const res = await app.inject({ method: 'GET', url: '/stats/eventos?limit=20' });
+        const res = await app.inject({ method: 'GET', url: '/stats/events?limit=20' });
         expect(res.statusCode).toBe(200);
         const j = res.json();
         expect(j.total).toBe(2);
@@ -179,7 +179,7 @@ describe('GET /stats/eventos (unit)', () => {
     it('rejeita limit acima do máximo (201 → 400)', async () => {
         const { driver } = makeFakeDriver(() => []);
         app = await buildTestApi((a) => statsRoutes(a, driver));
-        const res = await app.inject({ method: 'GET', url: '/stats/eventos?limit=201' });
+        const res = await app.inject({ method: 'GET', url: '/stats/events?limit=201' });
         expect(res.statusCode).toBe(400);
     });
 });

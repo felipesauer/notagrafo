@@ -62,7 +62,7 @@ export interface PeriodComparison {
 export function usePeriodComparison(dataInicio?: string, dataFim?: string) {
     return useQuery({
         queryKey: ['stats', 'comparativo', dataInicio, dataFim],
-        queryFn: () => apiFetch<PeriodComparison>(`/stats/comparativo${qs({ dataInicio, dataFim })}`),
+        queryFn: () => apiFetch<PeriodComparison>(`/stats/comparison${qs({ dataInicio, dataFim })}`),
         enabled: !!dataInicio && !!dataFim,
     });
 }
@@ -74,7 +74,7 @@ export interface Anomalias {
 
 /** Anomalias fiscais: duplicatas prováveis + gaps de numeração (EPIC-26). */
 export function useAnomalias() {
-    return useQuery({ queryKey: ['stats', 'anomalias'], queryFn: () => apiFetch<Anomalias>('/stats/anomalias') });
+    return useQuery({ queryKey: ['stats', 'anomalias'], queryFn: () => apiFetch<Anomalias>('/stats/anomalies') });
 }
 
 export function useTopCompanies() {
@@ -93,7 +93,7 @@ export interface UfStat {
 export function useByUf(tipo: 'emitente' | 'destinatario' = 'emitente') {
     return useQuery({
         queryKey: ['stats', 'por-uf', tipo],
-        queryFn: () => apiFetch<{ tipo: string; porUf: UfStat[] }>(`/stats/por-uf${qs({ tipo })}`),
+        queryFn: () => apiFetch<{ tipo: string; porUf: UfStat[] }>(`/stats/by-uf${qs({ tipo })}`),
     });
 }
 
@@ -129,7 +129,7 @@ export interface NFEvento {
 export function useNFEvents(chave: string) {
     return useQuery({
         queryKey: ['nf', 'eventos', chave],
-        queryFn: () => apiFetch<{ chaveAcesso: string; eventos: NFEvento[] }>(`/nf/${chave}/eventos`),
+        queryFn: () => apiFetch<{ chaveAcesso: string; eventos: NFEvento[] }>(`/nf/${chave}/events`),
         enabled: !!chave,
     });
 }
@@ -209,7 +209,7 @@ export interface FluxoAresta {
 export function useFluxo(limite = 30) {
     return useQuery({
         queryKey: ['stats', 'fluxo', limite],
-        queryFn: () => apiFetch<{ arestas: FluxoAresta[]; limite: number }>(`/stats/fluxo${qs({ limite })}`),
+        queryFn: () => apiFetch<{ arestas: FluxoAresta[]; limite: number }>(`/stats/flow${qs({ limite })}`),
     });
 }
 
@@ -229,7 +229,7 @@ export interface RedeAresta {
 export function useRede(limite = 150) {
     return useQuery({
         queryKey: ['stats', 'rede', limite],
-        queryFn: () => apiFetch<{ nos: RedeNo[]; arestas: RedeAresta[]; limite: number }>(`/stats/rede${qs({ limite })}`),
+        queryFn: () => apiFetch<{ nos: RedeNo[]; arestas: RedeAresta[]; limite: number }>(`/stats/network${qs({ limite })}`),
     });
 }
 
@@ -244,6 +244,6 @@ export interface EventoGlobal {
 export function useEventos(params: { limit?: number; offset?: number; tipo?: string } = {}) {
     return useQuery({
         queryKey: ['stats', 'eventos', params],
-        queryFn: () => apiFetch<{ eventos: EventoGlobal[]; total: number }>(`/stats/eventos${qs(params)}`),
+        queryFn: () => apiFetch<{ eventos: EventoGlobal[]; total: number }>(`/stats/events${qs(params)}`),
     });
 }

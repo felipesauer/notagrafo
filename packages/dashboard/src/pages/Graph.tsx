@@ -95,7 +95,7 @@ function GraphInner(): JSX.Element {
             // grafo não inclui a própria raiz em `nos`, então o nó raiz ficaria
             // só com o CNPJ). Falha do /empresa não derruba o grafo.
             const [api, rootMeta] = await Promise.all([
-                apiFetch<ApiGraph>(`/empresa/${cnpj}/grafo?depth=${degree}&direction=${dir}${prodParam}${notasParam}`),
+                apiFetch<ApiGraph>(`/empresa/${cnpj}/graph?depth=${degree}&direction=${dir}${prodParam}${notasParam}`),
                 apiFetch<{ razaoSocial?: string; uf?: string; stats?: { totalNFsEmitidas?: number; totalNFsRecebidas?: number } }>(`/empresa/${cnpj}`).catch(() => null),
             ]);
             const meta = rootMeta

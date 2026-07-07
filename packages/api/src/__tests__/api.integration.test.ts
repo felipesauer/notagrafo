@@ -114,7 +114,7 @@ describe('API end-to-end (setup.integration compartilhado)', () => {
         expect(detalhe.statusCode).toBe(200);
         expect(detalhe.json().itens.length).toBeGreaterThanOrEqual(1);
 
-        const grafo = await ctx.app.inject({ method: 'GET', url: `${API_PREFIX}/empresa/14200166000187/grafo?depth=1`, headers: ctx.bearer() });
+        const grafo = await ctx.app.inject({ method: 'GET', url: `${API_PREFIX}/empresa/14200166000187/graph?depth=1`, headers: ctx.bearer() });
         expect(grafo.statusCode).toBe(200);
     });
 

@@ -77,9 +77,9 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
         },
     );
 
-    // GET /stats/comparativo — totais do período vs período anterior e YoY (EPIC-26)
+    // GET /stats/comparison — totais do período vs período anterior e YoY (EPIC-26)
     app.get<{ Querystring: { dataInicio?: string; dataFim?: string } }>(
-        '/stats/comparativo',
+        '/stats/comparison',
         {
             preHandler: app.authenticate,
             schema: {
@@ -102,9 +102,9 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
         },
     );
 
-    // GET /stats/anomalias — duplicatas prováveis + gaps de numeração (EPIC-26)
+    // GET /stats/anomalies — duplicatas prováveis + gaps de numeração (EPIC-26)
     app.get<{ Querystring: { limit?: number } }>(
-        '/stats/anomalias',
+        '/stats/anomalies',
         {
             preHandler: app.authenticate,
             schema: {
@@ -287,9 +287,9 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
         },
     );
 
-    // GET /stats/por-uf — distribuição de NFs e valor por UF do emitente (Treemap do Overview)
+    // GET /stats/by-uf — distribuição de NFs e valor por UF do emitente (Treemap do Overview)
     app.get<{ Querystring: { tipo?: string } }>(
-        '/stats/por-uf',
+        '/stats/by-uf',
         {
             preHandler: app.authenticate,
             schema: {
@@ -381,9 +381,9 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
         },
     );
 
-    // GET /stats/fluxo — fluxo de valor agregado entre empresas (Sankey)
+    // GET /stats/flow — fluxo de valor agregado entre empresas (Sankey)
     app.get<{ Querystring: { limite?: number } }>(
-        '/stats/fluxo',
+        '/stats/flow',
         {
             preHandler: app.authenticate,
             schema: {
@@ -403,9 +403,9 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
         },
     );
 
-    // GET /stats/rede — rede comercial completa (nós + arestas) para exploração WebGL
+    // GET /stats/network — rede comercial completa (nós + arestas) para exploração WebGL
     app.get<{ Querystring: { limite?: number } }>(
-        '/stats/rede',
+        '/stats/network',
         {
             preHandler: app.authenticate,
             schema: {
@@ -425,9 +425,9 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
         },
     );
 
-    // GET /stats/eventos — feed global de eventos de auditoria (todas as NFs)
+    // GET /stats/events — feed global de eventos de auditoria (todas as NFs)
     app.get<{ Querystring: { limit?: number; offset?: number; tipo?: string } }>(
-        '/stats/eventos',
+        '/stats/events',
         {
             preHandler: app.authenticate,
             schema: {

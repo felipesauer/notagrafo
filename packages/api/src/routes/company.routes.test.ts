@@ -31,11 +31,11 @@ describe('GET /empresa/:cnpj (unit)', () => {
     });
 });
 
-describe('GET /empresa/:cnpj/grafo (unit)', () => {
+describe('GET /empresa/:cnpj/graph (unit)', () => {
     it('400 quando depth fora de [1,4]', async () => {
         const { driver } = makeFakeDriver(() => []);
         app = await buildTestApi((a) => companyRoutes(a, driver));
-        const res = await app.inject({ method: 'GET', url: '/empresa/111/grafo?depth=9' });
+        const res = await app.inject({ method: 'GET', url: '/empresa/111/graph?depth=9' });
         expect(res.statusCode).toBe(400);
     });
 
@@ -43,7 +43,7 @@ describe('GET /empresa/:cnpj/grafo (unit)', () => {
         const { driver } = makeFakeDriver(() => []);
         g.getCompanyGraph.mockResolvedValue({ cnpj: '111', depth: 2, nos: [], arestas: [] });
         app = await buildTestApi((a) => companyRoutes(a, driver));
-        const res = await app.inject({ method: 'GET', url: '/empresa/111/grafo?depth=2&direction=emitente&limit=10' });
+        const res = await app.inject({ method: 'GET', url: '/empresa/111/graph?depth=2&direction=emitente&limit=10' });
         expect(res.statusCode).toBe(200);
         expect(g.getCompanyGraph).toHaveBeenCalledWith(driver, '111', { depth: 2, direction: 'emitente', limit: 10 });
     });
@@ -52,7 +52,7 @@ describe('GET /empresa/:cnpj/grafo (unit)', () => {
         const { driver } = makeFakeDriver(() => []);
         g.getCompanyGraph.mockResolvedValue({ cnpj: '111', depth: 1, nos: [], arestas: [], produtos: [] });
         app = await buildTestApi((a) => companyRoutes(a, driver));
-        const res = await app.inject({ method: 'GET', url: '/empresa/111/grafo?includeProdutos=true' });
+        const res = await app.inject({ method: 'GET', url: '/empresa/111/graph?includeProdutos=true' });
         expect(res.statusCode).toBe(200);
         expect(g.getCompanyGraph).toHaveBeenCalledWith(driver, '111', { depth: 1, includeProdutos: true });
     });

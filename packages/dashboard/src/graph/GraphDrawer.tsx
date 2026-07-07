@@ -26,7 +26,7 @@ function DrawerCanvas({ cnpj, dark }: { cnpj: string; dark: boolean }): JSX.Elem
         setLoading(true);
         try {
             const [api, root] = await Promise.all([
-                apiFetch<ApiGraph>(`/empresa/${c}/grafo?depth=1&direction=both`),
+                apiFetch<ApiGraph>(`/empresa/${c}/graph?depth=1&direction=both`),
                 apiFetch<{ razaoSocial?: string; uf?: string; stats?: { totalNFsEmitidas?: number; totalNFsRecebidas?: number } }>(`/empresa/${c}`).catch(() => null),
             ]);
             const meta = root ? { razaoSocial: root.razaoSocial, uf: root.uf, totalNFs: (root.stats?.totalNFsEmitidas ?? 0) + (root.stats?.totalNFsRecebidas ?? 0) } : undefined;

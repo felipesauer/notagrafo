@@ -71,14 +71,14 @@ describe('empresa', () => {
         expect(res.json().stats.totalNFsEmitidas).toBe(1);
     });
 
-    it('GET /empresa/:cnpj/grafo com depth>4 → 400 BAD_REQUEST', async () => {
-        const res = await app.inject({ method: 'GET', url: `${API_PREFIX}/empresa/${EMIT}/grafo?depth=5`, headers: bearer() });
+    it('GET /empresa/:cnpj/graph com depth>4 → 400 BAD_REQUEST', async () => {
+        const res = await app.inject({ method: 'GET', url: `${API_PREFIX}/empresa/${EMIT}/graph?depth=5`, headers: bearer() });
         expect(res.statusCode).toBe(400);
         expect(res.json().error).toBe('BAD_REQUEST');
     });
 
-    it('GET /empresa/:cnpj/grafo depth válido → 200', async () => {
-        const res = await app.inject({ method: 'GET', url: `${API_PREFIX}/empresa/${EMIT}/grafo?depth=2`, headers: bearer() });
+    it('GET /empresa/:cnpj/graph depth válido → 200', async () => {
+        const res = await app.inject({ method: 'GET', url: `${API_PREFIX}/empresa/${EMIT}/graph?depth=2`, headers: bearer() });
         expect(res.statusCode).toBe(200);
         expect(res.json().depth).toBe(2);
     });
@@ -120,8 +120,8 @@ describe('stats', () => {
         expect(hist[0]!.precoMedio).toBeGreaterThan(0);
     });
 
-    it('GET /stats/por-uf retorna distribuição por UF do emitente', async () => {
-        const res = await app.inject({ method: 'GET', url: `${API_PREFIX}/stats/por-uf`, headers: bearer() });
+    it('GET /stats/by-uf retorna distribuição por UF do emitente', async () => {
+        const res = await app.inject({ method: 'GET', url: `${API_PREFIX}/stats/by-uf`, headers: bearer() });
         expect(res.statusCode).toBe(200);
         expect(res.json().tipo).toBe('emitente');
         const porUf = res.json().porUf as Array<{ uf: string; totalNFs: number; valorTotal: number }>;
