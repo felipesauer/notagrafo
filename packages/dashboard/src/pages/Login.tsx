@@ -67,7 +67,7 @@ export function LoginPage(): JSX.Element {
                         </Button>
                         <p className="text-center text-sm text-muted-foreground">
                             {t('cadastro.semConta')}{' '}
-                            <Link to={'/cadastro' as string} className="font-medium text-primary hover:underline">
+                            <Link to={'/register' as string} className="font-medium text-primary hover:underline">
                                 {t('cadastro.criar')}
                             </Link>
                         </p>

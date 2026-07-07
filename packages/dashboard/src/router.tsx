@@ -31,7 +31,7 @@ const loginRoute = createRoute({
 // Cadastro: rota PÚBLICA (irmã do login, fora do guard) — criar conta própria.
 const cadastroRoute = createRoute({
     getParentRoute: () => rootRoute,
-    path: '/cadastro',
+    path: '/register',
     component: RegisterPage,
 });
 
@@ -75,7 +75,7 @@ const homeRoute = createRoute({
  */
 const explorarRoute = createRoute({
     getParentRoute: () => protectedLayout,
-    path: '/explorar',
+    path: '/explore',
     validateSearch: (search: Record<string, unknown>): {
         entity?: string; peek?: string; q?: string; status?: string;
         ufEmitente?: string; cnpjEmitente?: string; ncm?: string; comImposto?: boolean;
@@ -110,17 +110,31 @@ const visaoGeralRedirect = createRoute({
         throw redirect({ to: '/' });
     },
 });
-const nfDetailRoute = childRoute('/nf/$chave', NFDetailPage);
+const nfDetailRoute = childRoute('/invoice/$chave', NFDetailPage);
 const grafoRoute = createRoute({
     getParentRoute: () => protectedLayout,
-    path: '/grafo',
+    path: '/graph',
     validateSearch: (search: Record<string, unknown>): { cnpj?: string } => ({
         cnpj: typeof search.cnpj === 'string' ? search.cnpj : undefined,
     }),
     component: GraphPage,
 });
-const exportacoesRoute = childRoute('/exportacoes', ExportsPage);
-const configuracoesRoute = childRoute('/configuracoes', SettingsPage);
+const exportacoesRoute = childRoute('/exports', ExportsPage);
+const configuracoesRoute = childRoute('/settings', SettingsPage);
+
+// Redirects de compatibilidade: os paths PT antigos (bookmarks/links externos)
+// continuam funcionando, redirecionando para os novos em inglês. /nf/$chave e
+// /explorar preservam os params/search na ida.
+// `to`/`params` com cast: o `to` dentro de beforeLoad é tipado no momento da
+// definição da rota, antes de o routeTree completo existir — o cast evita a
+// dependência circular de tipos (mesmo padrão dos Link `as string` do código).
+const legacyRedirects = [
+    createRoute({ getParentRoute: () => protectedLayout, path: '/explorar', beforeLoad: ({ search }) => { throw redirect({ to: '/explore' as string, search } as never); } }),
+    createRoute({ getParentRoute: () => protectedLayout, path: '/grafo', beforeLoad: ({ search }) => { throw redirect({ to: '/graph' as string, search } as never); } }),
+    createRoute({ getParentRoute: () => protectedLayout, path: '/exportacoes', beforeLoad: () => { throw redirect({ to: '/exports' as string } as never); } }),
+    createRoute({ getParentRoute: () => protectedLayout, path: '/configuracoes', beforeLoad: () => { throw redirect({ to: '/settings' as string } as never); } }),
+    createRoute({ getParentRoute: () => protectedLayout, path: '/nf/$chave', beforeLoad: ({ params }) => { throw redirect({ to: '/invoice/$chave' as string, params } as never); } }),
+];
 
 const routeTree = rootRoute.addChildren([
     loginRoute,
@@ -133,6 +147,7 @@ const routeTree = rootRoute.addChildren([
         grafoRoute,
         exportacoesRoute,
         configuracoesRoute,
+        ...legacyRedirects,
     ]),
 ]);
 

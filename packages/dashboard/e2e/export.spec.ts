@@ -4,7 +4,7 @@ import { login } from './helpers.js';
 test.describe('exportações', () => {
     test('cria uma exportação e a vê na lista com badge de status', async ({ page }) => {
         await login(page);
-        await page.goto('/exportacoes');
+        await page.goto('/exports');
 
         await page.getByTestId('export-format').selectOption('json');
         await page.getByRole('button', { name: /gerar exportação|generate export/i }).click();

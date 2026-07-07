@@ -79,7 +79,7 @@ export function InsightsPanel(): JSX.Element {
                 id: 'ultima', icon: FileText, tone: 'info',
                 title: t('insights.ultimaTitulo'),
                 body: (
-                    <Link to={'/nf/$chave' as string} params={{ chave: ultima.chaveAcesso } as never} className="hover:underline">
+                    <Link to={'/invoice/$chave' as string} params={{ chave: ultima.chaveAcesso } as never} className="hover:underline">
                         {t('insights.ultimaCorpo', { numero: ultima.numero, valor: brlCompact(ultima.valorTotal) })}
                     </Link>
                 ),

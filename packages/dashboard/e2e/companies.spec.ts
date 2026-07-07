@@ -5,7 +5,7 @@ test.describe('Empresas (explorador)', () => {
     test('troca para Empresas e abre o peek com stats', async ({ page }) => {
         await login(page);
         // entidade via URL (as tabs só existem no mobile; no desktop navega-se pelo rail/URL)
-        await page.goto('/explorar?entity=empresas');
+        await page.goto('/explore?entity=empresas');
         await expect(page.getByTestId('data-table')).toBeVisible();
 
         const primeira = page.getByTestId('data-table').locator('tbody tr').first();

@@ -75,7 +75,7 @@ export function EventsContent(): JSX.Element {
                                                 <p className="text-sm font-medium capitalize">{ev.tipo}</p>
                                                 <p className="text-xs text-muted-foreground">
                                                     {t('eventos.naNota')}{' '}
-                                                    <Link className="text-primary hover:underline" to={'/nf/$chave' as string} params={{ chave: ev.chaveAcesso } as never}>
+                                                    <Link className="text-primary hover:underline" to={'/invoice/$chave' as string} params={{ chave: ev.chaveAcesso } as never}>
                                                         NF {ev.numero}
                                                     </Link>
                                                     {ev.autor ? ` · ${ev.autor}` : ''}

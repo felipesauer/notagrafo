@@ -5,7 +5,7 @@ test.describe('explorador de NFs', () => {
     test('filtra por status e abre o detalhe via peek', async ({ page }) => {
         await login(page);
         // o explorador vive em /explorar; entidade Notas por padrão
-        await page.goto('/explorar');
+        await page.goto('/explore');
         await expect(page.getByTestId('data-table')).toBeVisible();
 
         // filtra por status ativa (select da toolbar do explorador)
@@ -24,7 +24,7 @@ test.describe('explorador de NFs', () => {
 
     test('peek navega entre NFs (setas) sem sair da lista', async ({ page }) => {
         await login(page);
-        await page.goto('/explorar');
+        await page.goto('/explore');
         await expect(page.getByTestId('data-table')).toBeVisible();
         await page.getByTestId('data-table').locator('tbody tr').first().click();
         await expect(page.getByTestId('nf-peek')).toBeVisible();

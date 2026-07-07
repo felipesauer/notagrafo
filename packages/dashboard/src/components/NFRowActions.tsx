@@ -29,7 +29,7 @@ export function NFRowActions({ chave, cnpjEmitente, onView }: { chave: string; c
                         <Button type="button" variant="ghost" size="icon-sm" aria-label={t('nf.verDetalhe')} onClick={onView}><Eye /></Button>
                     ) : (
                         <Button asChild type="button" variant="ghost" size="icon-sm" aria-label={t('nf.verDetalhe')}>
-                            <Link to={'/nf/$chave' as string} params={{ chave } as never}><Eye /></Link>
+                            <Link to={'/invoice/$chave' as string} params={{ chave } as never}><Eye /></Link>
                         </Button>
                     )}
                 </TooltipTrigger>
@@ -45,7 +45,7 @@ export function NFRowActions({ chave, cnpjEmitente, onView }: { chave: string; c
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <Button asChild type="button" variant="ghost" size="icon-sm" aria-label={t('nf.abrirGrafo')}>
-                            <Link to={'/grafo' as string} search={{ cnpj: cnpjEmitente } as never}><Waypoints /></Link>
+                            <Link to={'/graph' as string} search={{ cnpj: cnpjEmitente } as never}><Waypoints /></Link>
                         </Button>
                     </TooltipTrigger>
                     <TooltipContent>{t('nf.abrirGrafo')}</TooltipContent>

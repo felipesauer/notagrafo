@@ -15,7 +15,7 @@ export function MobileNav(): JSX.Element {
     const open = useUIStore((s) => s.mobileNavOpen);
     const setOpen = useUIStore((s) => s.setMobileNav);
     const loc = useLocation();
-    const entityAtiva = loc.pathname === '/explorar'
+    const entityAtiva = loc.pathname === '/explore'
         ? ((loc.search as { entity?: string }).entity ?? 'notas')
         : undefined;
 
@@ -31,7 +31,7 @@ export function MobileNav(): JSX.Element {
                         <div key={g.labelKey} className="flex flex-col gap-0.5">
                             <p className="px-3 pb-1 text-3xs font-semibold uppercase tracking-wider text-muted-foreground/60">{t(g.labelKey)}</p>
                             {g.items.map((r) => {
-                                const isEntity = r.to === '/explorar' && !!r.search?.entity;
+                                const isEntity = r.to === '/explore' && !!r.search?.entity;
                                 const entityActive = isEntity && entityAtiva === r.search!.entity;
                                 return (
                                     <Link

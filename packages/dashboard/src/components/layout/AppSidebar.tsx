@@ -31,7 +31,7 @@ export const RAIL_GROUPS: RailGroup[] = [
         labelKey: 'sidebar.grupoGeral',
         items: [
             { to: '/', icon: Home, labelKey: 'sidebar.inicio', exact: true },
-            { to: '/grafo', icon: Waypoints, labelKey: 'sidebar.grafo' },
+            { to: '/graph', icon: Waypoints, labelKey: 'sidebar.grafo' },
         ],
     },
     {
@@ -39,19 +39,19 @@ export const RAIL_GROUPS: RailGroup[] = [
         // navegando para /explorar?entity=… (ADR NOTA-ADR-14).
         labelKey: 'sidebar.grupoAnalise',
         items: [
-            { to: '/explorar', search: { entity: 'notas' }, icon: FileText, labelKey: 'sidebar.nfs' },
-            { to: '/explorar', search: { entity: 'empresas' }, icon: Building2, labelKey: 'sidebar.empresas' },
-            { to: '/explorar', search: { entity: 'produtos' }, icon: Package, labelKey: 'sidebar.produtos' },
-            { to: '/explorar', search: { entity: 'impostos' }, icon: Landmark, labelKey: 'sidebar.impostos' },
-            { to: '/explorar', search: { entity: 'rede' }, icon: Network, labelKey: 'sidebar.rede' },
+            { to: '/explore', search: { entity: 'notas' }, icon: FileText, labelKey: 'sidebar.nfs' },
+            { to: '/explore', search: { entity: 'empresas' }, icon: Building2, labelKey: 'sidebar.empresas' },
+            { to: '/explore', search: { entity: 'produtos' }, icon: Package, labelKey: 'sidebar.produtos' },
+            { to: '/explore', search: { entity: 'impostos' }, icon: Landmark, labelKey: 'sidebar.impostos' },
+            { to: '/explore', search: { entity: 'rede' }, icon: Network, labelKey: 'sidebar.rede' },
         ],
     },
     {
         labelKey: 'sidebar.grupoSistema',
         items: [
-            { to: '/explorar', search: { entity: 'eventos' }, icon: Activity, labelKey: 'sidebar.eventos' },
-            { to: '/exportacoes', icon: Download, labelKey: 'sidebar.exportacoes' },
-            { to: '/configuracoes', icon: Settings, labelKey: 'sidebar.configuracoes' },
+            { to: '/explore', search: { entity: 'eventos' }, icon: Activity, labelKey: 'sidebar.eventos' },
+            { to: '/exports', icon: Download, labelKey: 'sidebar.exportacoes' },
+            { to: '/settings', icon: Settings, labelKey: 'sidebar.configuracoes' },
         ],
     },
 ];
@@ -71,7 +71,7 @@ export function AppSidebar(): JSX.Element {
     // em /explorar sem ?entity= a lente é Notas, então o item Notas deve destacar
     // (o activeOptions/includeSearch sozinho não casa quando entity está ausente).
     const loc = useLocation();
-    const emExplorar = loc.pathname === '/explorar';
+    const emExplorar = loc.pathname === '/explore';
     const entityAtiva = emExplorar
         ? ((loc.search as { entity?: string }).entity ?? 'notas')
         : undefined;
@@ -136,7 +136,7 @@ function RailIcon({ def, expanded, t, entityAtiva }: { def: RailDef; expanded: b
     // Item de entidade do Explorer (/explorar?entity=X): destaque calculado por
     // nós, comparando com a entidade ativa (que já resolve o default 'notas' em
     // /explorar puro). Assim o item Notas destaca mesmo sem ?entity= na URL.
-    const isEntity = to === '/explorar' && !!search?.entity;
+    const isEntity = to === '/explore' && !!search?.entity;
     const entityActive = isEntity && entityAtiva === search!.entity;
     const activeClasses = 'bg-primary/12 font-medium text-primary';
     // Itens de entidade: destaque 100% controlado por `entityActive` (o matcher
