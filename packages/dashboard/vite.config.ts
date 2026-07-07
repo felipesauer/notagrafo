@@ -16,8 +16,13 @@ export default defineConfig({
     },
     // Pré-bundla o React (e libs que fazem require de forma incompatível) numa
     // única cópia, evitando o mesmo problema de instância dupla no dev.
+    // reagraph: forçar o pré-bundle com esbuild evita que o transform on-the-fly
+    // do Vite dev corrompa o `import()` dinâmico de classe do graphology (que o
+    // reagraph usa internamente) — aparecia como "Unexpected token '('" ao abrir
+    // a Rede/Full network, só no dev; o build de produção (Rolldown) nunca teve o
+    // problema. Pré-bundlar reagraph arrasta o graphology transitivo junto.
     optimizeDeps: {
-        include: ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime'],
+        include: ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime', 'reagraph'],
     },
     server: {
         port: 5173,
