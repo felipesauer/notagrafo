@@ -59,7 +59,7 @@ describe('runMigrations (Neo4j real)', () => {
     });
 
     it('aplica exatamente os statements de MIGRATIONS (todos com IF NOT EXISTS)', () => {
-        expect(MIGRATIONS).toHaveLength(11);
+        expect(MIGRATIONS).toHaveLength(15);
         expect(MIGRATIONS.every((s) => s.includes('IF NOT EXISTS'))).toBe(true);
     });
 });
