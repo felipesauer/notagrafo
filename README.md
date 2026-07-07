@@ -279,11 +279,25 @@ pnpm format             # Prettier
 
 ## Arquitetura
 
-```
-XML → [core: valida XSD + parse] → [worker: fila BullMQ] → [graph: merge no Neo4j]
-                                                          → [storage: XML original]
-                                ↑                          ↓
-                          [api: Fastify REST] ←────── [dashboard: React]
+```mermaid
+flowchart LR
+    XML[/"XML de NF-e"/] --> API
+
+    subgraph ingestao["Ingestão (assíncrona)"]
+        direction TB
+        API["api · Fastify REST"] -->|enfileira| Q["worker · fila BullMQ"]
+        Q -->|valida XSD + parse| CORE["core"]
+        CORE --> MERGE["graph · merge no Neo4j"]
+        Q -->|XML original| ST[("storage<br/>local / S3 / MinIO")]
+    end
+
+    MERGE --> NEO[("Neo4j<br/>grafo de relações")]
+    NEO -->|queries| API
+    API -->|REST /api/v1| DASH["dashboard · React + Vite"]
+    DASH -->|consulta / grafo / export| API
+
+    classDef store fill:#e0f2fe,stroke:#0369a1,color:#0c4a6e;
+    class NEO,ST store;
 ```
 
 | Pacote | Responsabilidade |
