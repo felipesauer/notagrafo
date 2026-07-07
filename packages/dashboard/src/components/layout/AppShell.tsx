@@ -13,7 +13,7 @@ import { InsightsPanel } from './InsightsPanel.js';
 
 /** Rotas full-bleed: trazem seu próprio layout/altura e não recebem o padding
  *  padrão do Outlet (Explorer tem header próprio; Grafo é um canvas absoluto). */
-const FULL_BLEED = ['/explorar', '/grafo'];
+const FULL_BLEED = ['/explore', '/graph'];
 
 /**
  * Shell das rotas autenticadas (redesign BI, NOTA-119 / responsivo NOTA-125).

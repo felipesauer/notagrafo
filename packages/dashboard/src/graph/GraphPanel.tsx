@@ -37,10 +37,10 @@ export function GraphPanel({ node, onClose }: { node: NodeData; onClose: () => v
                     {node.cnpj && (
                         <div className="mt-1 grid gap-1">
                             <Button asChild variant="outline" size="sm">
-                                <Link to={'/explorar' as string} search={{ entity: 'notas', cnpjEmitente: node.cnpj } as never}>{t('nf.detalheTitulo')}</Link>
+                                <Link to={'/explore' as string} search={{ entity: 'notas', cnpjEmitente: node.cnpj } as never}>{t('nf.detalheTitulo')}</Link>
                             </Button>
                             <Button asChild variant="outline" size="sm">
-                                <Link to={'/explorar' as string} search={{ entity: 'notas', cnpjEmitente: node.cnpj, comImposto: true } as never}>{t('grafo.nfsComImposto')}</Link>
+                                <Link to={'/explore' as string} search={{ entity: 'notas', cnpjEmitente: node.cnpj, comImposto: true } as never}>{t('grafo.nfsComImposto')}</Link>
                             </Button>
                         </div>
                     )}
@@ -56,7 +56,7 @@ export function GraphPanel({ node, onClose }: { node: NodeData; onClose: () => v
                     </Field>
                     {details.ncm ? (
                         <Button asChild variant="outline" size="sm" className="mt-1">
-                            <Link to={'/explorar' as string} search={{ entity: 'notas', ncm: String(details.ncm) } as never}>{t('grafo.nfsDoNcm')}</Link>
+                            <Link to={'/explore' as string} search={{ entity: 'notas', ncm: String(details.ncm) } as never}>{t('grafo.nfsDoNcm')}</Link>
                         </Button>
                     ) : null}
                 </dl>

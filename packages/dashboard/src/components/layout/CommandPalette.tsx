@@ -39,14 +39,14 @@ interface NavItem {
 /** Navegação: Início (Home BI) + explorador por entidade (via search) + sistema. */
 const ROTAS: NavItem[] = [
     { to: '/', icon: Home, key: 'sidebar.inicio' },
-    { to: '/explorar', search: { entity: 'notas' }, icon: FileText, key: 'sidebar.nfs' },
-    { to: '/explorar', search: { entity: 'empresas' }, icon: Building2, key: 'sidebar.empresas' },
-    { to: '/explorar', search: { entity: 'produtos' }, icon: Package, key: 'sidebar.produtos' },
-    { to: '/explorar', search: { entity: 'impostos' }, icon: ReceiptText, key: 'sidebar.impostos' },
-    { to: '/explorar', search: { entity: 'rede' }, icon: Network, key: 'sidebar.rede' },
-    { to: '/explorar', search: { entity: 'eventos' }, icon: Activity, key: 'sidebar.eventos' },
-    { to: '/exportacoes', icon: Download, key: 'sidebar.exportacoes' },
-    { to: '/configuracoes', icon: Settings, key: 'sidebar.configuracoes' },
+    { to: '/explore', search: { entity: 'notas' }, icon: FileText, key: 'sidebar.nfs' },
+    { to: '/explore', search: { entity: 'empresas' }, icon: Building2, key: 'sidebar.empresas' },
+    { to: '/explore', search: { entity: 'produtos' }, icon: Package, key: 'sidebar.produtos' },
+    { to: '/explore', search: { entity: 'impostos' }, icon: ReceiptText, key: 'sidebar.impostos' },
+    { to: '/explore', search: { entity: 'rede' }, icon: Network, key: 'sidebar.rede' },
+    { to: '/explore', search: { entity: 'eventos' }, icon: Activity, key: 'sidebar.eventos' },
+    { to: '/exports', icon: Download, key: 'sidebar.exportacoes' },
+    { to: '/settings', icon: Settings, key: 'sidebar.configuracoes' },
 ];
 
 /** CNPJ só dígitos (para busca por documento na palette). */
@@ -113,7 +113,7 @@ export function CommandPalette(): JSX.Element {
                             <CommandItem
                                 // value fixo para não ser filtrado pela busca (que é a própria chave)
                                 value={`ir-nf-${chave}`}
-                                onSelect={() => run(() => void navigate({ to: '/nf/$chave' as string, params: { chave } as never }))}
+                                onSelect={() => run(() => void navigate({ to: '/invoice/$chave' as string, params: { chave } as never }))}
                             >
                                 <FileText />
                                 {t('comando.irParaNf')} <span className="ml-1 font-mono text-xs text-muted-foreground">{chave.slice(0, 8)}…{chave.slice(-6)}</span>
@@ -130,7 +130,7 @@ export function CommandPalette(): JSX.Element {
                                 <CommandItem
                                     key={e.cnpj}
                                     value={`empresa-${e.cnpj}-${e.razaoSocial}`}
-                                    onSelect={() => run(() => void navigate({ to: '/explorar' as string, search: { entity: 'empresas', peek: e.cnpj } as never }))}
+                                    onSelect={() => run(() => void navigate({ to: '/explore' as string, search: { entity: 'empresas', peek: e.cnpj } as never }))}
                                 >
                                     <Building2 />
                                     {e.razaoSocial}

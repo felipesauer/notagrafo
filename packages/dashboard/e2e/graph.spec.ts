@@ -4,7 +4,7 @@ import { login } from './helpers.js';
 test.describe('grafo', () => {
     test('estado inicial pede uma busca; buscar uma empresa renderiza o grafo', async ({ page }) => {
         await login(page);
-        await page.goto('/grafo');
+        await page.goto('/graph');
 
         // sem ?cnpj → mensagem de estado vazio
         await expect(page.getByText(/busque uma empresa|search a company/i)).toBeVisible();

@@ -270,7 +270,7 @@ function OverviewContent({
                                     label: e.nome,
                                     value: e.valorTotal,
                                     hint: brlCompact(e.valorTotal),
-                                    to: '/explorar',
+                                    to: '/explore',
                                     search: { entity: 'notas', cnpjEmitente: e.cnpj },
                                     ariaLabel: t('overview.verNotasFornecedor', { nome: e.nome }),
                                 }))}
@@ -304,7 +304,7 @@ function OverviewContent({
                                     tag: u.uf,
                                     value: u.size,
                                     hint: u.valorTotal >= 1000 ? `R$ ${(u.valorTotal / 1000).toFixed(0)}k` : `R$ ${u.valorTotal.toFixed(0)}`,
-                                    to: '/explorar',
+                                    to: '/explore',
                                     search: { entity: 'notas', ufEmitente: u.uf },
                                     ariaLabel: t('overview.verNotasUf', { uf: u.uf }),
                                 }))}
@@ -339,7 +339,7 @@ function OverviewContent({
                                         <TableRow
                                             key={nf.chaveAcesso}
                                             className="cursor-pointer"
-                                            onClick={() => void navigate({ to: '/nf/$chave' as string, params: { chave: nf.chaveAcesso } as never })}
+                                            onClick={() => void navigate({ to: '/invoice/$chave' as string, params: { chave: nf.chaveAcesso } as never })}
                                         >
                                             <TableCell className="font-mono font-medium tabular-nums text-primary">{nf.numero}</TableCell>
                                             <TableCell>

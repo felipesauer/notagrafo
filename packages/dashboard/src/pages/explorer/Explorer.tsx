@@ -91,14 +91,14 @@ export function ExplorerPage(): JSX.Element {
     function trocar(e: EntityKey): void {
         setQInput('');
         setBuscaLocal('');
-        void navigate({ to: '/explorar' as string, search: { entity: e } as never });
+        void navigate({ to: '/explore' as string, search: { entity: e } as never });
     }
     function setStatus(s: string): void {
-        void navigate({ to: '/explorar' as string, search: { ...search, status: s || undefined } as never });
+        void navigate({ to: '/explore' as string, search: { ...search, status: s || undefined } as never });
     }
     /** Atualiza um campo de filtro avançado no search (string vazia limpa). */
     function setFiltro(campo: string, valor: string): void {
-        void navigate({ to: '/explorar' as string, search: { ...search, [campo]: valor || undefined } as never });
+        void navigate({ to: '/explore' as string, search: { ...search, [campo]: valor || undefined } as never });
     }
     /** Limpa TODOS os filtros avançados de uma vez (um único navigate — chamar
      *  setFiltro em loop não funciona: as navegações partem do mesmo snapshot de
@@ -108,17 +108,17 @@ export function ExplorerPage(): JSX.Element {
         for (const c of ['dataEmissaoInicio', 'dataEmissaoFim', 'valorTotalMin', 'valorTotalMax', 'tipoNF', 'finalidade', 'cfop', 'ncm']) {
             delete (limpo as Record<string, unknown>)[c];
         }
-        void navigate({ to: '/explorar' as string, search: limpo as never });
+        void navigate({ to: '/explore' as string, search: limpo as never });
     }
     function setPeek(chave: string | undefined): void {
-        void navigate({ to: '/explorar' as string, search: { ...search, peek: chave } as never });
+        void navigate({ to: '/explore' as string, search: { ...search, peek: chave } as never });
     }
     function limparRecorte(): void {
-        void navigate({ to: '/explorar' as string, search: { entity, ...(qInput.trim() ? { q: qInput.trim() } : {}), ...(status ? { status } : {}) } as never });
+        void navigate({ to: '/explore' as string, search: { entity, ...(qInput.trim() ? { q: qInput.trim() } : {}), ...(status ? { status } : {}) } as never });
     }
     function aplicarView(v: { entity: string; q?: string; status?: string }): void {
         setQInput(v.q ?? '');
-        void navigate({ to: '/explorar' as string, search: { entity: v.entity, q: v.q || undefined, status: v.status || undefined } as never });
+        void navigate({ to: '/explore' as string, search: { entity: v.entity, q: v.q || undefined, status: v.status || undefined } as never });
     }
     function salvarView(): void {
         const partes = [t(meta.labelKey), qInput.trim(), status].filter(Boolean);

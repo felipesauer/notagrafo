@@ -88,7 +88,7 @@ export function ExplorerProdutos({ peek, onPeek, busca }: { peek?: string; onPee
                                     {codigo}{cnpj && <span className="block text-muted-foreground/70">{cnpjFmt(cnpj)}</span>}
                                 </TableCell>
                                 <TableCell onClick={(e) => e.stopPropagation()}>
-                                    {p.ncm ? <Link className="font-mono text-xs text-primary hover:underline" to={'/explorar' as string} search={{ entity: 'notas', ncm: p.ncm } as never}>{p.ncm}</Link> : <span className="text-muted-foreground">—</span>}
+                                    {p.ncm ? <Link className="font-mono text-xs text-primary hover:underline" to={'/explore' as string} search={{ entity: 'notas', ncm: p.ncm } as never}>{p.ncm}</Link> : <span className="text-muted-foreground">—</span>}
                                 </TableCell>
                                 <TableCell className="text-right font-mono tabular-nums">{p.totalNFs ?? 0}</TableCell>
                                 <TableCell className="pr-4 text-right font-mono font-medium tabular-nums">{brlK(p.valorTotal ?? 0)}</TableCell>
@@ -105,7 +105,7 @@ export function ExplorerProdutos({ peek, onPeek, busca }: { peek?: string; onPee
                         <p className="font-medium leading-tight">{p.descricao || '—'}</p>
                         <p className="mt-0.5 font-mono text-2xs text-muted-foreground">{parseIdUnico(p.idUnico).codigo}{parseIdUnico(p.idUnico).cnpj ? ` · ${cnpjFmt(parseIdUnico(p.idUnico).cnpj!)}` : ''}</p>
                         <div className="mt-2 flex items-center justify-between border-t pt-2 text-xs">
-                            {p.ncm ? <Link className="font-mono text-primary" to={'/explorar' as string} search={{ entity: 'notas', ncm: p.ncm } as never} onClick={(e) => e.stopPropagation()}>NCM {p.ncm}</Link> : <span className="text-muted-foreground">—</span>}
+                            {p.ncm ? <Link className="font-mono text-primary" to={'/explore' as string} search={{ entity: 'notas', ncm: p.ncm } as never} onClick={(e) => e.stopPropagation()}>NCM {p.ncm}</Link> : <span className="text-muted-foreground">—</span>}
                             <span className="font-mono font-medium tabular-nums">{brlK(p.valorTotal ?? 0)} · {p.totalNFs ?? 0} NF-e</span>
                         </div>
                     </Card>

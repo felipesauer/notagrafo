@@ -98,7 +98,7 @@ export function GraphDrawer({ cnpj, open, onOpenChange, dark }: { cnpj: string; 
                         <SheetDescription>{t('grafo.subtituloDrawer')}</SheetDescription>
                     </div>
                     <Button asChild variant="outline" size="sm" className="mr-8">
-                        <Link to={'/grafo' as string} search={{ cnpj } as never} onClick={() => onOpenChange(false)}>
+                        <Link to={'/graph' as string} search={{ cnpj } as never} onClick={() => onOpenChange(false)}>
                             <ExternalLink /> {t('grafo.abrirCompleto')}
                         </Link>
                     </Button>

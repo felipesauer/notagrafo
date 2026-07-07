@@ -10,11 +10,11 @@ import { Button } from '../ui/button.js';
 /** Rótulo da página atual pelo primeiro segmento do path (breadcrumb). */
 function pageLabelKey(pathname: string): string {
     if (pathname === '/') return 'sidebar.inicio';
-    if (pathname.startsWith('/explorar')) return 'sidebar.explorar';
-    if (pathname.startsWith('/nf/')) return 'comando.nf';
-    if (pathname.startsWith('/grafo')) return 'sidebar.grafo';
-    if (pathname.startsWith('/exportacoes')) return 'sidebar.exportacoes';
-    if (pathname.startsWith('/configuracoes')) return 'sidebar.configuracoes';
+    if (pathname.startsWith('/explore')) return 'sidebar.explorar';
+    if (pathname.startsWith('/invoice/')) return 'comando.nf';
+    if (pathname.startsWith('/graph')) return 'sidebar.grafo';
+    if (pathname.startsWith('/exports')) return 'sidebar.exportacoes';
+    if (pathname.startsWith('/settings')) return 'sidebar.configuracoes';
     return 'sidebar.inicio';
 }
 

@@ -129,7 +129,7 @@ function TopNcmTable({ rows, density, t }: { rows: TaxStats['topNcm']; density: 
                                 <TableRow key={n.ncm}>
                                     <TableCell className="max-w-0 pl-6">
                                         <div className="flex items-baseline gap-2">
-                                            <Link className="font-mono text-xs text-primary hover:underline shrink-0" to={'/explorar' as string} search={{ entity: 'notas', ncm: n.ncm } as never}>{n.ncm}</Link>
+                                            <Link className="font-mono text-xs text-primary hover:underline shrink-0" to={'/explore' as string} search={{ entity: 'notas', ncm: n.ncm } as never}>{n.ncm}</Link>
                                             {n.descricao && <span className="truncate text-xs text-muted-foreground" title={n.descricao}>{n.descricao}</span>}
                                         </div>
                                     </TableCell>

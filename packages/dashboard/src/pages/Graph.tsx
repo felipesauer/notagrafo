@@ -127,12 +127,12 @@ function GraphInner(): JSX.Element {
     );
 
     function runSearch(): void {
-        if (searchInput.trim()) void navigate({ to: '/grafo', search: { cnpj: searchInput.trim() } });
+        if (searchInput.trim()) void navigate({ to: '/graph', search: { cnpj: searchInput.trim() } });
     }
     function reset(): void {
         setGraph({ nodes: [], edges: [] });
         setSelected(null);
-        void navigate({ to: '/grafo', search: {} });
+        void navigate({ to: '/graph', search: {} });
     }
     async function exportPng(): Promise<void> {
         const el = document.querySelector('.react-flow') as HTMLElement | null;
