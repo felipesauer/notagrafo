@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-189
-  state: IN_REVIEW
+  state: DONE
   title: Detecção de comunidades (clusters de empresas) + cor no grafo
   description: >-
     Comunidades por componente conexo (union-find in-app) sobre a rede
@@ -25,6 +25,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-07T20:07:35.238Z'
+  updated_at: '2026-07-07T20:21:20.321Z'
 ---
 # Detecção de comunidades (clusters de empresas) + cor no grafo

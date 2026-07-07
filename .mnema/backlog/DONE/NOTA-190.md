@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-190
-  state: IN_REVIEW
+  state: DONE
   title: Métricas de centralidade no peek/detalhe da empresa
   description: >-
     EmpresaPeek mostra grau (parceiros), posição no ranking de centralidade e
@@ -23,6 +23,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-07T20:07:36.218Z'
+  updated_at: '2026-07-07T20:21:22.869Z'
 ---
 # Métricas de centralidade no peek/detalhe da empresa

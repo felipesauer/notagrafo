@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-188
-  state: IN_REVIEW
+  state: DONE
   title: 'Centralidade: ranking de empresas-hub + destaque no grafo'
   description: >-
     Centralidade por grau (parceiros distintos + volume) em Cypher sobre a rede
@@ -25,6 +25,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-07T20:07:08.718Z'
+  updated_at: '2026-07-07T20:21:17.686Z'
 ---
 # Centralidade: ranking de empresas-hub + destaque no grafo
