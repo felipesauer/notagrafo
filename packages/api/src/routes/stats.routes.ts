@@ -10,6 +10,9 @@ import {
     getFluxoEmpresas,
     getRedeGlobal,
     listEventos,
+    getPeriodComparison,
+    findDuplicateInvoices,
+    findNumberingGaps,
     type MetricaProduto,
     type TaxFilters,
 } from '@notagrafo/graph';
@@ -71,6 +74,56 @@ export async function statsRoutes(app: FastifyInstance, driver: Driver): Promise
             } finally {
                 await session.close();
             }
+        },
+    );
+
+    // GET /stats/comparativo — totais do período vs período anterior e YoY (EPIC-26)
+    app.get<{ Querystring: { dataInicio?: string; dataFim?: string } }>(
+        '/stats/comparativo',
+        {
+            preHandler: app.authenticate,
+            schema: {
+                tags: ['stats'],
+                summary: 'Compara totais do período com o anterior e o ano anterior (YoY)',
+                querystring: {
+                    type: 'object',
+                    required: ['dataInicio', 'dataFim'],
+                    properties: {
+                        dataInicio: { type: 'string' },
+                        dataFim: { type: 'string' },
+                    },
+                },
+                security: [{ bearerAuth: [] }],
+            },
+        },
+        async (request) => {
+            const { dataInicio, dataFim } = request.query;
+            return getPeriodComparison(driver, dataInicio!, dataFim!);
+        },
+    );
+
+    // GET /stats/anomalias — duplicatas prováveis + gaps de numeração (EPIC-26)
+    app.get<{ Querystring: { limit?: number } }>(
+        '/stats/anomalias',
+        {
+            preHandler: app.authenticate,
+            schema: {
+                tags: ['stats'],
+                summary: 'Anomalias: NF-e duplicadas prováveis e gaps de numeração',
+                querystring: {
+                    type: 'object',
+                    properties: { limit: { type: 'integer', minimum: 1, maximum: 200 } },
+                },
+                security: [{ bearerAuth: [] }],
+            },
+        },
+        async (request) => {
+            const limit = request.query.limit ? Number(request.query.limit) : 50;
+            const [duplicatas, gaps] = await Promise.all([
+                findDuplicateInvoices(driver, limit),
+                findNumberingGaps(driver, limit),
+            ]);
+            return { duplicatas, gaps };
         },
     );
 

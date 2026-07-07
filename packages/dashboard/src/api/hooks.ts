@@ -50,6 +50,33 @@ export function useOverview() {
     return useQuery({ queryKey: ['stats', 'overview'], queryFn: () => apiFetch<Overview>('/stats/overview') });
 }
 
+export interface PeriodComparison {
+    current: { totalNFs: number; valorTotal: number };
+    previous: { totalNFs: number; valorTotal: number };
+    yearAgo: { totalNFs: number; valorTotal: number };
+    changeVsPrevious: { totalNFs?: number; valorTotal?: number };
+    changeVsYearAgo: { totalNFs?: number; valorTotal?: number };
+}
+
+/** Compares [dataInicio, dataFim] with the previous period and one year ago (EPIC-26). */
+export function usePeriodComparison(dataInicio?: string, dataFim?: string) {
+    return useQuery({
+        queryKey: ['stats', 'comparativo', dataInicio, dataFim],
+        queryFn: () => apiFetch<PeriodComparison>(`/stats/comparativo${qs({ dataInicio, dataFim })}`),
+        enabled: !!dataInicio && !!dataFim,
+    });
+}
+
+export interface Anomalias {
+    duplicatas: Array<{ cnpjEmitente: string; razaoSocial: string; dataEmissao: string; valorTotal: number; count: number; chaves: string[] }>;
+    gaps: Array<{ cnpjEmitente: string; razaoSocial: string; serie: string; from: number; to: number; missing: number }>;
+}
+
+/** Anomalias fiscais: duplicatas prováveis + gaps de numeração (EPIC-26). */
+export function useAnomalias() {
+    return useQuery({ queryKey: ['stats', 'anomalias'], queryFn: () => apiFetch<Anomalias>('/stats/anomalias') });
+}
+
 export function useTopCompanies() {
     return useQuery({
         queryKey: ['stats', 'top-empresas'],
