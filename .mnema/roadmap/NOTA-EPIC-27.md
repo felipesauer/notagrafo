@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-EPIC-27
   kind: epic
-  state: OPEN
+  state: CLOSED
   title: Alertas e monitoramento proativo (BI fiscal)
   description: >-
     Transforma o notagrafo de passivo (você olha) em proativo (ele avisa).
@@ -19,6 +19,6 @@ mnema:
     para as detecções.
   metadata: {}
   created_at: '2026-07-07T16:32:41.855Z'
-  closed_at: null
+  closed_at: '2026-07-07T19:42:03.059Z'
 ---
 # Alertas e monitoramento proativo (BI fiscal)

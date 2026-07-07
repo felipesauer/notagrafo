@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-184
-  state: IN_PROGRESS
+  state: IN_REVIEW
   title: Persistência dos alertas disparados + endpoints (listar/marcar lido)
   description: >-
     Persistir Alertas como nós :Alert no Neo4j com upsert por fingerprint
@@ -26,6 +26,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-07T18:45:07.225Z'
+  updated_at: '2026-07-07T18:59:11.732Z'
 ---
 # Persistência dos alertas disparados + endpoints (listar/marcar lido)

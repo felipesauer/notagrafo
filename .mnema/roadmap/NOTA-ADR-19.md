@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-ADR-19
   kind: decision
-  status: proposed
+  status: accepted
   title: >-
     Motor de alertas: persistente (:Alerta no Neo4j) + avaliação sob demanda +
     config global

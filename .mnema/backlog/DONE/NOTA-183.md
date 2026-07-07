@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-183
-  state: IN_PROGRESS
+  state: DONE
   title: Motor de regras de alerta (avalia condições sobre os dados)
   description: >-
     Backend (@notagrafo/graph + @notagrafo/api): definir regras de alerta (tipo,
@@ -28,6 +28,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-07T18:40:45.871Z'
+  updated_at: '2026-07-07T19:41:42.928Z'
 ---
 # Motor de regras de alerta (avalia condições sobre os dados)
