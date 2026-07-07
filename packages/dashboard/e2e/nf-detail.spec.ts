@@ -10,7 +10,7 @@ test.describe('Detalhe da NF', () => {
         await page.getByTestId('data-table').locator('tbody tr').first().click();
         await expect(page.getByTestId('nf-peek')).toBeVisible();
         await page.getByTestId('nf-peek').getByRole('link').last().click();
-        await expect(page).toHaveURL(/\/nf\//);
+        await expect(page).toHaveURL(/\/invoice\//);
 
         // seção de itens e o botão do grafo (abre o drawer, sem trocar de página)
         await expect(page.getByRole('heading', { name: /itens|items/i })).toBeVisible();
@@ -20,6 +20,6 @@ test.describe('Detalhe da NF', () => {
         // o grafo abre como painel (dialog/sheet) mantendo a URL da NF
         await grafoBtn.click();
         await expect(page.getByRole('dialog')).toBeVisible();
-        await expect(page).toHaveURL(/\/nf\//);
+        await expect(page).toHaveURL(/\/invoice\//);
     });
 });
