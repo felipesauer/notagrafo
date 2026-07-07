@@ -1,17 +1,17 @@
 ---
 mnema:
   key: NOTA-189
-  state: DRAFT
+  state: IN_REVIEW
   title: Detecção de comunidades (clusters de empresas) + cor no grafo
   description: >-
-    Agrupar empresas que transacionam fortemente entre si (Louvain via GDS, ou
-    heurística por componente/vizinhança conforme ADR). Dashboard: colorir nós
-    por comunidade no RedeGraph + legenda + lista das comunidades (tamanho,
-    principais empresas). Testes.
+    Comunidades por componente conexo (union-find in-app) sobre a rede
+    empresa↔empresa (ADR-20). API GET /stats/communities. Dashboard: colorir nós
+    por comunidade no RedeGraph (toggle UF/comunidade) + legenda + resumo.
+    Testes.
   acceptance_criteria:
-    - Comunidades detectadas e atribuídas aos nós
+    - Comunidades detectadas (componentes conexos)
     - Grafo colore por comunidade + legenda
-    - Lista de comunidades
+    - Resumo de comunidades
     - Testes
   labels:
     - dashboard
@@ -19,12 +19,12 @@ mnema:
     - graph
   estimate: 5
   priority: 3
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
   epic_key: NOTA-EPIC-28
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-07T19:43:33.081Z'
+  updated_at: '2026-07-07T20:07:35.238Z'
 ---
 # Detecção de comunidades (clusters de empresas) + cor no grafo

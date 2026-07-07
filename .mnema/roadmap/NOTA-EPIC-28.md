@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-EPIC-28
   kind: epic
-  state: OPEN
+  state: CLOSED
   title: 'Grafo de relações mais rico: centralidade, comunidades e evolução'
   description: >-
     Explora o diferencial do produto (o grafo NF-e→empresas→produtos). Direção:
@@ -19,6 +19,6 @@ mnema:
     (reagraph/WebGL) e as queries de grafo existentes.
   metadata: {}
   created_at: '2026-07-07T16:33:19.144Z'
-  closed_at: null
+  closed_at: '2026-07-07T20:21:36.055Z'
 ---
 # Grafo de relações mais rico: centralidade, comunidades e evolução

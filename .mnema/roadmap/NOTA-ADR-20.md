@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-ADR-20
   kind: decision
-  status: proposed
+  status: accepted
   title: >-
     Métricas de grafo: Cypher puro (sem GDS), centralidade por grau +
     comunidades por componente conexo
