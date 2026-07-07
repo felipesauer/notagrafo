@@ -40,13 +40,30 @@ interface ExportRegistro {
     expiresAt?: string;
 }
 
-const CAMPOS = ['chaveAcesso', 'numero', 'dataEmissao', 'valorTotal', 'cnpjEmitente', 'cnpjDestinatario'];
+/**
+ * Campos exportáveis, agrupados por afinidade. Todos são chaves planas que o
+ * backend já produz (listInvoices + flattenRow em export.service): identificação e
+ * datas vêm diretas do nó NotaFiscal; as de emitente/destinatário são achatadas
+ * de objetos aninhados. O `id` é a chave enviada à API em `campos`.
+ */
+interface CampoDef { id: string; grupoKey: string }
+const GRUPOS: { key: string; campos: string[] }[] = [
+    { key: 'identificacao', campos: ['chaveAcesso', 'numero', 'serie', 'status', 'tipoNF', 'finalidade', 'naturezaOp'] },
+    { key: 'valores', campos: ['valorTotal'] },
+    { key: 'datas', campos: ['dataEmissao', 'dataSaida', 'importadaEm', 'processadaEm'] },
+    { key: 'emitente', campos: ['cnpjEmitente', 'razaoSocialEmitente', 'ufEmitente'] },
+    { key: 'destinatario', campos: ['cnpjDestinatario', 'razaoSocialDestinatario', 'ufDestinatario'] },
+];
+const CAMPOS: CampoDef[] = GRUPOS.flatMap((g) => g.campos.map((id) => ({ id, grupoKey: g.key })));
+const TODOS_CAMPOS = CAMPOS.map((c) => c.id);
+// Seleção inicial: os 6 campos "essenciais" que já eram o padrão histórico.
+const CAMPOS_PADRAO = ['chaveAcesso', 'numero', 'dataEmissao', 'valorTotal', 'cnpjEmitente', 'cnpjDestinatario'];
 
 export function ExportsPage(): JSX.Element {
     const { t } = useTranslation();
     const setJob = useExportStore((s) => s.setJob);
     const [formato, setFormato] = useState<Formato>('csv');
-    const [campos, setCampos] = useState<string[]>(CAMPOS);
+    const [campos, setCampos] = useState<string[]>(CAMPOS_PADRAO);
     const [registros, setRegistros] = useState<ExportRegistro[]>([]);
     const [erro, setErro] = useState<string | null>(null);
     const density = useDensityStore((s) => s.density);
@@ -62,6 +79,11 @@ export function ExportsPage(): JSX.Element {
     function alternarCampo(c: string): void {
         setCampos((cs) => (cs.includes(c) ? cs.filter((x) => x !== c) : [...cs, c]));
     }
+    /** Marca/desmarca todos os campos de um grupo de uma vez. */
+    function alternarGrupo(campos: string[], marcar: boolean): void {
+        setCampos((cs) => (marcar ? [...new Set([...cs, ...campos])] : cs.filter((c) => !campos.includes(c))));
+    }
+    const todosMarcados = campos.length === TODOS_CAMPOS.length;
 
     const atualizarRegistro = useCallback((atual: ExportRegistro): void => {
         setRegistros((rs) => rs.map((x) => (x.exportId === atual.exportId ? atual : x)));
@@ -103,15 +125,46 @@ export function ExportsPage(): JSX.Element {
                                 <option value="json">JSON</option>
                             </NativeSelect>
                         </div>
-                        <fieldset className="grid gap-1.5">
-                            <legend className="mb-1 text-xs text-muted-foreground">{t('exportacoes.campos')}</legend>
-                            {CAMPOS.map((c) => (
-                                <Label key={c} className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-sm font-normal hover:bg-muted/50">
-                                    <Checkbox checked={campos.includes(c)} onCheckedChange={() => alternarCampo(c)} />
-                                    <span>{t(`exportacoes.campo.${c}`, { defaultValue: c })}</span>
-                                    <span className="ml-auto font-mono text-3xs text-muted-foreground/60">{c}</span>
-                                </Label>
-                            ))}
+                        <fieldset className="grid gap-3">
+                            <div className="flex items-center justify-between">
+                                <legend className="text-xs text-muted-foreground">
+                                    {t('exportacoes.campos')} <span className="tabular-nums">({campos.length}/{TODOS_CAMPOS.length})</span>
+                                </legend>
+                                <button
+                                    type="button"
+                                    className="text-xs font-medium text-primary hover:underline"
+                                    onClick={() => setCampos(todosMarcados ? [] : [...TODOS_CAMPOS])}
+                                >
+                                    {t(todosMarcados ? 'exportacoes.limparTodos' : 'exportacoes.todos')}
+                                </button>
+                            </div>
+                            {GRUPOS.map((g) => {
+                                const marcadosNoGrupo = g.campos.filter((c) => campos.includes(c)).length;
+                                const grupoCheio = marcadosNoGrupo === g.campos.length;
+                                return (
+                                    <div key={g.key} className="grid gap-0.5">
+                                        <div className="flex items-center justify-between px-2">
+                                            <span className="text-2xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                                {t(`exportacoes.grupo.${g.key}`)}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                className="text-2xs text-muted-foreground hover:text-foreground hover:underline"
+                                                onClick={() => alternarGrupo(g.campos, !grupoCheio)}
+                                            >
+                                                {t(grupoCheio ? 'exportacoes.limparTodos' : 'exportacoes.todos')}
+                                            </button>
+                                        </div>
+                                        {g.campos.map((c) => (
+                                            <Label key={c} className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-sm font-normal hover:bg-muted/50">
+                                                <Checkbox checked={campos.includes(c)} onCheckedChange={() => alternarCampo(c)} />
+                                                <span>{t(`exportacoes.campo.${c}`, { defaultValue: c })}</span>
+                                                <span className="ml-auto font-mono text-3xs text-muted-foreground/60">{c}</span>
+                                            </Label>
+                                        ))}
+                                    </div>
+                                );
+                            })}
                         </fieldset>
                         {erro && <p className="text-sm text-destructive">{erro}</p>}
                         <Button type="button" className="w-full" disabled={campos.length === 0} onClick={() => void gerar()}>
