@@ -21,6 +21,10 @@ const serieConfig = {
     vIPI: { label: 'IPI', color: 'var(--chart-3)' },
     vPIS: { label: 'PIS', color: 'var(--chart-5)' },
     vCOFINS: { label: 'COFINS', color: 'var(--chart-2)' },
+    // Reforma Tributária (a série de /stats/impostos já traz vIBS/vCBS/vIS).
+    vIBS: { label: 'IBS', color: 'var(--chart-4)' },
+    vCBS: { label: 'CBS', color: 'var(--chart-6)' },
+    vIS: { label: 'IS', color: 'var(--chart-7)' },
 } satisfies ChartConfig;
 
 /**
@@ -46,6 +50,10 @@ export function ExplorerImpostos(): JSX.Element {
         { nome: t('impostos.icmsSt'), valor: totais.vICMSST },
         { nome: 'PIS', valor: totais.vPIS },
         { nome: t('impostos.fcp'), valor: totais.vFCP },
+        // Reforma Tributária — só entram quando houver valor.
+        { nome: 'IBS', valor: totais.vIBS },
+        { nome: 'CBS', valor: totais.vCBS },
+        { nome: 'IS', valor: totais.vIS },
     ].filter((l) => l.valor > 0);
     const total = linhas.reduce((s, l) => s + l.valor, 0);
     const max = Math.max(...linhas.map((l) => l.valor), 1);

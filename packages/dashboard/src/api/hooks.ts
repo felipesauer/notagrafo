@@ -156,8 +156,8 @@ export function useProductCompanies(idUnico: string) {
 }
 
 export interface TaxStats {
-    totais: { vICMS: number; vICMSST: number; vIPI: number; vPIS: number; vCOFINS: number; vII: number; vFCP: number };
-    serie: Array<{ periodo: string; vICMS: number; vIPI: number; vPIS: number; vCOFINS: number }>;
+    totais: { vICMS: number; vICMSST: number; vIPI: number; vPIS: number; vCOFINS: number; vII: number; vFCP: number; vIBS: number; vIBSUF: number; vIBSMun: number; vCBS: number; vIS: number };
+    serie: Array<{ periodo: string; vICMS: number; vIPI: number; vPIS: number; vCOFINS: number; vIBS: number; vCBS: number; vIS: number }>;
     topNcm: Array<{ ncm: string; descricao?: string; totalImposto: number; vICMS: number; vIPI: number; vPIS: number; vCOFINS: number; totalNFs: number }>;
     topCfop: Array<{ cfop: string; descricao?: string; tipo?: string; vICMS: number; vIPI: number; totalNFs: number }>;
 }

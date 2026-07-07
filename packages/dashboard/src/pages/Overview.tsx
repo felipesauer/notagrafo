@@ -141,6 +141,7 @@ function OverviewContent({
     const valSpark = useMemo(() => volumeSeries.map((s) => s.valorTotal), [volumeSeries]);
     const cargaTotal = taxTotals
         ? taxTotals.vICMS + taxTotals.vICMSST + taxTotals.vIPI + taxTotals.vPIS + taxTotals.vCOFINS + taxTotals.vFCP
+          + taxTotals.vIBS + taxTotals.vCBS + taxTotals.vIS
         : 0;
 
     const treemapUf = (byUf.data?.porUf ?? []).map((u) => ({ name: u.uf, uf: u.uf, size: u.totalNFs, valorTotal: u.valorTotal }));
@@ -155,6 +156,10 @@ function OverviewContent({
               { key: 'ICMS-ST', valor: taxTotals.vICMSST },
               { key: 'PIS', valor: taxTotals.vPIS },
               { key: 'FCP', valor: taxTotals.vFCP },
+              // Reforma Tributária — só aparecem quando houver valor (transição).
+              { key: 'IBS', valor: taxTotals.vIBS },
+              { key: 'CBS', valor: taxTotals.vCBS },
+              { key: 'IS', valor: taxTotals.vIS },
           ].filter((d) => d.valor > 0))
         : [];
 

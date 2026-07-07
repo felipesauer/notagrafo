@@ -89,8 +89,10 @@ export interface EventoNode {
 }
 
 // Propriedades da aresta CONTÉM
-// Valores extraídos dos grupos de tributos presentes no XSD NFe vigente.
-// Reforma Tributária (CBS, IBS, IS) fora do escopo — sem XSD oficial publicado.
+// Valores extraídos dos grupos de tributos presentes no XSD NFe vigente,
+// incluindo a Reforma Tributária (IBS/CBS/IS — grupo gIBSCBS, tipo TCIBS), que o
+// leiaute v4.00 em disco já modela (NT 2025.002). Campos da reforma são
+// opcionais: NF-e pré-reforma não trazem o grupo (ADR-18).
 export interface ContemEdge {
     numeroItem: number;
     quantidade: number;
@@ -125,6 +127,23 @@ export interface ContemEdge {
     vII?: number;
     // ISSQN — serviços (det/imposto/ISSQN)
     vISSQN?: number;
+    // ── Reforma Tributária (grupo det/imposto/IBSCBS/gIBSCBS, tipo TCIBS) ──
+    // CST e classificação tributária da reforma (distintos do CST do ICMS).
+    cstIBSCBS?: string;
+    cClassTrib?: string;
+    // IBS — Imposto sobre Bens e Serviços (estadual + municipal). vIBS = soma UF+Mun.
+    vBCIBSCBS?: number; // base de cálculo comum IBS/CBS
+    vIBS?: number;
+    vIBSUF?: number;
+    pIBSUF?: number;
+    vIBSMun?: number;
+    pIBSMun?: number;
+    // CBS — Contribuição sobre Bens e Serviços (federal; substitui PIS/COFINS).
+    vCBS?: number;
+    pCBS?: number;
+    // IS — Imposto Seletivo (det/imposto/IS).
+    vIS?: number;
+    pIS?: number;
 }
 
 // Totais da NF — grupo total/ICMSTot. Espelham os campos somados do XSD vigente.
@@ -146,6 +165,14 @@ export interface TotaisNF {
     vSeg?: number;
     vDesc?: number;
     vOutro?: number;
+    // ── Reforma Tributária — totais (grupos total/IBSCBSTot e total/ISTot) ──
+    // vIBS = total IBS (UF+Mun); vCBS = total CBS; vIS = total Imposto Seletivo.
+    vBCIBSCBS?: number;
+    vIBS?: number;
+    vIBSUF?: number;
+    vIBSMun?: number;
+    vCBS?: number;
+    vIS?: number;
 }
 
 // Propriedades da aresta CANCELA.

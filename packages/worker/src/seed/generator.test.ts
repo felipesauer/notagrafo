@@ -31,6 +31,27 @@ describe('generateNFe', () => {
         expect(temST, 'esperava NF com ICMS-ST > 0').toBe(true);
     });
 
+    it('gera parte das notas com o grupo da Reforma (IBS/CBS/IS) — válidas no XSD (EPIC-24)', () => {
+        const rng = makeRng(11);
+        let comReforma = false;
+        let semReforma = false;
+        for (let i = 1; i <= 40; i++) {
+            const { xml } = generateNFe(i, rng);
+            // toda NF gerada precisa validar no XSD oficial, com ou sem reforma
+            expect(validateNFe(xml).valid, `NFe ${i} inválida`).toBe(true);
+            const p = parseNFe(xml, IMPORTADO_EM);
+            if ((p.totais.vIBS ?? 0) > 0 && (p.totais.vCBS ?? 0) > 0) {
+                comReforma = true;
+                // consistência: IBS total = UF + Mun
+                expect(p.totais.vIBS).toBeCloseTo((p.totais.vIBSUF ?? 0) + (p.totais.vIBSMun ?? 0), 2);
+            } else {
+                semReforma = true;
+            }
+        }
+        expect(comReforma, 'esperava NF com IBS/CBS > 0 (reforma)').toBe(true);
+        expect(semReforma, 'esperava NF sem reforma (transição)').toBe(true);
+    });
+
     it('gera NF de devolução válida com finalidade devolucao e NFref', () => {
         const venda = generateNFe(1, makeRng(5));
         const dev = generateNFe(99, makeRng(5), { devolucaoRef: venda.chaveAcesso });
