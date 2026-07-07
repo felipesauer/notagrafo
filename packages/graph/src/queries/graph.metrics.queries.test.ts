@@ -55,7 +55,9 @@ describe('getCentrality (unit, driver fake)', () => {
         });
         // degree centrality: distinct partners, both directions, ignoring self-loops
         expect(runs[0]!.cypher).toContain('count(DISTINCT partner) AS degree');
-        expect(runs[0]!.cypher).toContain('a.cnpj <> b.cnpj');
+        expect(runs[0]!.cypher).toContain('issuer.cnpj <> recipient.cnpj');
+        // both directions unioned so a receive-only company is still counted
+        expect(runs[0]!.cypher).toContain('UNWIND [{company: issuer, partner: recipient}');
         expect((runs[0]!.params.limit as { toNumber(): number }).toNumber()).toBe(25);
     });
 });

@@ -38,24 +38,19 @@ export interface CentralityNode {
 export async function getCentrality(driver: Driver, limit = 50): Promise<CentralityNode[]> {
     const session = driver.session();
     try {
+        // Emit one row per (company, partner, nf) covering BOTH directions:
+        // company as issuer (a→b) and company as recipient (b→a). Starting from
+        // the NF and projecting each endpoint as company/partner ensures a
+        // receive-only company (never an issuer) is still counted. Grouping by
+        // (company, partner) first, then counting DISTINCT partner, avoids any
+        // double counting of a partner traded with in both directions.
         const res = await session.run(
-            `MATCH (a:Empresa)-[:EMITIU]->(nf:NotaFiscal)-[:DESTINADA_A]->(b:Empresa)
-             WHERE nf.status IS NOT NULL AND a.cnpj <> b.cnpj
-             // Undirected partner: pair each company with the other end, both ways.
-             WITH a AS company, b AS partner, nf
+            `MATCH (issuer:Empresa)-[:EMITIU]->(nf:NotaFiscal)-[:DESTINADA_A]->(recipient:Empresa)
+             WHERE nf.status IS NOT NULL AND issuer.cnpj <> recipient.cnpj
+             // Two directed views of the same edge, unioned.
+             UNWIND [{company: issuer, partner: recipient}, {company: recipient, partner: issuer}] AS pair
+             WITH pair.company AS company, pair.partner AS partner, nf
              WITH company, partner, count(nf) AS nfs, sum(coalesce(nf.valorTotal, 0)) AS valor
-             WITH company, collect({partner: partner.cnpj, nfs: nfs, valor: valor}) AS out
-             // Also fold in the reverse direction (as recipient).
-             CALL {
-                 WITH company
-                 MATCH (other:Empresa)-[:EMITIU]->(nf2:NotaFiscal)-[:DESTINADA_A]->(company)
-                 WHERE nf2.status IS NOT NULL AND other.cnpj <> company.cnpj
-                 WITH other.cnpj AS partner, count(nf2) AS nfs, sum(coalesce(nf2.valorTotal, 0)) AS valor
-                 RETURN collect({partner: partner, nfs: nfs, valor: valor}) AS incoming
-             }
-             WITH company, out + incoming AS all
-             UNWIND all AS e
-             WITH company, e.partner AS partner, sum(e.nfs) AS nfs, sum(e.valor) AS valor
              WITH company, count(DISTINCT partner) AS degree,
                   sum(nfs) AS totalNFs, sum(valor) AS valorTotal
              RETURN company.cnpj AS cnpj, company.razaoSocial AS razaoSocial, company.uf AS uf,
