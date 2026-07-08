@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-137
-  state: IN_REVIEW
+  state: DONE
   title: 'UX: alinhamento/espaço morto da Home (bento)'
   description: KPIs de altura igual (sparkline/placeholder ao pé com mt-auto).
   acceptance_criteria:
@@ -18,6 +18,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-06T16:47:08.671Z'
+  updated_at: '2026-07-07T20:58:08.704Z'
 ---
 # UX: alinhamento/espaço morto da Home (bento grid)
