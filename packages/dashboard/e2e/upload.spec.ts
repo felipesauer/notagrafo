@@ -7,6 +7,10 @@ const FIXTURE = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'core'
 
 test.describe('upload de NFe', () => {
     test('envia um XML pelo modal e acompanha o status até o resumo', async ({ page }) => {
+        // O processamento é assíncrono (worker via fila). No CI, o worker recém-subido
+        // (boot frio + Redis/Neo4j frios) pode levar mais que o timeout padrão de 30s
+        // para concluir o PRIMEIRO job — dá folga ao teste inteiro.
+        test.setTimeout(75_000);
         await login(page);
         // o botão de envio está no header do explorador (Notas)
         await page.goto('/explore');
@@ -22,6 +26,6 @@ test.describe('upload de NFe', () => {
         // dialog para não colidir com o painel de Insights ("Last processed invoice").
         await expect(
             page.getByRole('dialog').getByText(/processadas|processed|duplicat|enfileirada|queued|já foi processada|already/i),
-        ).toBeVisible({ timeout: 20_000 });
+        ).toBeVisible({ timeout: 45_000 });
     });
 });

@@ -79,6 +79,10 @@ services:
       - "${API_PORT:-3000}:3000"
     env_file: .env
     environment:
+      # NODE_ENV=production sobrepõe o .env (que é development p/ o host): a
+      # imagem enxuta não tem devDeps (ex.: pino-pretty), então o container
+      # PRECISA rodar em produção. `environment` vence `env_file` no Compose.
+      NODE_ENV: production
       # Sobrepõe os hosts do .env (localhost = dev no host) pelos nomes de
       # serviço da rede do compose. O Redis escuta 6379 internamente.
       NEO4J_URI: bolt://neo4j:7687
@@ -113,6 +117,8 @@ services:
     restart: "no"
     env_file: .env
     environment:
+      # NODE_ENV=production: imagem enxuta sem devDeps (ver serviço api).
+      NODE_ENV: production
       # Mesma sobreposição de hosts da API (ver comentário no serviço api).
       NEO4J_URI: bolt://neo4j:7687
       REDIS_URL: redis://redis:6379
@@ -145,9 +151,12 @@ services:
       context: .
       dockerfile: packages/worker/Dockerfile
       target: production
-    command: node packages/worker/dist/seed/index.js
+    # dist/ está na raiz após o pnpm deploy (não mais em packages/worker/).
+    command: node dist/seed/index.js
     env_file: .env
     environment:
+      # NODE_ENV=production: imagem enxuta sem devDeps (ver serviço api).
+      NODE_ENV: production
       DEMO: "true"
       DEMO_NF_COUNT: ${DEMO_NF_COUNT:-500}
       NEO4J_URI: bolt://neo4j:7687
