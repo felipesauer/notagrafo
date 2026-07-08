@@ -36,9 +36,13 @@ services:
       - neo4j_logs:/logs
     healthcheck:
       test: ["CMD", "cypher-shell", "-u", "neo4j", "-p", "${NEO4J_PASSWORD:-changeme}", "RETURN 1"]
-      interval: 10s
+      # start_period + interval curto: durante o boot da JVM (~8-14s) as falhas
+      # não contam para retries e o check roda a cada 3s — o 'healthy' é detectado
+      # assim que o Neo4j aceita conexões, sem esperar o próximo tick de 10s.
+      interval: 3s
       timeout: 5s
-      retries: 10
+      retries: 15
+      start_period: 20s
 
   minio:
     image: minio/minio:latest
@@ -54,9 +58,12 @@ services:
     command: server /data --console-address ":9001"
     healthcheck:
       test: ["CMD", "mc", "ready", "local"]
-      interval: 10s
+      # interval curto: MinIO fica pronto em ~1-2s; detectar cedo evita esperar
+      # o tick de 10s no `up --wait`.
+      interval: 3s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 10s
 
   mailpit:
     image: axllent/mailpit:latest
@@ -129,7 +136,8 @@ services:
       neo4j:
         condition: service_healthy
     deploy:
-      replicas: 2   # dois workers por padrão
+      # 1 worker por padrão (sobe rápido em dev); escale com WORKER_REPLICAS=N.
+      replicas: ${WORKER_REPLICAS:-1}
 
   dashboard:
     profiles: ["app"]

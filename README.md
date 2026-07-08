@@ -166,6 +166,9 @@ Há três modos, cada um com um comando dedicado. Todos param com `pnpm down`.
 | `pnpm infra` | só infra (Neo4j, Redis, MinIO, Mailpit) | rodar serviços manualmente |
 | `pnpm down` | **para tudo** (app + infra) e libera as portas | ao terminar |
 
+> O worker sobe com **1 réplica** por padrão (subida rápida). Para escalar em
+> produção, use `WORKER_REPLICAS=3 pnpm stack`.
+
 ### Desenvolvimento (recomendado)
 
 Itera no código com hot-reload, sem buildar as imagens Docker da aplicação.
