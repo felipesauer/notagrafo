@@ -8,22 +8,30 @@ COPY packages/core/package.json ./packages/core/
 COPY packages/graph/package.json ./packages/graph/
 COPY packages/worker/package.json ./packages/worker/
 COPY packages/api/package.json ./packages/api/
-RUN pnpm install --frozen-lockfile
+# cache mount do store pnpm: pacotes baixados persistem entre builds (install e
+# o `pnpm deploy` reusam em vez de rebaixar tudo).
+RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile
 
 # ── Stage 2: build (compila os dist) ─────────────────────────
+# Camadas em ordem de estabilidade: as libs (core/graph/worker) mudam pouco e
+# são compiladas ANTES do api. Assim, mudar só o código do api NÃO invalida a
+# camada de build das libs — o rebuild incremental recompila apenas o api.
 FROM deps AS build
 COPY tsconfig.json tsconfig.build.json ./
 COPY packages/core ./packages/core
 COPY packages/graph ./packages/graph
 COPY packages/worker ./packages/worker
-COPY packages/api ./packages/api
 RUN pnpm --filter @notagrafo/core build \
  && pnpm --filter @notagrafo/graph build \
- && pnpm --filter @notagrafo/worker build \
- && pnpm --filter @notagrafo/api build
+ && pnpm --filter @notagrafo/worker build
+COPY packages/api ./packages/api
+RUN pnpm --filter @notagrafo/api build
 # pnpm deploy resolve os workspace deps e traz SÓ produção (sem devDeps),
-# com o dist já compilado e o binário nativo do libxmljs2 incluído.
-RUN pnpm --filter @notagrafo/api --legacy deploy --prod /out
+# com o dist já compilado e o binário nativo do libxmljs2 incluído. O cache
+# mount do store evita re-resolver/rebaixar os ~660 pacotes a cada rebuild.
+RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
+    pnpm --filter @notagrafo/api --legacy deploy --prod /out
 
 # ── Stage 3: runtime (enxuto, sem toolchain nem devDeps) ─────
 FROM node:22-alpine AS production
