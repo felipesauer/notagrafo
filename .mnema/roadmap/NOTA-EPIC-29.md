@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-EPIC-29
   kind: epic
-  state: OPEN
+  state: CLOSED
   title: 'Reformulação Docker/DX: imagens enxutas, comandos claros, dev ágil'
   description: >-
     O setup Docker atual está pesado, lento e conflitante (feedback do usuário).
@@ -21,6 +21,6 @@ mnema:
     smoke test).
   metadata: {}
   created_at: '2026-07-08T13:29:47.141Z'
-  closed_at: null
+  closed_at: '2026-07-08T15:46:31.749Z'
 ---
 # Reformulação Docker/DX: imagens enxutas, comandos claros, dev ágil
