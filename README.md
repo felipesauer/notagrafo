@@ -114,7 +114,7 @@ cp .env.example .env
 # os defaults já servem para rodar localmente; troque as senhas em produção
 
 # 3. Suba tudo com dados de demonstração
-docker compose --profile app --profile demo up --build
+pnpm demo        # = docker compose --profile app --profile demo up --build
 ```
 
 Quando os serviços ficarem *healthy*, acesse:
@@ -154,9 +154,21 @@ do [`.env.example`](.env.example); `REDIS_PORT` é configurável):
 
 ---
 
-## Desenvolvimento
+## Comandos e modos de execução
 
-Para iterar no código com hot-reload, sem buildar as imagens Docker da aplicação.
+Há três modos, cada um com um comando dedicado. Todos param com `pnpm down`.
+
+| Comando | O que sobe | Quando usar |
+|---|---|---|
+| `pnpm dev` | infra no Docker + **app no host** (hot-reload) | dia a dia de desenvolvimento |
+| `pnpm stack` | **app inteiro** containerizado (build das imagens) | validar a stack como em produção (E2E) |
+| `pnpm demo` | stack + seed de demonstração | ver o sistema pronto com dados |
+| `pnpm infra` | só infra (Neo4j, Redis, MinIO, Mailpit) | rodar serviços manualmente |
+| `pnpm down` | **para tudo** (app + infra) e libera as portas | ao terminar |
+
+### Desenvolvimento (recomendado)
+
+Itera no código com hot-reload, sem buildar as imagens Docker da aplicação.
 Pré-requisitos: **Node.js 20+**, **pnpm** e **Docker** (para a infra).
 
 ```bash
@@ -166,11 +178,11 @@ pnpm dev
 
 O `pnpm dev`:
 
-1. sobe a infraestrutura (Neo4j, Redis, MinIO, Mailpit) e **espera** ela ficar
-   *healthy* — `docker compose up -d --wait`;
+1. sobe **só a infraestrutura** (Neo4j, Redis, MinIO, Mailpit) e **espera** ela
+   ficar *healthy* — `pnpm infra` (= `docker compose up -d --wait`);
 2. builda as libs internas (`core`, `graph`);
 3. roda o seed de demonstração;
-4. sobe **API**, **worker** e **dashboard** em modo watch, em paralelo.
+4. sobe **API**, **worker** e **dashboard** **no host** em modo watch, em paralelo.
 
 URLs no modo dev:
 
@@ -180,23 +192,27 @@ URLs no modo dev:
 | **API (Swagger)** | http://localhost:3000/docs |
 | **Neo4j Browser** | http://localhost:7474 |
 
-> A porta **`8080` só existe no modo Docker** (`--profile app`), onde o nginx serve
-> o build estático. Em desenvolvimento, use sempre a **`5173`** (Vite).
+> A porta **`8080` só existe nos modos containerizados** (`pnpm stack`/`pnpm demo`),
+> onde o nginx serve o build estático. Em desenvolvimento, use a **`5173`** (Vite).
 
-Para subir **apenas a infraestrutura** e rodar os serviços manualmente:
+### Passo a passo manual
+
+Se quiser controlar cada etapa (em vez do `pnpm dev`):
 
 ```bash
-pnpm docker:up                  # sobe redis, neo4j, minio, mailpit (e espera healthy)
+pnpm infra                      # sobe redis, neo4j, minio, mailpit (e espera healthy)
 pnpm dev:libs                   # builda core + graph
 pnpm dev:seed                   # popula o grafo (opcional)
 pnpm dev:packages               # api + worker + dashboard em watch
 ```
 
+### Encerrando
+
 Como `Ctrl+C` encerra só os processos locais (a infra sobe *detached*), derrube
 os containers e **libere as portas** quando terminar:
 
 ```bash
-pnpm docker:down                # para e remove os containers (libera as portas)
+pnpm down                       # para e remove TODOS os containers (libera as portas)
 ```
 
 > Os containers usam `restart: "no"` — não voltam sozinhos no boot da máquina.

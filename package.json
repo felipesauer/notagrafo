@@ -8,12 +8,16 @@
   },
   "packageManager": "pnpm@10.34.1",
   "scripts": {
-    "dev": "docker compose up -d --wait && pnpm dev:libs && pnpm dev:seed && pnpm dev:packages",
+    "infra": "docker compose up -d --wait",
+    "dev": "pnpm infra && pnpm dev:libs && pnpm dev:seed && pnpm dev:packages",
     "dev:libs": "pnpm --filter @notagrafo/core --filter @notagrafo/graph build",
     "dev:seed": "dotenv -e .env -- tsx packages/worker/src/seed/index.ts || true",
     "dev:packages": "pnpm --parallel --filter @notagrafo/api --filter @notagrafo/worker --filter @notagrafo/dashboard dev",
-    "docker:up": "docker compose up -d --wait",
-    "docker:down": "docker compose --profile app --profile demo down",
+    "stack": "docker compose --profile app up -d --build --wait",
+    "stack:logs": "docker compose --profile app logs -f",
+    "down": "docker compose --profile app --profile demo down",
+    "docker:up": "pnpm infra",
+    "docker:down": "pnpm down",
     "build": "pnpm --filter @notagrafo/core build && pnpm --filter @notagrafo/graph build && pnpm --filter @notagrafo/api build && pnpm --filter @notagrafo/worker build && pnpm --filter @notagrafo/dashboard build",
     "test": "pnpm test:unit && pnpm test:integration",
     "test:unit": "vitest run --config vitest.config.ts",
@@ -24,7 +28,7 @@
     "lint": "eslint . --ext .ts,.tsx",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "format": "prettier --write \"packages/**/*.{ts,tsx,json,md}\"",
-    "demo": "docker compose --profile app --profile demo up"
+    "demo": "docker compose --profile app --profile demo up --build"
   },
   "devDependencies": {
     "@testcontainers/minio": "^12.0.3",
