@@ -3,7 +3,7 @@
 <img src="assets/notagrafo-logo.png" alt="notagrafo" width="360" />
 
 <p>
-  <a href="LICENSE"><img alt="License: AGPL v3" src="https://img.shields.io/badge/license-AGPL--3.0-blue.svg" /></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg" /></a>
   <img alt="Node.js 20+" src="https://img.shields.io/badge/Node.js-20+-339933?logo=nodedotjs&logoColor=white" />
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" />
   <img alt="React" src="https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB" />
@@ -27,7 +27,7 @@ forma visual e consultável — padrões, ligações comuns e caminhos entre<br 
 emitentes e destinatários.
 </p>
 
-<sub>Documento suportado: <strong>NF-e v4.00</strong> · Licença <strong>AGPL-3.0</strong></sub>
+<sub>Documento suportado: <strong>NF-e v4.00</strong> · Licença <strong>MIT</strong></sub>
 
 </div>
 
@@ -355,8 +355,4 @@ testes, padrão de commits (Conventional Commits) e fluxo de Pull Request.
 
 ## Licença
 
-[GNU AGPL-3.0](LICENSE) © 2026 Felipe Sauer
-
-Copyleft forte com cláusula de rede: se você modificar o notagrafo e o
-disponibilizar como serviço acessível pela rede, deve oferecer o código-fonte
-correspondente aos usuários desse serviço (AGPL §13).
+[MIT](LICENSE) © Felipe Sauer
