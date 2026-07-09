@@ -12,6 +12,7 @@ import { useDensityStore, densityClass } from '../stores/density.store.js';
 import { Button } from '../components/ui/button.js';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card.js';
 import { Checkbox } from '../components/ui/checkbox.js';
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '../components/ui/accordion.js';
 import { Label } from '../components/ui/label.js';
 import { NativeSelect } from '../components/ui/native-select.js';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table.js';
@@ -113,20 +114,28 @@ export function ExportsPage(): JSX.Element {
                 description={t('exportacoes.subtitulo')}
                 icon={FileDown}
             />
-            {/* items-start: cada card tem a altura do seu conteúdo (form e histórico
-                curtos ficam compactos no topo, sem um vazio grande esticando o card). */}
-            <div className="grid items-start gap-4 lg:grid-cols-[320px_1fr]">
-                <Card className="h-fit gap-4 py-4" data-testid="export-form">
-                    <CardHeader className="px-4 pb-0"><CardTitle className="text-base">{t('exportacoes.nova')}</CardTitle></CardHeader>
-                    <CardContent className="space-y-4 px-4">
-                        <div className="grid gap-1.5">
-                            <Label htmlFor="export-formato" className="text-xs text-muted-foreground">{t('exportacoes.formato')}</Label>
-                            <NativeSelect id="export-formato" data-testid="export-format" wrapperClassName="w-full" value={formato} onChange={(e) => setFormato(e.target.value as Formato)}>
-                                <option value="csv">CSV</option>
-                                <option value="xlsx">XLSX</option>
-                                <option value="json">JSON</option>
-                            </NativeSelect>
+            {/* Form no topo (horizontal): formato + ação numa linha, campos em
+                accordion por grupo lado a lado — evita a coluna estreita de ~30
+                checkboxes empilhados. Histórico abaixo, em largura total (NOTA-197). */}
+            <div className="flex flex-col gap-4">
+                <Card className="gap-4 py-4" data-testid="export-form">
+                    <CardHeader className="flex flex-col gap-3 px-4 pb-0 sm:flex-row sm:items-end sm:justify-between">
+                        <div className="flex flex-col gap-1.5">
+                            <CardTitle className="text-base">{t('exportacoes.nova')}</CardTitle>
+                            <div className="flex items-center gap-2">
+                                <Label htmlFor="export-formato" className="text-xs text-muted-foreground">{t('exportacoes.formato')}</Label>
+                                <NativeSelect id="export-formato" data-testid="export-format" wrapperClassName="w-32" value={formato} onChange={(e) => setFormato(e.target.value as Formato)}>
+                                    <option value="csv">CSV</option>
+                                    <option value="xlsx">XLSX</option>
+                                    <option value="json">JSON</option>
+                                </NativeSelect>
+                            </div>
                         </div>
+                        <Button type="button" disabled={campos.length === 0} onClick={() => void gerar()}>
+                            <FileDown /> {t('exportacoes.gerar')}
+                        </Button>
+                    </CardHeader>
+                    <CardContent className="px-4">
                         <fieldset className="grid gap-3">
                             <div className="flex items-center justify-between">
                                 <legend className="text-xs text-muted-foreground">
@@ -140,38 +149,39 @@ export function ExportsPage(): JSX.Element {
                                     {t(todosMarcados ? 'exportacoes.limparTodos' : 'exportacoes.todos')}
                                 </button>
                             </div>
-                            {GRUPOS.map((g) => {
-                                const marcadosNoGrupo = g.campos.filter((c) => campos.includes(c)).length;
-                                const grupoCheio = marcadosNoGrupo === g.campos.length;
-                                return (
-                                    <div key={g.key} className="grid gap-0.5">
-                                        <div className="flex items-center justify-between px-2">
-                                            <span className="text-2xs font-semibold uppercase tracking-wide text-muted-foreground">
-                                                {t(`exportacoes.grupo.${g.key}`)}
-                                            </span>
-                                            <button
-                                                type="button"
-                                                className="text-2xs text-muted-foreground hover:text-foreground hover:underline"
-                                                onClick={() => alternarGrupo(g.campos, !grupoCheio)}
-                                            >
-                                                {t(grupoCheio ? 'exportacoes.limparTodos' : 'exportacoes.todos')}
-                                            </button>
-                                        </div>
-                                        {g.campos.map((c) => (
-                                            <Label key={c} className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-sm font-normal hover:bg-muted/50">
-                                                <Checkbox checked={campos.includes(c)} onCheckedChange={() => alternarCampo(c)} />
-                                                <span>{t(`exportacoes.campo.${c}`, { defaultValue: c })}</span>
-                                                <span className="ml-auto font-mono text-3xs text-muted-foreground/60">{c}</span>
-                                            </Label>
-                                        ))}
-                                    </div>
-                                );
-                            })}
+                            <Accordion type="multiple" defaultValue={GRUPOS.map((g) => g.key)} className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+                                {GRUPOS.map((g) => {
+                                    const marcadosNoGrupo = g.campos.filter((c) => campos.includes(c)).length;
+                                    const grupoCheio = marcadosNoGrupo === g.campos.length;
+                                    return (
+                                        <AccordionItem key={g.key} value={g.key} className="rounded-lg border px-3">
+                                            <AccordionTrigger className="py-2.5 hover:no-underline">
+                                                <span className="flex items-center gap-1.5 text-2xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                                    {t(`exportacoes.grupo.${g.key}`)}
+                                                    <span className="rounded-full bg-muted px-1.5 py-0 font-mono text-3xs tabular-nums text-foreground">{marcadosNoGrupo}/{g.campos.length}</span>
+                                                </span>
+                                            </AccordionTrigger>
+                                            <AccordionContent className="flex flex-col gap-0.5 pb-2">
+                                                <button
+                                                    type="button"
+                                                    className="mb-1 self-start text-3xs text-muted-foreground hover:text-foreground hover:underline"
+                                                    onClick={() => alternarGrupo(g.campos, !grupoCheio)}
+                                                >
+                                                    {t(grupoCheio ? 'exportacoes.limparTodos' : 'exportacoes.todos')}
+                                                </button>
+                                                {g.campos.map((c) => (
+                                                    <Label key={c} className="flex cursor-pointer items-center gap-2 rounded-md px-1 py-1 text-sm font-normal hover:bg-muted/50">
+                                                        <Checkbox checked={campos.includes(c)} onCheckedChange={() => alternarCampo(c)} />
+                                                        <span className="truncate">{t(`exportacoes.campo.${c}`, { defaultValue: c })}</span>
+                                                    </Label>
+                                                ))}
+                                            </AccordionContent>
+                                        </AccordionItem>
+                                    );
+                                })}
+                            </Accordion>
                         </fieldset>
-                        {erro && <p className="text-sm text-destructive">{erro}</p>}
-                        <Button type="button" className="w-full" disabled={campos.length === 0} onClick={() => void gerar()}>
-                            <FileDown /> {t('exportacoes.gerar')}
-                        </Button>
+                        {erro && <p className="mt-3 text-sm text-destructive">{erro}</p>}
                     </CardContent>
                 </Card>
 
