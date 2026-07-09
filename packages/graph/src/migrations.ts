@@ -25,6 +25,13 @@ export const MIGRATIONS: readonly string[] = [
     'CREATE INDEX nf_dataEmissao IF NOT EXISTS FOR (n:NotaFiscal) ON (n.dataEmissao)',
     'CREATE INDEX nf_status IF NOT EXISTS FOR (n:NotaFiscal) ON (n.status)',
     'CREATE INDEX empresa_uf IF NOT EXISTS FOR (e:Empresa) ON (e.uf)',
+    // valorTotal: filtro valorTotalMin/Max e ORDER BY na listagem (listInvoices).
+    'CREATE INDEX nf_valorTotal IF NOT EXISTS FOR (n:NotaFiscal) ON (n.valorTotal)',
+    // numero: filtro por igualdade na listagem (o fulltext nf_search não serve p/ '=').
+    'CREATE INDEX nf_numero IF NOT EXISTS FOR (n:NotaFiscal) ON (n.numero)',
+    // Nota: nf.finalidade NÃO ganha índice — o predicado F1
+    // (coalesce(nf.finalidade,'') <> 'devolucao') usa função + negação, que o
+    // planner não resolve por índice; um índice ali seria custo sem benefício.
     // Alertas: filtrar por lido/não-lido (badge) e ordenar por data.
     'CREATE INDEX alert_read IF NOT EXISTS FOR (a:Alert) ON (a.read)',
     'CREATE INDEX alert_createdAt IF NOT EXISTS FOR (a:Alert) ON (a.createdAt)',

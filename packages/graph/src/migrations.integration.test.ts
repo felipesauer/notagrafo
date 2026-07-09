@@ -59,7 +59,34 @@ describe('runMigrations (Neo4j real)', () => {
     });
 
     it('aplica exatamente os statements de MIGRATIONS (todos com IF NOT EXISTS)', () => {
-        expect(MIGRATIONS).toHaveLength(15);
+        expect(MIGRATIONS).toHaveLength(17);
         expect(MIGRATIONS.every((s) => s.includes('IF NOT EXISTS'))).toBe(true);
+    });
+
+    it('cria os índices de valorTotal e numero e o planner os usa (NOTA-206)', async () => {
+        await runMigrations(driver);
+        // os índices existem pelo nome
+        const named = await count(
+            "SHOW INDEXES YIELD name WHERE name IN ['nf_valorTotal','nf_numero'] RETURN name",
+        );
+        expect(named).toBe(2);
+
+        // o planner usa NodeIndexSeek/Scan nesses índices (não NodeByLabelScan)
+        const session = driver.session();
+        try {
+            const porValor = await session.run(
+                'EXPLAIN MATCH (n:NotaFiscal) WHERE n.valorTotal >= 100 RETURN n',
+            );
+            const planValor = JSON.stringify(porValor.summary.plan);
+            expect(planValor).toContain('Index');
+
+            const porNumero = await session.run(
+                'EXPLAIN MATCH (n:NotaFiscal) WHERE n.numero = "7" RETURN n',
+            );
+            const planNumero = JSON.stringify(porNumero.summary.plan);
+            expect(planNumero).toContain('Index');
+        } finally {
+            await session.close();
+        }
     });
 });
