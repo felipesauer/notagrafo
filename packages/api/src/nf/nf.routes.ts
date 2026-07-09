@@ -13,6 +13,7 @@ import {
 import {
     enqueueNFe,
     NotaFiscalDuplicadaError,
+    XmlMuitoGrandeError,
     type XmlStorage,
     type ProcessNFeJobData,
 } from '@notagrafo/worker';
@@ -105,6 +106,9 @@ export async function nfRoutes(app: FastifyInstance, deps: NFRouteDeps): Promise
                     if (err instanceof NotaFiscalDuplicadaError) {
                         // Corrida rara (duplicata entre a checagem e o enqueue): reporta 409.
                         throw new ApiError(409, 'DUPLICATE_NF', `NFe com chave de acesso ${err.chaveAcesso} já foi processada.`, [`chaveAcesso=${err.chaveAcesso}`]);
+                    }
+                    if (err instanceof XmlMuitoGrandeError) {
+                        throw ApiError.payloadTooLarge(`O XML ${x.nome} excede o limite de tamanho.`, [`bytes=${err.bytes}`, `maxBytes=${err.maxBytes}`]);
                     }
                     throw err;
                 }

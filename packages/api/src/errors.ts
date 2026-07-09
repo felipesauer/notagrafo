@@ -40,6 +40,9 @@ export class ApiError extends Error {
     static unsupportedSchema(message: string): ApiError {
         return new ApiError(422, 'UNSUPPORTED_SCHEMA_VERSION', message);
     }
+    static payloadTooLarge(message: string, detalhes?: string[]): ApiError {
+        return new ApiError(413, 'XML_TOO_LARGE', message, detalhes);
+    }
 }
 
 /** Mapeia o statusCode do Fastify (validação/rate-limit) para um código padrão. */
