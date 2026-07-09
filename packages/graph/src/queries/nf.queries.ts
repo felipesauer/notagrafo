@@ -130,8 +130,16 @@ function buildWhere(f: NFFilters): { clauses: string[]; params: Record<string, u
  * Monta a parte de MATCH + WHERE comum à listagem e à contagem, a partir
  * dos filtros (sem cursor nem paginação). Tudo parametrizado (sem injeção).
  */
-function buildFilterQuery(filters: NFFilters): { matchRel: string[]; clauses: string[]; params: Record<string, unknown> } {
+function buildFilterQuery(filters: NFFilters): {
+    matchRel: string[];
+    clauses: string[];
+    params: Record<string, unknown>;
+    /** Variáveis extras (além de nf/emit/dest) que o WHERE de filtro referencia e
+     * que precisam sobreviver ao WITH que precede o WHERE (ex.: ncm). */
+    withVars: string[];
+} {
     const { clauses, params } = buildWhere(filters);
+    const withVars: string[] = [];
 
     // Relações com emitente/destinatário para filtros por CNPJ/UF.
     const matchRel: string[] = ['MATCH (emit:Empresa)-[:EMITIU]->(nf:NotaFiscal)', 'OPTIONAL MATCH (nf)-[:DESTINADA_A]->(dest:Empresa)'];
@@ -140,9 +148,9 @@ function buildFilterQuery(filters: NFFilters): { matchRel: string[]; clauses: st
     if (filters.cnpjDestinatario) (clauses.push('dest.cnpj = $cnpjDestinatario'), (params.cnpjDestinatario = filters.cnpjDestinatario));
     if (filters.ufDestinatario) (clauses.push('dest.uf = $ufDestinatario'), (params.ufDestinatario = filters.ufDestinatario));
     if (filters.cfop) (matchRel.push('MATCH (nf)-[:USA_CFOP]->(:CFOP {codigo: $cfop})'), (params.cfop = filters.cfop));
-    if (filters.ncm) (matchRel.push('MATCH (nf)-[:CONTÉM]->(:Produto)-[:CLASSIFICADO_EM]->(ncm:NCM)'), clauses.push('ncm.codigo STARTS WITH $ncm'), (params.ncm = filters.ncm));
+    if (filters.ncm) (matchRel.push('MATCH (nf)-[:CONTÉM]->(:Produto)-[:CLASSIFICADO_EM]->(ncm:NCM)'), clauses.push('ncm.codigo STARTS WITH $ncm'), (params.ncm = filters.ncm), withVars.push('ncm'));
 
-    return { matchRel, clauses, params };
+    return { matchRel, clauses, params, withVars };
 }
 
 /** Lista das chaves de filtro efetivamente aplicadas (meta.filtrosAtivos do contrato §4). */
@@ -158,9 +166,10 @@ export function activeFilters(filters: NFFilters): string[] {
  * Usa DISTINCT pois MATCHes de produto/ncm podem multiplicar linhas por nota.
  */
 export async function countInvoices(driver: Driver, filters: NFFilters = {}): Promise<number> {
-    const { matchRel, clauses, params } = buildFilterQuery(filters);
+    const { matchRel, clauses, params, withVars } = buildFilterQuery(filters);
     const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
-    const cypher = `${matchRel.join('\n')}\nWITH nf, emit, dest\n${where}\nRETURN count(DISTINCT nf) AS total`;
+    const withList = ['nf', 'emit', 'dest', ...withVars].join(', ');
+    const cypher = `${matchRel.join('\n')}\nWITH ${withList}\n${where}\nRETURN count(DISTINCT nf) AS total`;
     const session = driver.session();
     try {
         const res = await session.run(cypher, params);
@@ -185,22 +194,33 @@ export async function listInvoices(
     const order = opts.order === 'asc' ? 'asc' : 'desc';
     const cmp = order === 'asc' ? '>' : '<';
 
-    const { matchRel, clauses, params } = buildFilterQuery(filters);
+    const { matchRel, clauses, params, withVars } = buildFilterQuery(filters);
 
+    // 1º WITH (após os MATCH/OPTIONAL MATCH) carrega nf/emit/dest — e as variáveis
+    // extras que o WHERE de filtro referencia (ex.: ncm) — para que o WHERE filtre o
+    // conjunto inteiro e não fique preso ao último OPTIONAL MATCH.
+    const withList = ['nf', 'emit', 'dest', ...withVars].join(', ');
+    const filterWhere = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
+
+    // O filtro de cursor só usa nf, então vai após o WITH DISTINCT.
+    let cursorWhere = '';
     if (opts.cursor) {
         const cur = decodeCursor(opts.cursor);
-        clauses.push(`(nf.${orderBy} ${cmp} $cursorV OR (nf.${orderBy} = $cursorV AND nf.chaveAcesso ${cmp} $cursorChave))`);
+        cursorWhere = `WHERE (nf.${orderBy} ${cmp} $cursorV OR (nf.${orderBy} = $cursorV AND nf.chaveAcesso ${cmp} $cursorChave))`;
         params.cursorV = cur.v;
         params.cursorChave = cur.chave;
     }
 
-    const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
-    // WITH após os (OPTIONAL) MATCH garante que o WHERE filtre o conjunto inteiro,
-    // e não fique preso ao último OPTIONAL MATCH.
+    // 2º WITH DISTINCT deduplica: os MATCH de CONTÉM->NCM / USA_CFOP multiplicam
+    // linhas quando a NF tem vários itens no mesmo NCM (ou vários USA_CFOP), o que
+    // sem DISTINCT retornaria a mesma NF repetida na página (emit/dest são 1:1 com a
+    // NF). Espelha o count(DISTINCT nf) de countInvoices.
     const cypher =
         `${matchRel.join('\n')}\n` +
-        `WITH nf, emit, dest\n` +
-        `${where}\n` +
+        `WITH ${withList}\n` +
+        `${filterWhere}\n` +
+        `WITH DISTINCT nf, emit, dest\n` +
+        `${cursorWhere}\n` +
         `RETURN nf, emit, dest\n` +
         `ORDER BY nf.${orderBy} ${order}, nf.chaveAcesso ${order}\n` +
         `LIMIT $limitPlus1`;

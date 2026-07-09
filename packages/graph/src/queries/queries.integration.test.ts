@@ -162,6 +162,29 @@ describe('nf.queries', () => {
     it('getInvoice retorna null para chave inexistente', async () => {
         expect(await getInvoice(driver, '00000000000000000000000000000000000000000000')).toBeNull();
     });
+
+    it('não duplica a NF na listagem quando o filtro NCM casa vários itens da mesma NF (NOTA-200)', async () => {
+        // A multicfop tem itens com NCM 84716053 e 84182100 (prefixo comum '84').
+        // Sem DISTINCT na projeção, o MATCH CONTÉM->NCM devolveria a NF 2x.
+        const multi = readFileSync(join(FIXTURES, 'nfe-multicfop-v4.00.xml'), 'utf8');
+        const chaveMulti = '35200662707394550010000000001002735721000000';
+        await mergeInvoice(driver, payload(multi));
+        try {
+            const page = await listInvoices(driver, { ncm: '84' }, { limit: 50 });
+            const doMulti = page.data.filter((d) => d.chaveAcesso === chaveMulti);
+            expect(doMulti).toHaveLength(1); // 1 linha, não 2
+            // data[] deduplicado == meta.total (count DISTINCT)
+            const total = await countInvoices(driver, { ncm: '84' });
+            expect(page.data.length).toBe(total);
+            const chaves = page.data.map((d) => d.chaveAcesso);
+            expect(new Set(chaves).size).toBe(chaves.length);
+        } finally {
+            // limpa a NF de teste (e a aresta CONTÉM/USA_CFOP) para não afetar os demais testes
+            const s = driver.session();
+            await s.run('MATCH (nf:NotaFiscal {chaveAcesso: $c}) DETACH DELETE nf', { c: chaveMulti });
+            await s.close();
+        }
+    });
 });
 
 describe('product.queries', () => {
