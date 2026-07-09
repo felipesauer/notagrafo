@@ -4,7 +4,7 @@ import { useSearch, useNavigate } from '@tanstack/react-router';
 import { ReactFlow, Background, Controls, MiniMap, useReactFlow, ReactFlowProvider, MarkerType, useNodesState, useEdgesState, type Node } from '@xyflow/react';
 import { toPng } from 'html-to-image';
 import '@xyflow/react/dist/style.css';
-import { Download, Loader2, RotateCcw, Search, Waypoints } from 'lucide-react';
+import { Download, FileJson, Loader2, RotateCcw, Search, Waypoints } from 'lucide-react';
 import { apiFetch } from '../api/api.client.js';
 import { EmptyState } from '../components/shared.js';
 import { mergeGraph, type ApiGraph, type EdgeData, type GraphEdge, type GraphNode, type NodeData, type NodeType } from '../graph/layout.js';
@@ -144,6 +144,39 @@ function GraphInner(): JSX.Element {
         a.click();
     }
 
+    /**
+     * Baixa o grafo em tela como JSON com as relações — schema de domínio limpo
+     * (sem metadados de layout do React Flow: posição, largura, dimmed, etc.),
+     * para ser útil fora do dashboard (análise externa, importação em outra
+     * ferramenta) (NOTA-199).
+     */
+    function exportJson(): void {
+        const payload = {
+            nodes: nodes.map((n) => ({
+                id: n.id,
+                type: n.data.tipo,
+                label: n.data.label,
+                ...(n.data.cnpj ? { cnpj: n.data.cnpj } : {}),
+                ...(n.data.razaoSocial ? { razaoSocial: n.data.razaoSocial } : {}),
+                ...(n.data.uf ? { uf: n.data.uf } : {}),
+                ...(n.data.totalNFs !== undefined ? { totalNFs: n.data.totalNFs } : {}),
+            })),
+            edges: edges.map((e) => ({
+                source: e.source,
+                target: e.target,
+                ...(e.data?.valorTotal !== undefined ? { valorTotal: e.data.valorTotal } : {}),
+                ...(e.data?.totalNFs !== undefined ? { totalNFs: e.data.totalNFs } : {}),
+            })),
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'grafo.json';
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
     // Hover-isola: vizinhança do nó sob o mouse (ele + conectados diretos).
     const vizinhanca = useMemo(() => {
         if (!hovered) return null;
@@ -196,6 +229,7 @@ function GraphInner(): JSX.Element {
                 <div className="flex gap-2">
                     <Button type="button" variant="outline" size="sm" onClick={reset}><RotateCcw /> {t('grafo.resetar')}</Button>
                     <Button type="button" variant="outline" size="sm" onClick={() => void exportPng()} disabled={nodes.length === 0}><Download /> {t('grafo.exportPng')}</Button>
+                    <Button type="button" variant="outline" size="sm" onClick={exportJson} disabled={nodes.length === 0}><FileJson /> {t('grafo.exportJson')}</Button>
                 </div>
             </div>
 

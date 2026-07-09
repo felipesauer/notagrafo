@@ -6,10 +6,12 @@ import { join } from 'node:path';
 import AdmZip from 'adm-zip';
 import type { Driver } from 'neo4j-driver';
 import type { XmlStorage } from '@notagrafo/worker';
-import { listInvoices, countInvoices, type NFFilters } from '@notagrafo/graph';
+import { listInvoices, countInvoices, getRedeGlobal, type NFFilters } from '@notagrafo/graph';
 
 export type ExportFormato = 'csv' | 'xlsx' | 'json';
 export type ExportStatus = 'queued' | 'processing' | 'ready' | 'failed';
+/** Tipo de dado exportado: NF-e tabulares (padrão) ou a rede de relações (NOTA-199). */
+export type ExportTipo = 'nf' | 'rede';
 
 /** Subconjunto de ioredis usado para persistir metadados de export (facilita teste). */
 export interface RedisLike {
@@ -31,6 +33,8 @@ export interface ExportJob {
     erro?: string;
     /** Quando true, o arquivo baixado é um .zip com os dados + os XMLs originais (NOTA-198). */
     incluirXml?: boolean;
+    /** 'nf' (padrão, tabular) ou 'rede' (nós+arestas em JSON) (NOTA-199). */
+    tipo?: ExportTipo;
 }
 
 const CONTENT_TYPES: Record<ExportFormato, string> = {
@@ -92,25 +96,31 @@ export class ExportService {
     }
 
     /** Cria o job e dispara a geração em background. Retorna o id imediatamente. */
-    create(formato: ExportFormato, filters?: NFFilters, fields?: string[], incluirXml?: boolean): ExportJob {
+    create(formato: ExportFormato, filters?: NFFilters, fields?: string[], incluirXml?: boolean, tipo: ExportTipo = 'nf'): ExportJob {
         const exportId = `exp_${randomUUID().slice(0, 12)}`;
+        // A rede é sempre JSON estruturado (nós+arestas) — não faz sentido
+        // "achatar" um grafo em CSV. incluirXml só se aplica a NF-e (o storage
+        // guarda XML por NF, não por relação de rede).
+        const isRede = tipo === 'rede';
         const job: ExportJob = {
             exportId,
-            formato,
+            formato: isRede ? 'json' : formato,
             status: 'queued',
             progresso: 0,
             total: 0,
             totalRegistros: 0,
             tamanhoBytes: 0,
             expiresAt: Date.now() + this.ttlMs,
+            tipo,
             // Só ativa incluirXml se houver storage configurado — sem ele, não há
             // como buscar os XMLs originais; degrada silenciosamente para o
             // formato tabular puro (melhor que falhar o export inteiro).
-            incluirXml: incluirXml && !!this.storage,
+            incluirXml: !isRede && incluirXml && !!this.storage,
         };
         this.jobs.set(exportId, job);
         void this.persist(job);
-        void this.generate(job, filters, fields);
+        if (isRede) void this.generateRede(job);
+        else void this.generate(job, filters, fields);
         return job;
     }
 
@@ -199,6 +209,40 @@ export class ExportService {
             job.filePath = filePath;
             job.totalRegistros = rows.length;
             job.tamanhoBytes = fileSize;
+            job.status = 'ready';
+        } catch (err) {
+            job.status = 'failed';
+            job.erro = (err as Error).message;
+        }
+        await this.persist(job);
+    }
+
+    /**
+     * Gera o export da rede de relações: nós (empresas) + arestas (relações
+     * agregadas emitente→destinatário) em JSON estruturado. Reusa a mesma query
+     * de getRedeGlobal da tela de rede completa (EPIC-28) — mesmo shape de dados,
+     * sem o limite de segurança de 500 (o export não tem o custo de renderização
+     * WebGL da tela, então usa o máximo de arestas relevante).
+     */
+    private async generateRede(job: ExportJob): Promise<void> {
+        job.status = 'processing';
+        await this.persist(job);
+        try {
+            const rede = await getRedeGlobal(this.driver, { limite: 500 });
+            job.total = rede.nos.length;
+            job.progresso = rede.nos.length;
+
+            const payload = {
+                nodes: rede.nos.map((n) => ({ id: n.cnpj, label: n.razaoSocial, uf: n.uf, totalNFs: n.totalNFs })),
+                edges: rede.arestas.map((a) => ({ source: a.de, target: a.para, valorTotal: a.valorTotal, totalNFs: a.totalNFs })),
+            };
+            const content = JSON.stringify(payload, null, 2);
+            const filePath = join(this.dir, `${job.exportId}.json`);
+            await writeFile(filePath, content);
+
+            job.filePath = filePath;
+            job.totalRegistros = rede.nos.length;
+            job.tamanhoBytes = Buffer.byteLength(content);
             job.status = 'ready';
         } catch (err) {
             job.status = 'failed';
