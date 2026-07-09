@@ -7,7 +7,7 @@ import type { Worker, Queue } from 'bullmq';
 const { closeDriver } = vi.hoisted(() => ({ closeDriver: vi.fn(async (): Promise<void> => {}) }));
 vi.mock('@notagrafo/graph', () => ({ closeDriver }));
 
-import { shutdownWorker, registerShutdownHandlers, handleFailedJob, type WorkerHandle, type FailedJobLike } from './worker.js';
+import { shutdownWorker, registerShutdownHandlers, handleFailedJob, writeHeartbeat, WORKER_HEARTBEAT_KEY, HEARTBEAT_TTL_SECONDS, type WorkerHandle, type FailedJobLike } from './worker.js';
 import { NF_DLQ } from './queue/config.js';
 import type { DeadLetterJobData } from './queue/dlq.js';
 
@@ -16,18 +16,21 @@ function fakeHandle(): {
     workerClose: ReturnType<typeof vi.fn>;
     dlqClose: ReturnType<typeof vi.fn>;
     connQuit: ReturnType<typeof vi.fn>;
+    connDel: ReturnType<typeof vi.fn>;
 } {
     const workerClose = vi.fn(async () => {});
     const dlqClose = vi.fn(async () => {});
     const connQuit = vi.fn(async () => 'OK');
+    const connDel = vi.fn(async () => 1);
     const handle: WorkerHandle = {
         worker: { close: workerClose } as unknown as Worker,
-        connection: { quit: connQuit } as unknown as Redis,
+        connection: { quit: connQuit, del: connDel } as unknown as Redis,
         driver: {} as Driver,
         dlq: { close: dlqClose } as unknown as Queue<DeadLetterJobData>,
         pendingFailures: new Set(),
+        heartbeat: setInterval(() => {}, 1_000_000),
     };
-    return { handle, workerClose, dlqClose, connQuit };
+    return { handle, workerClose, dlqClose, connQuit, connDel };
 }
 
 /** Fila DLQ falsa que registra os add()s. */
@@ -59,6 +62,27 @@ describe('shutdownWorker', () => {
         // a DLQ só pode ter fechado depois que o handler em voo resolveu.
         expect(resolvido).toBe(true);
         expect(dlqClose).toHaveBeenCalledOnce();
+    });
+
+    it('para o heartbeat e apaga a chave no shutdown (NOTA-210)', async () => {
+        const { handle, connDel } = fakeHandle();
+        await shutdownWorker(handle);
+        // a chave de heartbeat é removida — um shutdown gracioso não parece vivo.
+        expect(connDel).toHaveBeenCalledWith(WORKER_HEARTBEAT_KEY);
+    });
+});
+
+describe('writeHeartbeat (NOTA-210)', () => {
+    it('escreve a chave de heartbeat com TTL no Redis', async () => {
+        const set = vi.fn(async (..._args: unknown[]) => 'OK');
+        const connection = { set } as unknown as Redis;
+        await writeHeartbeat(connection);
+        expect(set).toHaveBeenCalledOnce();
+        const [key, value, exFlag, ttl] = set.mock.calls[0]!;
+        expect(key).toBe(WORKER_HEARTBEAT_KEY);
+        expect(Number.isNaN(Number(value))).toBe(false); // timestamp numérico
+        expect(exFlag).toBe('EX');
+        expect(ttl).toBe(HEARTBEAT_TTL_SECONDS);
     });
 });
 
