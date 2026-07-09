@@ -227,6 +227,7 @@ export const ptBR = {
     },
     exportacoes: {
         nova: 'Nova exportação', formato: 'Formato', campos: 'Campos', gerar: 'Gerar exportação',
+        incluirXml: 'Incluir XMLs originais (.zip)',
         historico: 'Histórico', acoes: 'Ações', baixar: 'Baixar', vazio: 'Nenhuma exportação ainda.',
         subtitulo: 'Gere extrações da base de NF-e em CSV, XLSX ou JSON.',
         registros: 'Registros', tamanho: 'Tamanho', selecioneCampos: 'Selecione os campos a exportar.',

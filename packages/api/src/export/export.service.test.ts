@@ -62,9 +62,14 @@ describe('ExportService — TTL/expiração', () => {
 
     it('contentType mapeia o formato', () => {
         const service = new ExportService(fakeDriver);
-        expect(service.contentType('csv')).toContain('text/csv');
-        expect(service.contentType('json')).toContain('application/json');
-        expect(service.contentType('xlsx')).toContain('spreadsheetml');
+        expect(service.contentType({ formato: 'csv' })).toContain('text/csv');
+        expect(service.contentType({ formato: 'json' })).toContain('application/json');
+        expect(service.contentType({ formato: 'xlsx' })).toContain('spreadsheetml');
+    });
+
+    it('contentType retorna zip quando incluirXml está ativo, independente do formato', () => {
+        const service = new ExportService(fakeDriver);
+        expect(service.contentType({ formato: 'csv', incluirXml: true })).toBe('application/zip');
     });
 
     it('estado processing expõe progresso e total; ready zera para totalRegistros', async () => {
@@ -203,6 +208,60 @@ describe('ExportService — serialização', () => {
         const job = service.create('json');
         await vi.waitFor(() => expect(job.status).toBe('failed'));
         expect(job.erro).toContain('Neo4j down');
+    });
+});
+
+/** Storage fake: devolve um XML sintético por chave, ou falha para uma chave marcada. */
+function fakeStorage(faltando: string[] = []) {
+    return {
+        save: vi.fn(async () => 'ok'),
+        exists: vi.fn(async () => true),
+        get: vi.fn(async (chave: string) => {
+            if (faltando.includes(chave)) throw new Error('not found');
+            return Buffer.from(`<nfeProc><chave>${chave}</chave></nfeProc>`);
+        }),
+    };
+}
+
+describe('ExportService — incluirXml (NOTA-198)', () => {
+    const registros = [{ chaveAcesso: 'k1', numero: '1' }, { chaveAcesso: 'k2', numero: '2' }];
+
+    it('gera um .zip com dados.<formato> na raiz e os XMLs em xmls/<chave>.xml', async () => {
+        const storage = fakeStorage();
+        const service = new ExportService(driverComRegistros(registros), 24, undefined, storage);
+        const job = service.create('csv', undefined, undefined, true);
+        expect(job.incluirXml).toBe(true);
+        await vi.waitFor(() => expect(job.status).toBe('ready'));
+
+        const buf = await service.read(job);
+        const AdmZip = (await import('adm-zip')).default;
+        const zip = new AdmZip(buf);
+        const names = zip.getEntries().map((e) => e.entryName).sort();
+        expect(names).toEqual(['dados.csv', 'xmls/k1.xml', 'xmls/k2.xml']);
+        expect(storage.get).toHaveBeenCalledWith('k1');
+        expect(storage.get).toHaveBeenCalledWith('k2');
+    });
+
+    it('sem storage configurado, incluirXml é ignorado (degrada para o formato puro)', async () => {
+        const service = new ExportService(driverComRegistros(registros)); // sem storage
+        const job = service.create('json', undefined, undefined, true);
+        expect(job.incluirXml).toBeFalsy();
+        await vi.waitFor(() => expect(job.status).toBe('ready'));
+        // continua o formato original, não um zip
+        const parsed = JSON.parse((await service.read(job)).toString());
+        expect(Array.isArray(parsed)).toBe(true);
+    });
+
+    it('XML ausente no storage não falha o export — o zip sai sem aquele arquivo', async () => {
+        const storage = fakeStorage(['k2']); // k2 falha ao buscar
+        const service = new ExportService(driverComRegistros(registros), 24, undefined, storage);
+        const job = service.create('csv', undefined, undefined, true);
+        await vi.waitFor(() => expect(job.status).toBe('ready'));
+
+        const AdmZip = (await import('adm-zip')).default;
+        const zip = new AdmZip(await service.read(job));
+        const names = zip.getEntries().map((e) => e.entryName).sort();
+        expect(names).toEqual(['dados.csv', 'xmls/k1.xml']); // k2 ausente, sem quebrar
     });
 });
 
