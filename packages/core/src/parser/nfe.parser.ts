@@ -102,10 +102,27 @@ function mapRegime(crt: string | undefined): RegimeTributario | undefined {
     }
 }
 
-/** Extrai os 44 dígitos da chave de acesso do atributo Id (formato "NFe<44 dígitos>"). */
+/**
+ * Extrai e VALIDA a estrutura da chave de acesso do atributo Id (formato
+ * "NFe<44 dígitos>"). Exige 44 dígitos numéricos: a chave é a identidade da NF, a
+ * chave de dedup (MERGE) e a base das arestas DEVOLVE — um Id malformado (ex.:
+ * "NFeABC") não pode seguir adiante como identidade (NOTA-202). Na ingestão via
+ * upload o XSD já barra o pattern, mas parseNFe é API pública e chamável sem
+ * validação XSD prévia.
+ *
+ * NÃO confere o dígito verificador (módulo 11): coerente com o XSD da SEFAZ (que só
+ * valida o pattern de 44 dígitos) e com o escopo do produto — o notagrafo ANALISA
+ * NF-e já autorizadas pela SEFAZ, onde o DV já é válido na origem.
+ */
 function extractAccessKey(id: string | undefined): string {
     if (!id) throw new NFeParseError('infNFe/@Id ausente — sem chave de acesso.');
-    return id.replace(/^NFe/, '');
+    const chave = id.replace(/^NFe/, '');
+    if (!/^\d{44}$/.test(chave)) {
+        throw new NFeParseError(
+            `infNFe/@Id inválido: a chave de acesso deve ter 44 dígitos numéricos (recebido: "${chave}", ${chave.length} caractere(s)).`,
+        );
+    }
+    return chave;
 }
 
 type XmlObj = Record<string, unknown>;

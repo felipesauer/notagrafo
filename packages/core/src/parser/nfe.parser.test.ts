@@ -103,6 +103,26 @@ describe('parseNFe', () => {
         expect(() => parseNFe(xml, IMPORTADO_EM)).toThrow(NFeParseError);
     });
 
+    it('lança NFeParseError quando a chave de acesso não tem 44 dígitos (NOTA-202)', () => {
+        // @Id lixo (curto) antes gerava chaveAcesso="ABC" e seguia adiante como identidade.
+        const curto = base().replace(/Id="NFe\d+"/, 'Id="NFeABC"');
+        expect(() => parseNFe(curto, IMPORTADO_EM)).toThrow(/44 dígitos numéricos/);
+        // não-numérico com 44 posições
+        const naoNumerico = base().replace(/Id="NFe\d+"/, `Id="NFe${'X'.repeat(44)}"`);
+        expect(() => parseNFe(naoNumerico, IMPORTADO_EM)).toThrow(NFeParseError);
+        // 43 dígitos (um a menos)
+        const curto43 = base().replace(/Id="NFe\d+"/, `Id="NFe${'1'.repeat(43)}"`);
+        expect(() => parseNFe(curto43, IMPORTADO_EM)).toThrow(/44 dígitos/);
+    });
+
+    it('aceita chave de acesso com exatamente 44 dígitos, sem exigir DV mod-11 (NOTA-202)', () => {
+        // 44 dígitos com DV arbitrário: o parser valida só a estrutura (coerente
+        // com o XSD e com o escopo de analisar NF-e já autorizadas pela SEFAZ).
+        const chave44 = '9'.repeat(44);
+        const xml = base().replace(/Id="NFe\d+"/, `Id="NFe${chave44}"`);
+        expect(parseNFe(xml, IMPORTADO_EM).nota.chaveAcesso).toBe(chave44);
+    });
+
     describe('tributos ampliados e totais (NOTA-56)', () => {
         const tributada = () => parseNFe(fixture('nfe-tributada-v4.00.xml'), IMPORTADO_EM);
 
