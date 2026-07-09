@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import type { NFFilters } from '@notagrafo/graph';
 import { ApiError } from '../errors.js';
-import { ExportService, type ExportFormato } from './export.service.js';
+import { ExportService, type ExportFormato, type ExportTipo } from './export.service.js';
 
 interface ExportBody {
     formato: ExportFormato;
@@ -9,6 +9,8 @@ interface ExportBody {
     campos?: string[];
     /** Empacota os XMLs originais das NF-e num .zip junto com os dados (NOTA-198). */
     incluirXml?: boolean;
+    /** 'nf' (padrão) ou 'rede' — exporta nós+arestas da rede de relações (NOTA-199). */
+    tipo?: ExportTipo;
 }
 
 export async function exportRoutes(app: FastifyInstance, service: ExportService): Promise<void> {
@@ -28,19 +30,21 @@ export async function exportRoutes(app: FastifyInstance, service: ExportService)
                         filtros: { type: 'object', additionalProperties: true },
                         campos: { type: 'array', items: { type: 'string' } },
                         incluirXml: { type: 'boolean' },
+                        tipo: { type: 'string', enum: ['nf', 'rede'] },
                     },
                 },
                 security: [{ bearerAuth: [] }],
             },
         },
         async (request, reply) => {
-            const { formato, filtros, campos, incluirXml } = request.body;
-            const job = service.create(formato, filtros, campos, incluirXml);
+            const { formato, filtros, campos, incluirXml, tipo } = request.body;
+            const job = service.create(formato, filtros, campos, incluirXml, tipo);
             reply.status(202).send({
                 exportId: job.exportId,
                 status: job.status,
                 formato: job.formato,
                 incluirXml: job.incluirXml ?? false,
+                tipo: job.tipo ?? 'nf',
                 estimativa: 'A exportação será processada em segundo plano.',
             });
         },
@@ -92,6 +96,7 @@ export async function exportRoutes(app: FastifyInstance, service: ExportService)
                 tamanhoBytes: job.tamanhoBytes,
                 expiresAt: new Date(job.expiresAt).toISOString(),
                 incluirXml: job.incluirXml ?? false,
+                tipo: job.tipo ?? 'nf',
                 // progresso/total úteis para jobs em andamento (paridade com GET /export/:id).
                 ...(job.status === 'queued' || job.status === 'processing' ? { progresso: job.progresso, total: job.total } : {}),
                 ...(job.erro ? { erro: job.erro } : {}),
@@ -122,6 +127,7 @@ export async function exportRoutes(app: FastifyInstance, service: ExportService)
                     expiresAt: new Date(job.expiresAt).toISOString(),
                     downloadUrl: `/api/v1/export/${job.exportId}/download`,
                     incluirXml: job.incluirXml ?? false,
+                    tipo: job.tipo ?? 'nf',
                 };
             }
             // queued/processing/failed: inclui progresso e total (contrato §6).

@@ -194,7 +194,7 @@ export const en = {
     grafo: {
         buscarEmpresa: 'Search company (Tax ID)', profundidade: 'Depth',
         ambos: 'Both', emitente: 'Issuer', destinatario: 'Recipient',
-        resetar: 'Reset', exportPng: 'Export PNG',
+        resetar: 'Reset', exportPng: 'Export PNG', exportJson: 'Export JSON',
         tituloDrawer: 'Relationship graph', subtituloDrawer: 'This company’s trade partners', abrirCompleto: 'Open full',
         vazio: 'Search a company to start.',
         vazioTitulo: 'Explore the relationship network',
@@ -246,6 +246,7 @@ export const en = {
     exportacoes: {
         nova: 'New export', formato: 'Format', campos: 'Fields', gerar: 'Generate export',
         incluirXml: 'Include original XML files (.zip)',
+        tipo: 'Type', tipoNf: 'Invoices', tipoRede: 'Network', tipoRedeAjuda: 'Exports the full trade relationship network (companies and the relations between them) as a single JSON file, with nodes and edges.',
         historico: 'History', acoes: 'Actions', baixar: 'Download', vazio: 'No exports yet.',
         subtitulo: 'Generate extracts of the invoice base as CSV, XLSX or JSON.',
         registros: 'Records', tamanho: 'Size', selecioneCampos: 'Select the fields to export.',

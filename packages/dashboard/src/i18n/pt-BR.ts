@@ -176,7 +176,7 @@ export const ptBR = {
     grafo: {
         buscarEmpresa: 'Buscar empresa (CNPJ)', profundidade: 'Profundidade',
         ambos: 'Ambos', emitente: 'Emitente', destinatario: 'Destinatário',
-        resetar: 'Resetar', exportPng: 'Exportar PNG',
+        resetar: 'Resetar', exportPng: 'Exportar PNG', exportJson: 'Exportar JSON',
         tituloDrawer: 'Grafo de relações', subtituloDrawer: 'Parceiros comerciais desta empresa', abrirCompleto: 'Abrir completo',
         vazio: 'Busque uma empresa para começar.',
         vazioTitulo: 'Explore a rede de relações',
@@ -228,6 +228,7 @@ export const ptBR = {
     exportacoes: {
         nova: 'Nova exportação', formato: 'Formato', campos: 'Campos', gerar: 'Gerar exportação',
         incluirXml: 'Incluir XMLs originais (.zip)',
+        tipo: 'Tipo', tipoNf: 'Notas fiscais', tipoRede: 'Rede', tipoRedeAjuda: 'Exporta a rede de relações comerciais completa (empresas e as relações entre elas) em um único arquivo JSON, com nós e arestas.',
         historico: 'Histórico', acoes: 'Ações', baixar: 'Baixar', vazio: 'Nenhuma exportação ainda.',
         subtitulo: 'Gere extrações da base de NF-e em CSV, XLSX ou JSON.',
         registros: 'Registros', tamanho: 'Tamanho', selecioneCampos: 'Selecione os campos a exportar.',

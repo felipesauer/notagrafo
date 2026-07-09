@@ -265,6 +265,60 @@ describe('ExportService — incluirXml (NOTA-198)', () => {
     });
 });
 
+/** Driver fake da rede: 1ª query = arestas, 2ª = nós (padrão de getRedeGlobal). */
+function driverDaRede(arestas: { de: string; para: string; totalNFs: number; valorTotal: number }[], nos: { cnpj: string; razaoSocial: string; uf: string; totalNFs: number }[]) {
+    let chamada = 0;
+    const run = vi.fn(async () => {
+        chamada++;
+        if (chamada === 1) return { records: arestas.map((a) => ({ get: (k: string) => (a as Record<string, unknown>)[k] })) };
+        return { records: nos.map((n) => ({ get: (k: string) => (n as Record<string, unknown>)[k] })) };
+    });
+    return { session: () => ({ run, close: vi.fn(async () => {}) }) } as unknown as Driver;
+}
+
+describe('ExportService — export da rede (NOTA-199)', () => {
+    it('gera JSON com nodes+edges a partir de getRedeGlobal', async () => {
+        const driver = driverDaRede(
+            [{ de: '111', para: '222', totalNFs: 3, valorTotal: 900 }],
+            [
+                { cnpj: '111', razaoSocial: 'Alpha', uf: 'SP', totalNFs: 5 },
+                { cnpj: '222', razaoSocial: 'Beta', uf: 'RJ', totalNFs: 3 },
+            ],
+        );
+        const service = new ExportService(driver);
+        const job = service.create('csv', undefined, undefined, undefined, 'rede'); // formato pedido é ignorado
+        expect(job.tipo).toBe('rede');
+        expect(job.formato).toBe('json'); // rede é sempre JSON
+        await vi.waitFor(() => expect(job.status).toBe('ready'));
+
+        const parsed = JSON.parse((await service.read(job)).toString());
+        expect(parsed.nodes).toEqual([
+            { id: '111', label: 'Alpha', uf: 'SP', totalNFs: 5 },
+            { id: '222', label: 'Beta', uf: 'RJ', totalNFs: 3 },
+        ]);
+        expect(parsed.edges).toEqual([{ source: '111', target: '222', valorTotal: 900, totalNFs: 3 }]);
+        expect(job.totalRegistros).toBe(2); // conta os nós
+    });
+
+    it('incluirXml não se aplica ao tipo rede (ignorado)', async () => {
+        const driver = driverDaRede([], []);
+        const storage = { save: vi.fn(), exists: vi.fn(), get: vi.fn() };
+        const service = new ExportService(driver, 24, undefined, storage);
+        const job = service.create('csv', undefined, undefined, true, 'rede');
+        expect(job.incluirXml).toBeFalsy();
+        await vi.waitFor(() => expect(job.status).toBe('ready'));
+        expect(storage.get).not.toHaveBeenCalled();
+    });
+
+    it('falha na query da rede marca o job como failed', async () => {
+        const driver = { session: () => ({ run: vi.fn(async () => { throw new Error('rede indisponível'); }), close: vi.fn(async () => {}) }) } as unknown as Driver;
+        const service = new ExportService(driver);
+        const job = service.create('json', undefined, undefined, undefined, 'rede');
+        await vi.waitFor(() => expect(job.status).toBe('failed'));
+        expect(job.erro).toContain('rede indisponível');
+    });
+});
+
 /** Redis fake em memória que implementa o subconjunto RedisLike. */
 function fakeRedis() {
     const store = new Map<string, string>();

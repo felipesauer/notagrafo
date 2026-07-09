@@ -31,6 +31,7 @@ const fmtBytes = (b?: number): string => {
 };
 
 type Formato = 'csv' | 'xlsx' | 'json';
+type ExportTipo = 'nf' | 'rede';
 
 interface ExportRegistro {
     exportId: string;
@@ -41,6 +42,8 @@ interface ExportRegistro {
     expiresAt?: string;
     /** Quando true, o download é um .zip com dados + XMLs originais (NOTA-198). */
     incluirXml?: boolean;
+    /** 'nf' (padrão) ou 'rede' — nós+arestas da rede de relações (NOTA-199). */
+    tipo?: ExportTipo;
 }
 
 /**
@@ -67,9 +70,11 @@ const CAMPOS_PADRAO = ['chaveAcesso', 'numero', 'dataEmissao', 'valorTotal', 'cn
 export function ExportsPage(): JSX.Element {
     const { t } = useTranslation();
     const setJob = useExportStore((s) => s.setJob);
+    const [tipo, setTipo] = useState<ExportTipo>('nf');
     const [formato, setFormato] = useState<Formato>('csv');
     const [campos, setCampos] = useState<string[]>(CAMPOS_PADRAO);
     const [incluirXml, setIncluirXml] = useState(false);
+    const isRede = tipo === 'rede';
     const [registros, setRegistros] = useState<ExportRegistro[]>([]);
     const [erro, setErro] = useState<string | null>(null);
     const density = useDensityStore((s) => s.density);
@@ -98,11 +103,11 @@ export function ExportsPage(): JSX.Element {
     async function gerar(): Promise<void> {
         setErro(null);
         try {
-            const res = await apiFetch<{ exportId: string; status: string; formato: Formato; incluirXml: boolean }>('/export', {
+            const res = await apiFetch<{ exportId: string; status: string; formato: Formato; incluirXml: boolean; tipo: ExportTipo }>('/export', {
                 method: 'POST',
-                body: { formato, campos, incluirXml },
+                body: isRede ? { formato: 'json', tipo } : { formato, campos, incluirXml, tipo },
             });
-            const novo: ExportRegistro = { exportId: res.exportId, formato: res.formato, status: res.status, incluirXml: res.incluirXml };
+            const novo: ExportRegistro = { exportId: res.exportId, formato: res.formato, status: res.status, incluirXml: res.incluirXml, tipo: res.tipo };
             setRegistros((rs) => [novo, ...rs]);
             setJob({ exportId: res.exportId, formato: res.formato, status: 'queued' });
         } catch {
@@ -127,23 +132,40 @@ export function ExportsPage(): JSX.Element {
                             <CardTitle className="text-base">{t('exportacoes.nova')}</CardTitle>
                             <div className="flex flex-wrap items-center gap-4">
                                 <div className="flex items-center gap-2">
-                                    <Label htmlFor="export-formato" className="text-xs text-muted-foreground">{t('exportacoes.formato')}</Label>
-                                    <NativeSelect id="export-formato" data-testid="export-format" wrapperClassName="w-32" value={formato} onChange={(e) => setFormato(e.target.value as Formato)}>
-                                        <option value="csv">CSV</option>
-                                        <option value="xlsx">XLSX</option>
-                                        <option value="json">JSON</option>
+                                    <Label htmlFor="export-tipo" className="text-xs text-muted-foreground">{t('exportacoes.tipo')}</Label>
+                                    <NativeSelect id="export-tipo" data-testid="export-tipo" wrapperClassName="w-36" value={tipo} onChange={(e) => setTipo(e.target.value as ExportTipo)}>
+                                        <option value="nf">{t('exportacoes.tipoNf')}</option>
+                                        <option value="rede">{t('exportacoes.tipoRede')}</option>
                                     </NativeSelect>
                                 </div>
-                                <Label className="flex cursor-pointer items-center gap-2 text-sm font-normal">
-                                    <Checkbox checked={incluirXml} onCheckedChange={(v) => setIncluirXml(v === true)} data-testid="export-incluir-xml" />
-                                    {t('exportacoes.incluirXml')}
-                                </Label>
+                                {!isRede && (
+                                    <>
+                                        <div className="flex items-center gap-2">
+                                            <Label htmlFor="export-formato" className="text-xs text-muted-foreground">{t('exportacoes.formato')}</Label>
+                                            <NativeSelect id="export-formato" data-testid="export-format" wrapperClassName="w-32" value={formato} onChange={(e) => setFormato(e.target.value as Formato)}>
+                                                <option value="csv">CSV</option>
+                                                <option value="xlsx">XLSX</option>
+                                                <option value="json">JSON</option>
+                                            </NativeSelect>
+                                        </div>
+                                        <Label className="flex cursor-pointer items-center gap-2 text-sm font-normal">
+                                            <Checkbox checked={incluirXml} onCheckedChange={(v) => setIncluirXml(v === true)} data-testid="export-incluir-xml" />
+                                            {t('exportacoes.incluirXml')}
+                                        </Label>
+                                    </>
+                                )}
                             </div>
                         </div>
-                        <Button type="button" disabled={campos.length === 0} onClick={() => void gerar()}>
+                        <Button type="button" disabled={!isRede && campos.length === 0} onClick={() => void gerar()}>
                             <FileDown /> {t('exportacoes.gerar')}
                         </Button>
                     </CardHeader>
+                    {isRede ? (
+                        <CardContent className="px-4">
+                            <p className="text-sm text-muted-foreground">{t('exportacoes.tipoRedeAjuda')}</p>
+                            {erro && <p className="mt-3 text-sm text-destructive">{erro}</p>}
+                        </CardContent>
+                    ) : (
                     <CardContent className="px-4">
                         <fieldset className="grid gap-3">
                             <div className="flex items-center justify-between">
@@ -192,6 +214,7 @@ export function ExportsPage(): JSX.Element {
                         </fieldset>
                         {erro && <p className="mt-3 text-sm text-destructive">{erro}</p>}
                     </CardContent>
+                    )}
                 </Card>
 
                 <Card className="overflow-hidden py-0" data-testid="export-list">
@@ -246,6 +269,7 @@ function ExportRow({ registro, onUpdate }: { registro: ExportRegistro; onUpdate:
         <TableRow>
             <TableCell className="font-medium">
                 {registro.formato.toUpperCase()}
+                {registro.tipo === 'rede' && <span className="ml-1.5 rounded-full bg-primary/10 px-1.5 py-0 text-3xs font-semibold text-primary">{t('exportacoes.tipoRede')}</span>}
                 {registro.incluirXml && <span className="ml-1.5 rounded-full bg-muted px-1.5 py-0 text-3xs font-semibold text-muted-foreground">+XML</span>}
             </TableCell>
             <TableCell><NFStatusBadge status={registro.status} /></TableCell>
