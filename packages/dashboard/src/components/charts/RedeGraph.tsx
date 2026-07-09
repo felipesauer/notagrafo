@@ -1,5 +1,6 @@
-import { type JSX, useMemo, useRef } from 'react';
+import { type JSX, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { MonitorX } from 'lucide-react';
 import { GraphCanvas, type GraphCanvasRef, type GraphNode, type GraphEdge, useSelection, lightTheme, darkTheme } from 'reagraph';
 import { useThemeStore } from '../../stores/theme.store.js';
 import { resolveTokenColorsRGB } from './resolveTheme.js';
@@ -7,6 +8,25 @@ import type { RedeNo, RedeAresta } from '../../api/hooks.js';
 
 const cnpjFmt = (c: string): string =>
     c.length === 14 ? c.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : c;
+
+/**
+ * Testa se o navegador consegue criar um contexto WebGL. O grafo em força usa
+ * three.js (WebGL); se estiver desabilitado (GPU bloqueada, sandbox, driver
+ * ausente), o GraphCanvas monta um canvas que fica preto e silencioso. Detectar
+ * antes permite mostrar um aviso claro em vez de uma tela em branco (NOTA-196).
+ */
+function isWebGLAvailable(): boolean {
+    if (typeof document === 'undefined') return true; // SSR/testes: não bloquear
+    try {
+        const canvas = document.createElement('canvas');
+        return !!(
+            window.WebGLRenderingContext &&
+            (canvas.getContext('webgl2') || canvas.getContext('webgl'))
+        );
+    } catch {
+        return false;
+    }
+}
 
 /**
  * Rede comercial completa em WebGL (Reagraph): layout de força, coloração por UF
@@ -33,6 +53,7 @@ export function RedeGraph({
     const { t } = useTranslation();
     const tema = useThemeStore((s) => s.tema);
     const ref = useRef<GraphCanvasRef | null>(null);
+    const webglOk = useMemo(() => isWebGLAvailable(), []);
 
     const { nodes, edges, theme, legenda } = useMemo(() => {
         const cores = resolveTokenColorsRGB();
@@ -104,6 +125,29 @@ export function RedeGraph({
         nodes,
         pathSelectionType: 'all', // clicar em 2 nós destaca o caminho entre eles
     });
+
+    // Enquadra os nós na câmera após o layout de força assentar. Sem isto,
+    // dependendo da composição do grafo (nós quase isolados, componentes
+    // desconexos), a câmera inicial podia ficar fora da área dos nós — o canvas
+    // parecia "vazio" mesmo com o grafo renderizado (NOTA-196). O delay dá tempo
+    // do forceDirected2d posicionar antes de centralizar.
+    useEffect(() => {
+        if (nodes.length === 0) return;
+        const id = setTimeout(() => ref.current?.fitNodesInView(), 600);
+        return () => clearTimeout(id);
+    }, [nodes]);
+
+    // WebGL indisponível (GPU bloqueada/sandbox/driver ausente): o GraphCanvas
+    // ficaria um canvas preto silencioso. Mostra um aviso claro (NOTA-196).
+    if (!webglOk) {
+        return (
+            <div className="flex size-full flex-col items-center justify-center gap-2 p-6 text-center">
+                <MonitorX className="size-8 text-muted-foreground" />
+                <p className="text-sm font-medium">{t('rede.semWebglTitulo')}</p>
+                <p className="max-w-sm text-xs text-muted-foreground">{t('rede.semWebglDescricao')}</p>
+            </div>
+        );
+    }
 
     return (
         <div className="relative size-full">
