@@ -76,4 +76,4 @@ Use os templates de issue (**bug report** / **feature request**) ao abrir uma is
 
 ## Licença
 
-Ao contribuir, você concorda que sua contribuição será licenciada sob a [MIT](LICENSE).
+Ao contribuir, você concorda que sua contribuição será licenciada sob a [GNU AGPL-3.0](LICENSE).
