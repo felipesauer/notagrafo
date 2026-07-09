@@ -50,7 +50,14 @@ function extractVersion(doc: Document): string | null {
 export function validateNFe(xml: string): ValidationResult {
     let doc: Document;
     try {
-        doc = parseXml(xml);
+        // Opções de segurança EXPLÍCITAS para o XML do usuário (não confiável):
+        // não expandir entidades (noent:false → sem billion-laughs por substituição),
+        // não carregar/validar DTD (dtdload/dtdvalid:false), sem acesso à rede
+        // (nonet:true → sem SSRF/XXE externo) e sem relaxar limites (huge:false). A
+        // versão atual do libxml2 já é segura por default (verificado: entity loop
+        // detectado, DTD externo não buscado) — isto trava o comportamento para não
+        // depender do default da lib. NFe não usa DTD/entidades (NOTA-204).
+        doc = parseXml(xml, { noent: false, dtdload: false, dtdvalid: false, nonet: true, huge: false });
     } catch (err) {
         throw new XmlMalformadoError(
             `XML mal-formado: ${err instanceof Error ? err.message : String(err)}`,
