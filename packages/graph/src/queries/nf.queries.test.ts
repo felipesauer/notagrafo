@@ -92,6 +92,18 @@ describe('listInvoices (unit, driver fake)', () => {
         expect(runs[0]!.cypher).toContain('ORDER BY nf.dataEmissao');
     });
 
+    it('deduplica a NF com WITH DISTINCT — o MATCH CONTÉM->NCM multiplicaria a linha (NOTA-200)', async () => {
+        const { driver, runs } = makeFakeDriver(() => []);
+        // filtro ncm adiciona MATCH (nf)-[:CONTÉM]->(:Produto)-[:CLASSIFICADO_EM]->(ncm),
+        // que multiplica linhas quando a NF tem vários itens no mesmo NCM.
+        await listInvoices(driver, { ncm: '4011' }, { limit: 20 });
+        // dedup por NF via WITH DISTINCT
+        expect(runs[0]!.cypher).toContain('WITH DISTINCT nf, emit, dest');
+        // o WHERE do filtro NCM referencia ncm → o WITH que o precede deve carregá-lo
+        expect(runs[0]!.cypher).toContain('WITH nf, emit, dest, ncm');
+        expect(runs[0]!.cypher).toContain('ncm.codigo STARTS WITH $ncm');
+    });
+
     it('aplica todos os filtros nos params da query (where + matches)', async () => {
         const { driver, runs } = makeFakeDriver(() => []);
         await listInvoices(driver, {
