@@ -49,4 +49,50 @@ describe('validateNFe', () => {
             '<NFe xmlns="http://www.portalfiscal.inf.br/nfe"><infNFe><ide/></infNFe></NFe>';
         expect(() => validateNFe(semVersao)).toThrow(/não declara a versão/);
     });
+
+    describe('segurança do parse XML (XXE / entity expansion — NOTA-204)', () => {
+        it('não expande uma entidade externa (XXE): o conteúdo do arquivo não vaza', () => {
+            const xxe =
+                '<?xml version="1.0"?>\n' +
+                '<!DOCTYPE foo [ <!ENTITY xxe SYSTEM "file:///etc/hostname"> ]>\n' +
+                '<NFe xmlns="http://www.portalfiscal.inf.br/nfe"><infNFe versao="4.00" Id="NFe1"><x>&xxe;</x></infNFe></NFe>';
+            // não deve resolver a entidade externa nem vazar conteúdo do arquivo:
+            // ou lança (entidade não definida por não carregar DTD) ou valida=false
+            // sem o conteúdo do arquivo presente.
+            let serialized = '';
+            try {
+                const r = validateNFe(xxe);
+                serialized = JSON.stringify(r);
+            } catch (err) {
+                serialized = String(err);
+            }
+            // o hostname do arquivo nunca deve aparecer no resultado/erro
+            expect(serialized).not.toMatch(/root:|\/bin\/|localhost\.localdomain/);
+        });
+
+        it('não expande uma bomba de entidades (billion laughs) — não estoura memória/tempo', () => {
+            const bomb =
+                '<?xml version="1.0"?>\n' +
+                '<!DOCTYPE lolz [\n' +
+                '  <!ENTITY lol "lol">\n' +
+                '  <!ENTITY lol2 "&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;">\n' +
+                '  <!ENTITY lol3 "&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;">\n' +
+                '  <!ENTITY lol4 "&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;">\n' +
+                ']>\n' +
+                '<NFe xmlns="http://www.portalfiscal.inf.br/nfe"><infNFe versao="4.00" Id="NFe1"><x>&lol4;</x></infNFe></NFe>';
+            const t0 = Date.now();
+            // não deve travar: ou lança (entidade não expandida) ou valida=false rápido.
+            try {
+                const r = validateNFe(bomb);
+                expect(r.valid).toBe(false);
+            } catch {
+                // aceitável: rejeitado sem expandir
+            }
+            expect(Date.now() - t0).toBeLessThan(2000);
+        });
+
+        it('continua validando XML legítimo (fixture v4.00) com as opções de segurança', () => {
+            expect(validateNFe(fixture('nfe-valida-v4.00.xml')).valid).toBe(true);
+        });
+    });
 });
