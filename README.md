@@ -245,6 +245,12 @@ login em desenvolvimento:
   dashboard (SPA — as flags são resolvidas em *build-time*, então precisam estar
   presentes ao buildar).
 
+> ⚠️ **Nunca rode em produção com a auth desligada.** `AUTH_ENABLED=false` (ou
+> `DEMO_AUTH_ENABLED=false`) é um kill-switch **global**: todas as rotas protegidas
+> ficam abertas — qualquer um lê, envia e exporta NF-e sem token. É só para explorar
+> a API localmente. Se a API subir com `NODE_ENV=production` **e** a auth desligada,
+> ela imprime um banner de aviso destacado (nível error) no boot.
+
 ---
 
 ## Variáveis de ambiente
@@ -258,6 +264,7 @@ para `.env` e ajuste. As principais:
 | `NEO4J_URI` / `NEO4J_USER` / `NEO4J_PASSWORD` | `bolt://localhost:7687` / `neo4j` / `changeme` | Conexão Neo4j |
 | `REDIS_URL` / `REDIS_PORT` | `redis://localhost:6379` / `6379` | Fila BullMQ; `REDIS_PORT` é a porta no host |
 | `WORKER_CONCURRENCY` / `JOB_MAX_RETRIES` / `JOB_BACKOFF_DELAY` | `4` / `3` / `5000` | Processamento do worker |
+| `MAX_XML_BYTES` | `5242880` (5 MiB) | Teto de tamanho de um XML de NF-e no enqueue; acima → `413` |
 | `XML_STORAGE_DRIVER` | `minio` | `local` \| `s3` \| `minio` |
 | `PORT` / `NODE_ENV` | `3000` / `development` | API |
 | `RATE_LIMIT_MAX` / `RATE_LIMIT_WINDOW` | `100` / `60000` | Rate limit da API (req. por janela / janela em ms) |
@@ -330,6 +337,19 @@ flowchart LR
 O grafo modela `Empresa`, `NotaFiscal`, `Produto`, `NCM`, `CFOP` como nós, ligados
 por `EMITIU`, `DESTINADA_A`, `CONTÉM` (com os tributos por item), `CLASSIFICADO_EM`,
 `USA_CFOP` e `DEVOLVE`.
+
+### Robustez operacional
+
+- **Healthchecks honestos.** A API expõe `GET /health`, que checa Neo4j, Redis e o
+  storage de verdade (responde `503` se algum estiver fora). O **worker** não tem
+  porta HTTP: ele escreve um *heartbeat* no Redis a cada 10s (chave `worker:heartbeat`,
+  TTL 30s) e o container o verifica com `node dist/healthcheck.js` — se o worker
+  travar ou perder o Redis, o heartbeat expira e o container fica `unhealthy`.
+- **Fila resiliente.** Jobs têm retry com backoff exponencial (`JOB_MAX_RETRIES` /
+  `JOB_BACKOFF_DELAY`) e vão para uma *dead-letter queue* ao esgotarem as tentativas.
+  A gravação no grafo é idempotente por chave de acesso (reenviar não duplica).
+- **Teto de payload.** O upload rejeita XML acima de `MAX_XML_BYTES` (5 MiB por
+  padrão) com `413`, antes de enfileirar — o payload do job não cresce sem limite.
 
 ---
 
