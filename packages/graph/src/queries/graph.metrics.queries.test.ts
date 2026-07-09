@@ -59,6 +59,8 @@ describe('getCentrality (unit, driver fake)', () => {
         // both directions unioned so a receive-only company is still counted
         expect(runs[0]!.cypher).toContain('UNWIND [{company: issuer, partner: recipient}');
         expect((runs[0]!.params.limit as { toNumber(): number }).toNumber()).toBe(25);
+        // devoluções não contam como relação comercial na centralidade (NOTA-201)
+        expect(runs[0]!.cypher).toContain("coalesce(nf.finalidade, '') <> 'devolucao'");
     });
 });
 
@@ -74,6 +76,8 @@ describe('getCommunities (unit, driver fake)', () => {
         expect(out[0]!.members).toEqual(['111', '222', '333']);
         // pair normalization (lo/hi) so direction does not double edges
         expect(runs[0]!.cypher).toContain('WHEN ca < cb THEN ca ELSE cb END AS lo');
+        // devoluções não contam como aresta na detecção de comunidades (NOTA-201)
+        expect(runs[0]!.cypher).toContain("coalesce(nf.finalidade, '') <> 'devolucao'");
         expect((runs[0]!.params.limit as { toNumber(): number }).toNumber()).toBe(500);
     });
 

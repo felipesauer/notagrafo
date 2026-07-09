@@ -1,4 +1,5 @@
 import neo4j, { type Driver } from 'neo4j-driver';
+import { activeNFPredicate } from './predicates.js';
 
 /**
  * Graph metrics (fiscal BI — EPIC-28): degree centrality and community detection
@@ -33,7 +34,7 @@ export interface CentralityNode {
  * Degree centrality per company: number of DISTINCT trade partners (counting both
  * directions, deduplicated), plus transacted NF count and value. A company that
  * trades with many others is a network "hub". Returns the top `limit` by degree.
- * Ignores self-loops (issuer = recipient) and stub NFs (status IS NULL).
+ * Ignores self-loops (issuer = recipient), stub NFs and devoluções (activeNFPredicate).
  */
 export async function getCentrality(driver: Driver, limit = 50): Promise<CentralityNode[]> {
     const session = driver.session();
@@ -46,7 +47,7 @@ export async function getCentrality(driver: Driver, limit = 50): Promise<Central
         // double counting of a partner traded with in both directions.
         const res = await session.run(
             `MATCH (issuer:Empresa)-[:EMITIU]->(nf:NotaFiscal)-[:DESTINADA_A]->(recipient:Empresa)
-             WHERE nf.status IS NOT NULL AND issuer.cnpj <> recipient.cnpj
+             WHERE ${activeNFPredicate('nf')} AND issuer.cnpj <> recipient.cnpj
              // Two directed views of the same edge, unioned.
              UNWIND [{company: issuer, partner: recipient}, {company: recipient, partner: issuer}] AS pair
              WITH pair.company AS company, pair.partner AS partner, nf
@@ -95,7 +96,7 @@ async function getUndirectedEdges(driver: Driver, limit: number): Promise<Edge[]
     try {
         const res = await session.run(
             `MATCH (a:Empresa)-[:EMITIU]->(nf:NotaFiscal)-[:DESTINADA_A]->(b:Empresa)
-             WHERE nf.status IS NOT NULL AND a.cnpj <> b.cnpj
+             WHERE ${activeNFPredicate('nf')} AND a.cnpj <> b.cnpj
              WITH a.cnpj AS ca, b.cnpj AS cb
              // Normalize each pair so direction does not create two edges.
              WITH CASE WHEN ca < cb THEN ca ELSE cb END AS lo,

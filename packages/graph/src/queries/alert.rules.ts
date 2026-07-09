@@ -1,5 +1,6 @@
 import neo4j, { type Driver } from 'neo4j-driver';
 import { findDuplicateInvoices, findNumberingGaps } from './analysis.queries.js';
+import { activeNFPredicate } from './predicates.js';
 
 /** Neo4j integer for LIMIT params (the driver requires an integer, not a float). */
 const neo4jInt = (n: number) => neo4j.int(Math.trunc(n));
@@ -88,7 +89,7 @@ async function ruleHighValue(driver: Driver, threshold: number, limit: number): 
     try {
         const res = await session.run(
             `MATCH (emit:Empresa)-[:EMITIU]->(nf:NotaFiscal)
-             WHERE nf.status IS NOT NULL AND coalesce(nf.valorTotal, 0) >= $threshold
+             WHERE ${activeNFPredicate('nf')} AND coalesce(nf.valorTotal, 0) >= $threshold
              RETURN nf.chaveAcesso AS chave, nf.valorTotal AS valorTotal,
                     emit.cnpj AS cnpjEmitente, emit.razaoSocial AS razaoSocial
              ORDER BY nf.valorTotal DESC
@@ -118,7 +119,7 @@ async function ruleSupplierConcentration(driver: Driver, threshold: number): Pro
     try {
         const res = await session.run(
             `MATCH (emit:Empresa)-[:EMITIU]->(nf:NotaFiscal)
-             WHERE nf.status IS NOT NULL
+             WHERE ${activeNFPredicate('nf')}
              WITH emit, sum(coalesce(nf.valorTotal, 0)) AS valor
              WITH collect({cnpj: emit.cnpj, razaoSocial: emit.razaoSocial, valor: valor}) AS empresas,
                   sum(valor) AS total
@@ -154,7 +155,7 @@ async function ruleVolumeSpike(driver: Driver, threshold: number): Promise<Alert
     try {
         const res = await session.run(
             `MATCH (nf:NotaFiscal)
-             WHERE nf.status IS NOT NULL AND nf.dataEmissao IS NOT NULL
+             WHERE ${activeNFPredicate('nf')} AND nf.dataEmissao IS NOT NULL
              WITH substring(nf.dataEmissao, 0, 7) AS mes, count(nf) AS total
              RETURN mes, total ORDER BY mes ASC`,
         );

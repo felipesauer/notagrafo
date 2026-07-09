@@ -17,6 +17,9 @@ describe('getFluxoEmpresas (unit)', () => {
         // ignora laços e ordena por valor desc
         expect(runs[0]!.cypher).toContain('a.cnpj <> b.cnpj');
         expect(runs[0]!.cypher).toContain('ORDER BY valorTotal DESC');
+        // exclui stubs e devoluções do fluxo de valor (NOTA-201)
+        expect(runs[0]!.cypher).toContain('nf.status IS NOT NULL');
+        expect(runs[0]!.cypher).toContain("coalesce(nf.finalidade, '') <> 'devolucao'");
     });
 
     it('aplica o limite padrão (30) e o repassa como parâmetro', async () => {
@@ -65,6 +68,8 @@ describe('getRedeGlobal (unit)', () => {
         expect(rede.nos).toHaveLength(3);
         expect(rede.nos[0]).toMatchObject({ cnpj: '111', razaoSocial: 'Alpha', uf: 'SP', totalNFs: 10 });
         expect(runs[0]!.cypher).toContain('a.cnpj <> b.cnpj');
+        // arestas excluem stubs e devoluções, coerente com os nós (NOTA-201)
+        expect(runs[0]!.cypher).toContain("coalesce(nf.finalidade, '') <> 'devolucao'");
         // a query de nós recebe os cnpjs deduplicados das arestas
         expect(runs[1]!.params.cnpjs).toEqual(['111', '222', '333']);
         // a soma emitidas+recebidas agrega em WITHs separados (Cypher não permite
@@ -110,8 +115,10 @@ describe('getRedeGlobal (unit)', () => {
             i === 0 ? [fakeRecord({ de: '111', para: '222', totalNFs: 1, valorTotal: 10 })] : [];
         const { driver, runs } = makeFakeDriver(responder);
         await getRedeGlobal(driver, { dataInicio: '2026-06-01', dataFim: '2026-06-30' });
-        // a query de nós (runs[1]) filtra por status e pela janela nas duas direções
+        // a query de nós (runs[1]) filtra por status, devolução e pela janela nas duas direções
         expect(runs[1]!.cypher).toContain('nfE.status IS NOT NULL');
+        expect(runs[1]!.cypher).toContain("coalesce(nfE.finalidade, '') <> 'devolucao'");
+        expect(runs[1]!.cypher).toContain("coalesce(nfR.finalidade, '') <> 'devolucao'");
         expect(runs[1]!.cypher).toContain('nfE.dataEmissao >= $dataInicio');
         expect(runs[1]!.cypher).toContain('nfR.dataEmissao <= $dataFim');
         expect(runs[1]!.params.dataInicio).toBe('2026-06-01');

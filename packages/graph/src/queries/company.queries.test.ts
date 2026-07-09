@@ -15,6 +15,9 @@ describe('getCompanyStats (unit)', () => {
             ultimaEmissao: '2026-06-01',
         });
         expect(runs[0]!.params.cnpj).toBe('111');
+        // emitidas e recebidas excluem stubs e devoluções (NOTA-201)
+        expect(runs[0]!.cypher).toContain("coalesce(emitida.finalidade, '') <> 'devolucao'");
+        expect(runs[0]!.cypher).toContain("coalesce(recebida.finalidade, '') <> 'devolucao'");
     });
 
     it('sem record → zeros e datas null', async () => {
@@ -47,6 +50,8 @@ describe('getCompanyGraph (unit)', () => {
         expect(grafo.arestas).toEqual([{ de: '111', para: '222', totalNFs: 5, valorTotal: 1000 }]);
         // o padrão de caminho usa depth*2 na 1ª query
         expect(runs[0]!.cypher).toContain('*1..4');
+        // as arestas (2ª query) excluem stubs e devoluções (NOTA-201)
+        expect(runs[1]!.cypher).toContain("coalesce(nf.finalidade, '') <> 'devolucao'");
     });
 
     it('relacao vem da query (derivada da direção), não é hardcoded', async () => {
