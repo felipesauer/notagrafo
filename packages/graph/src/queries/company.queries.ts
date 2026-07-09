@@ -1,4 +1,5 @@
 import neo4j, { type Driver } from 'neo4j-driver';
+import { activeNFPredicate } from './predicates.js';
 
 export type Direction = 'emitente' | 'destinatario' | 'both';
 
@@ -85,13 +86,17 @@ export async function getCompanyStats(driver: Driver, cnpj: string): Promise<Emp
         // Emitidas e recebidas são agregadas em ramos SEPARADOS: juntar os dois
         // OPTIONAL MATCH no mesmo escopo cruzaria emitida×recebida e inflaria as
         // somas. sum() simples (não DISTINCT) — DISTINCT subcontaria NFs de mesmo
-        // valor (auditoria F4).
+        // valor (auditoria F4). O WHERE em cada OPTIONAL MATCH exclui stubs e
+        // devoluções (activeNFPredicate), coerente com o ramo notas de
+        // getCompanyGraph e com tax/product.queries (NOTA-201).
         const res = await session.run(
             `MATCH (e:Empresa {cnpj: $cnpj})
              OPTIONAL MATCH (e)-[:EMITIU]->(emitida:NotaFiscal)
+             WHERE ${activeNFPredicate('emitida')}
              WITH e, count(emitida) AS emitidas, sum(emitida.valorTotal) AS valorEmitido,
                   min(emitida.dataEmissao) AS primeira, max(emitida.dataEmissao) AS ultima
              OPTIONAL MATCH (e)<-[:DESTINADA_A]-(recebida:NotaFiscal)
+             WHERE ${activeNFPredicate('recebida')}
              RETURN emitidas, count(recebida) AS recebidas, valorEmitido, primeira, ultima`,
             { cnpj },
         );
@@ -164,8 +169,10 @@ export async function getCompanyGraph(
         }));
 
         const edgesRes = await session.run(
+            // Exclui stubs e devoluções (activeNFPredicate), coerente com os nós e
+            // com o ramo notas — antes as arestas somavam devoluções (NOTA-201).
             `MATCH (a:Empresa)-[:EMITIU]->(nf:NotaFiscal)-[:DESTINADA_A]->(b:Empresa)
-             WHERE a.cnpj = $cnpj OR b.cnpj = $cnpj
+             WHERE (a.cnpj = $cnpj OR b.cnpj = $cnpj) AND ${activeNFPredicate('nf')}
              RETURN a.cnpj AS de, b.cnpj AS para, count(nf) AS totalNFs,
                     sum(nf.valorTotal) AS valorTotal
              LIMIT $limit`,
@@ -211,8 +218,7 @@ export async function getCompanyGraph(
                 // consistente com product/tax.queries — senão o grafo mostraria NF-e
                 // que não aparecem em nenhum agregado.
                 `MATCH (e:Empresa)-[:EMITIU]->(nf:NotaFiscal)-[:DESTINADA_A]->(d:Empresa)
-                 WHERE (e.cnpj = $cnpj OR d.cnpj = $cnpj) AND nf.status IS NOT NULL
-                       AND coalesce(nf.finalidade, '') <> 'devolucao'
+                 WHERE (e.cnpj = $cnpj OR d.cnpj = $cnpj) AND ${activeNFPredicate('nf')}
                  RETURN nf.chaveAcesso AS chaveAcesso, nf.numero AS numero,
                         nf.valorTotal AS valorTotal, nf.status AS status,
                         e.cnpj AS cnpjEmitente, d.cnpj AS cnpjDestinatario

@@ -47,12 +47,14 @@ describe('evaluateAlerts — high_value', () => {
         expect(alerts[0]!.data.valorTotal).toBe(250_000);
         // the threshold is passed to the query
         expect(runs[0]!.params.threshold).toBe(100_000);
+        // excludes stubs and devoluções so a return does not raise a high-value alert (NOTA-201)
+        expect(runs[0]!.cypher).toContain("coalesce(nf.finalidade, '') <> 'devolucao'");
     });
 });
 
 describe('evaluateAlerts — supplier_concentration', () => {
     it('emits a warning when an issuer share crosses the threshold', async () => {
-        const { driver } = makeFakeDriver(() => [
+        const { driver, runs } = makeFakeDriver(() => [
             fakeRecord({ cnpjEmitente: '222', razaoSocial: 'BigCo', share: 0.4 }),
         ]);
         const alerts = await evaluateAlerts(driver, onlyRule('supplierConcentration'));
@@ -61,13 +63,15 @@ describe('evaluateAlerts — supplier_concentration', () => {
             fingerprint: 'supplier_concentration:222',
         });
         expect(alerts[0]!.message).toContain('40%');
+        // devoluções não entram no denominador/numerador da concentração (NOTA-201)
+        expect(runs[0]!.cypher).toContain("coalesce(nf.finalidade, '') <> 'devolucao'");
     });
 });
 
 describe('evaluateAlerts — volume_spike', () => {
     it('flags a spike when recent half deviates beyond the threshold', async () => {
         // series [10,10,50,50] → earlier=20, recent=100 → +400%
-        const { driver } = makeFakeDriver(() => [
+        const { driver, runs } = makeFakeDriver(() => [
             fakeRecord({ mes: '2026-01', total: 10 }),
             fakeRecord({ mes: '2026-02', total: 10 }),
             fakeRecord({ mes: '2026-03', total: 50 }),
@@ -79,6 +83,8 @@ describe('evaluateAlerts — volume_spike', () => {
         expect(alerts[0]!.data.change).toBeCloseTo(4, 5);
         // fingerprint is stable across re-evaluations (no month-count in it)
         expect(alerts[0]!.fingerprint).toBe('volume_spike:up');
+        // devoluções não contam no volume mensal do baseline (NOTA-201)
+        expect(runs[0]!.cypher).toContain("coalesce(nf.finalidade, '') <> 'devolucao'");
     });
 
     it('stays silent when the deviation is under the threshold', async () => {

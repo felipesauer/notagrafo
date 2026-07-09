@@ -12,6 +12,7 @@ import { mergeInvoice, type InvoiceToPersist } from '../nf.repository.js';
 import { getCompanyGraph, getCompanyStats, DepthForaDoLimiteError } from './company.queries.js';
 import { listInvoices, countInvoices, activeFilters, getInvoice } from './nf.queries.js';
 import { topProducts, productPriceHistory } from './product.queries.js';
+import { getFluxoEmpresas } from './flow.queries.js';
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'core', 'src', '__fixtures__');
 
@@ -211,5 +212,38 @@ describe('product.queries', () => {
 
     it('productPriceHistory retorna vazio para produto inexistente', async () => {
         expect(await productPriceHistory(driver, 'inexistente')).toEqual([]);
+    });
+});
+
+describe('flow.queries — exclusão de devolução (NOTA-201)', () => {
+    it('getFluxoEmpresas não soma uma devolução ao valor que flui entre as empresas', async () => {
+        // As 2 NFs do setup são 14200166000187 → 99999999000191 (finalidade normal).
+        const de = '14200166000187';
+        const para = '99999999000191';
+        const fluxoAntes = (await getFluxoEmpresas(driver, { limite: 100 })).arestas.find(
+            (a) => a.de === de && a.para === para,
+        )!;
+        expect(fluxoAntes).toBeTruthy();
+
+        // Insere uma DEVOLUÇÃO (finNFe=4) no mesmo par, com chave/número próprios.
+        const devolucao = readFileSync(join(FIXTURES, 'nfe-devolucao-v4.00.xml'), 'utf8')
+            .replace('NFe35200114200166000187550010000000071234567890', 'NFe35200114200166000187550010000000991234567899')
+            .replace('<nNF>7</nNF>', '<nNF>99</nNF>');
+        const chaveDev = '35200114200166000187550010000000991234567899';
+        await mergeInvoice(driver, payload(devolucao));
+        try {
+            const fluxoDepois = (await getFluxoEmpresas(driver, { limite: 100 })).arestas.find(
+                (a) => a.de === de && a.para === para,
+            )!;
+            // valor e contagem NÃO mudam: a devolução foi excluída do fluxo.
+            expect(fluxoDepois.valorTotal).toBeCloseTo(fluxoAntes.valorTotal, 2);
+            expect(fluxoDepois.totalNFs).toBe(fluxoAntes.totalNFs);
+        } finally {
+            const s = driver.session();
+            await s.run('MATCH (nf:NotaFiscal {chaveAcesso: $c}) DETACH DELETE nf', { c: chaveDev });
+            // remove eventuais NFs stub (só-chaveAcesso, sem status) criadas pela aresta DEVOLVE
+            await s.run('MATCH (nf:NotaFiscal) WHERE nf.status IS NULL DETACH DELETE nf');
+            await s.close();
+        }
     });
 });

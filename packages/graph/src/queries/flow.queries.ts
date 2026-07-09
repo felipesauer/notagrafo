@@ -1,4 +1,5 @@
 import neo4j, { type Driver } from 'neo4j-driver';
+import { activeNFPredicate } from './predicates.js';
 
 const toNum = (v: unknown): number =>
     typeof v === 'number'
@@ -33,7 +34,7 @@ export async function getFluxoEmpresas(driver: Driver, opts: { limite?: number }
     try {
         const res = await session.run(
             `MATCH (a:Empresa)-[:EMITIU]->(nf:NotaFiscal)-[:DESTINADA_A]->(b:Empresa)
-             WHERE a.cnpj <> b.cnpj
+             WHERE a.cnpj <> b.cnpj AND ${activeNFPredicate('nf')}
              WITH a, b, count(nf) AS totalNFs, sum(nf.valorTotal) AS valorTotal
              RETURN a.cnpj AS de, b.cnpj AS para,
                     a.razaoSocial AS deNome, b.razaoSocial AS paraNome,
@@ -100,9 +101,11 @@ export async function getRedeGlobal(
         const dateClause = dateFilter.length ? ` AND ${dateFilter.join(' AND ')}` : '';
 
         // Arestas: top-N relações por valor (mesmo padrão do fluxo, sem laços).
+        // Exclui stubs e devoluções (activeNFPredicate) para ficar coerente com os
+        // nós abaixo — antes as arestas somavam devoluções ao fluxo (NOTA-201).
         const arestasRes = await session.run(
             `MATCH (a:Empresa)-[:EMITIU]->(nf:NotaFiscal)-[:DESTINADA_A]->(b:Empresa)
-             WHERE a.cnpj <> b.cnpj${dateClause}
+             WHERE a.cnpj <> b.cnpj AND ${activeNFPredicate('nf')}${dateClause}
              WITH a, b, count(nf) AS totalNFs, sum(nf.valorTotal) AS valorTotal
              RETURN a.cnpj AS de, b.cnpj AS para, totalNFs, valorTotal
              ORDER BY valorTotal DESC
@@ -122,10 +125,11 @@ export async function getRedeGlobal(
         let nos: RedeNo[] = [];
         if (cnpjs.length > 0) {
             // O tamanho do nó (emitidas + recebidas) respeita o mesmo recorte
-            // temporal das arestas e exclui NFs stub (status IS NULL) — senão um
-            // nó pareceria "grande" no período por atividade de fora dele.
+            // temporal das arestas e exclui NFs stub e devoluções (activeNFPredicate)
+            // — coerente com as arestas; senão um nó pareceria "grande" por
+            // atividade de fora do período ou por devoluções (NOTA-201).
             const nfPred = (v: string) =>
-                `${v}.status IS NOT NULL` +
+                activeNFPredicate(v) +
                 (opts.dataInicio ? ` AND ${v}.dataEmissao >= $dataInicio` : '') +
                 (opts.dataFim ? ` AND ${v}.dataEmissao <= $dataFim` : '');
             const nosRes = await session.run(
