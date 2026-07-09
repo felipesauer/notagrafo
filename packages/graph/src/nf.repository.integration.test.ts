@@ -153,6 +153,28 @@ describe('mergeInvoice (Neo4j real)', () => {
         }
     });
 
+    it('atualiza dados do destinatário no reimport (ON MATCH SET, não só ON CREATE) — NOTA-203', async () => {
+        const cnpjDest = '99999999000191';
+        // A empresa aparece primeiro como STUB (só cnpj, sem razaoSocial) — como se
+        // tivesse sido criada por uma aresta antes de ser importada com dados.
+        const session = driver.session();
+        try {
+            await session.run('MERGE (e:Empresa {cnpj: $cnpj})', { cnpj: cnpjDest });
+            const antes = await session.run(`MATCH (e:Empresa {cnpj: $cnpj}) RETURN e.razaoSocial AS rz`, { cnpj: cnpjDest });
+            expect(antes.records[0]!.get('rz')).toBeNull(); // stub sem dados
+
+            // Importa a NF onde essa empresa é a DESTINATÁRIA (traz razaoSocial/uf).
+            await mergeInvoice(driver, payloadDaFixture('nfe-valida-v4.00.xml'));
+
+            const depois = await session.run(`MATCH (e:Empresa {cnpj: $cnpj}) RETURN e.razaoSocial AS rz, e.uf AS uf`, { cnpj: cnpjDest });
+            // ON MATCH SET preencheu os dados no reimport (antes ficava null).
+            expect(depois.records[0]!.get('rz')).toBe('Empresa Destinataria LTDA');
+            expect(depois.records[0]!.get('uf')).toBeTruthy();
+        } finally {
+            await session.close();
+        }
+    });
+
     it('cria aresta DEVOLVE para a NF de origem (com stub) e é idempotente', async () => {
         const devolucao = payloadDaFixture('nfe-devolucao-ref-v4.00.xml');
         // a NF de origem ainda NÃO foi importada → deve virar um stub

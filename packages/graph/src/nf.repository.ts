@@ -95,12 +95,16 @@ export async function mergeInvoice(driver: Driver, data: InvoiceToPersist): Prom
                  ON MATCH SET emit += $dados`,
                 { cnpj: emitente.cnpj, dados: clean(emitente) },
             );
-            await tx.run(`MATCH (emit:Empresa {cnpj: $cnpj}) RETURN emit`, { cnpj: emitente.cnpj });
 
-            // 2. Destinatário (opcional)
+            // 2. Destinatário (opcional). ON CREATE + ON MATCH SET (como o emitente):
+            // uma empresa que apareceu primeiro como stub (só cnpj, via aresta
+            // DEVOLVE) ou incompleta e depois é reimportada como destinatária tem os
+            // dados atualizados — antes só ON CREATE SET não atualizava (NOTA-203).
             if (destinatario) {
                 await tx.run(
-                    `MERGE (dest:Empresa {cnpj: $cnpj}) ON CREATE SET dest += $dados`,
+                    `MERGE (dest:Empresa {cnpj: $cnpj})
+                     ON CREATE SET dest += $dados
+                     ON MATCH SET dest += $dados`,
                     { cnpj: destinatario.cnpj, dados: clean(destinatario) },
                 );
             }
