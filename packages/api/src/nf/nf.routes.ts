@@ -28,6 +28,24 @@ export interface NFRouteDeps {
     storage: XmlStorage;
 }
 
+/** Prefixos de erro de NEGÓCIO seguros de expor (mensagem acionável ao usuário). */
+const ERROS_NEGOCIO_SEGUROS = ['XmlMalformadoError', 'VersaoSchemaNaoSuportadaError', 'NFeParseError'];
+
+/**
+ * Sanitiza o failedReason do job antes de devolvê-lo ao cliente: o texto cru do
+ * BullMQ pode carregar detalhes internos (fragmentos de stack, infra). Só expomos
+ * erros de negócio conhecidos (validação/parse da NF-e, úteis ao usuário); o resto
+ * vira mensagem genérica e o detalhe fica no log do servidor (NOTA-205).
+ */
+function sanitizarErroJob(failedReason: string | undefined, request: { log: { warn: (o: unknown, m: string) => void } }): string {
+    if (!failedReason) return 'Falha desconhecida no processamento.';
+    if (ERROS_NEGOCIO_SEGUROS.some((nome) => failedReason.startsWith(nome))) {
+        return failedReason;
+    }
+    request.log.warn({ failedReason }, 'job de NF-e falhou por erro interno');
+    return 'Falha interna ao processar a NF-e. Consulte os logs do servidor.';
+}
+
 export async function nfRoutes(app: FastifyInstance, deps: NFRouteDeps): Promise<void> {
     const { driver, queue, storage } = deps;
 
@@ -116,7 +134,7 @@ export async function nfRoutes(app: FastifyInstance, deps: NFRouteDeps): Promise
                 return {
                     jobId: job.id,
                     status: 'failed',
-                    erro: job.failedReason ?? 'Falha desconhecida no processamento.',
+                    erro: sanitizarErroJob(job.failedReason, request),
                     tentativas: job.attemptsMade,
                 };
             }

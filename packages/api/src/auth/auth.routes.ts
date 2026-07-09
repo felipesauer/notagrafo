@@ -41,13 +41,19 @@ export async function authRoutes(app: FastifyInstance, driver: Driver): Promise<
     app.post<{ Body: LoginBody }>(
         '/auth/login',
         {
+            // Teto dedicado, mais estrito que o global (100/min), contra brute-force
+            // de credencial: 10 tentativas/min por IP (NOTA-205).
+            config: { rateLimit: { max: 10, timeWindow: 60_000 } },
             schema: {
                 tags: ['auth'],
                 summary: 'Autentica e retorna um JWT',
                 body: {
                     type: 'object',
                     required: ['email', 'password'],
-                    properties: { email: { type: 'string' }, password: { type: 'string' } },
+                    properties: {
+                        email: { type: 'string', format: 'email' },
+                        password: { type: 'string', minLength: 1 },
+                    },
                 },
             },
         },
@@ -127,6 +133,8 @@ export async function authRoutes(app: FastifyInstance, driver: Driver): Promise<
     app.post<{ Body: RegisterBody }>(
         '/auth/register',
         {
+            // Teto dedicado contra abuso de criação de contas (NOTA-205).
+            config: { rateLimit: { max: 10, timeWindow: 60_000 } },
             schema: {
                 tags: ['auth'],
                 summary: 'Cria uma conta e retorna um JWT',
@@ -134,8 +142,8 @@ export async function authRoutes(app: FastifyInstance, driver: Driver): Promise<
                     type: 'object',
                     required: ['email', 'password', 'nome'],
                     properties: {
-                        email: { type: 'string', minLength: 3 },
-                        password: { type: 'string', minLength: 6 },
+                        email: { type: 'string', format: 'email' },
+                        password: { type: 'string', minLength: 8 },
                         nome: { type: 'string', minLength: 1 },
                     },
                 },

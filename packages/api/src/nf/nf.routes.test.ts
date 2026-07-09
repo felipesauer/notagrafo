@@ -150,11 +150,23 @@ describe('GET /nf/jobs/:jobId (unit)', () => {
         expect(j.iniciadoEm).toBeTruthy();
         expect(j.concluidoEm).toBeTruthy();
     });
-    it('failed → erro + tentativas', async () => {
-        const job = { id: CHAVE, attemptsMade: 3, failedReason: 'boom', getState: async () => 'failed' };
+    it('failed → erro interno é sanitizado (não vaza failedReason cru) — NOTA-205', async () => {
+        const job = { id: CHAVE, attemptsMade: 3, failedReason: 'Error: connect ECONNREFUSED 10.0.0.5:7687', getState: async () => 'failed' };
         app = await build(makeQueue(() => job));
         const res = await app.inject({ method: 'GET', url: `/nf/jobs/${CHAVE}` });
-        expect(res.json()).toMatchObject({ status: 'failed', erro: 'boom', tentativas: 3 });
+        const j = res.json();
+        expect(j.status).toBe('failed');
+        expect(j.tentativas).toBe(3);
+        // não vaza o detalhe interno (host/infra) ao cliente
+        expect(j.erro).not.toContain('ECONNREFUSED');
+        expect(j.erro).not.toContain('10.0.0.5');
+        expect(j.erro).toContain('Falha interna');
+    });
+    it('failed → erro de negócio (validação NF-e) é preservado para o usuário — NOTA-205', async () => {
+        const job = { id: CHAVE, attemptsMade: 1, failedReason: 'XmlMalformadoError: XML mal-formado: ...', getState: async () => 'failed' };
+        app = await build(makeQueue(() => job));
+        const res = await app.inject({ method: 'GET', url: `/nf/jobs/${CHAVE}` });
+        expect(res.json().erro).toContain('XmlMalformadoError');
     });
 
     it.each(['waiting', 'active', 'delayed', 'paused'])('estado não-terminal (%s) → status "processing" com total, sem resultado', async (estado) => {
