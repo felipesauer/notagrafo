@@ -1,5 +1,13 @@
 import Fastify, { type FastifyInstance } from 'fastify';
+import { fastifyHelmet } from '@fastify/helmet';
 import { fastifyMultipart } from '@fastify/multipart';
+import type { Plugin } from 'ajv';
+import ajvFormatsModule from 'ajv-formats';
+
+// ajv-formats é CJS: o namespace importado expõe a função como `.default` (interop).
+// O cast normaliza para o Plugin<unknown> que o `ajv.plugins` do Fastify espera.
+const mod = ajvFormatsModule as unknown as Plugin<unknown> & { default?: Plugin<unknown> };
+const ajvFormats: Plugin<unknown> = typeof mod.default === 'function' ? mod.default : mod;
 import type { Driver } from 'neo4j-driver';
 import type { Redis } from 'ioredis';
 import type { Queue } from 'bullmq';
@@ -42,16 +50,22 @@ export const API_PREFIX = '/api/v1';
  * prefixo /api/v1. As rotas de negócio são registradas nas tasks seguintes.
  */
 export async function buildApp(opts: BuildAppOptions = {}): Promise<FastifyInstance> {
-    const app = Fastify({
+    const app: FastifyInstance = Fastify({
         genReqId,
         logger: opts.logger ? loggerConfig() : false,
-        ajv: { customOptions: { allErrors: true } },
+        // ajv-formats habilita `format: 'email'` etc. (Fastify 5 não registra por
+        // padrão). Necessário para a validação de e-mail em /auth/* (NOTA-205).
+        ajv: { customOptions: { allErrors: true }, plugins: [ajvFormats] },
     });
 
     app.setErrorHandler(errorHandler);
 
     // Plugins base
     await app.register(requestIdPlugin);
+    // Security headers (X-Content-Type-Options, X-Frame-Options, HSTS, etc.).
+    // CSP desligado: a API serve o Swagger-UI em /docs, cujos assets inline
+    // quebrariam sob uma CSP estrita — os demais headers seguem aplicados (NOTA-205).
+    await app.register(fastifyHelmet, { contentSecurityPolicy: false });
     await app.register(swaggerPlugin);
     await app.register(metricsPlugin);
     if (opts.rateLimit !== false) {

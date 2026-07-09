@@ -43,15 +43,22 @@ describe('POST /auth/login (unit)', () => {
     it('401 quando usuário não existe ou senha errada', async () => {
         repo.findByEmail.mockResolvedValue(null);
         app = await build();
-        const r1 = await app.inject({ method: 'POST', url: '/auth/login', payload: { email: 'x', password: 'p' } });
+        const r1 = await app.inject({ method: 'POST', url: '/auth/login', payload: { email: 'x@b.com', password: 'p' } });
         expect(r1.statusCode).toBe(401);
 
-        repo.findByEmail.mockResolvedValue({ id: 'u1', email: 'a', nome: 'A', senhaHash: 'h' });
+        repo.findByEmail.mockResolvedValue({ id: 'u1', email: 'a@b.com', nome: 'A', senhaHash: 'h' });
         repo.verifyPassword.mockResolvedValue(false);
         app = await build();
-        const r2 = await app.inject({ method: 'POST', url: '/auth/login', payload: { email: 'a', password: 'errada' } });
+        const r2 = await app.inject({ method: 'POST', url: '/auth/login', payload: { email: 'a@b.com', password: 'errada' } });
         expect(r2.statusCode).toBe(401);
         expect(r2.json().error).toBe('INVALID_CREDENTIALS');
+    });
+
+    it('400 quando o e-mail não tem formato válido (NOTA-205)', async () => {
+        repo.findByEmail.mockResolvedValue(null);
+        app = await build();
+        const res = await app.inject({ method: 'POST', url: '/auth/login', payload: { email: 'sem-arroba', password: 'p' } });
+        expect(res.statusCode).toBe(400);
     });
 });
 
@@ -114,7 +121,7 @@ describe('POST /auth/register (unit)', () => {
         repo.findByEmail.mockResolvedValue(null); // e-mail livre
         repo.createUser.mockResolvedValue({ id: 'u9', email: 'novo@b.com', nome: 'Novo' });
         app = await build();
-        const res = await app.inject({ method: 'POST', url: '/auth/register', payload: { email: 'novo@b.com', password: 'segredo', nome: 'Novo' } });
+        const res = await app.inject({ method: 'POST', url: '/auth/register', payload: { email: 'novo@b.com', password: 'segredo8', nome: 'Novo' } });
         expect(res.statusCode).toBe(200);
         expect(res.json().token).toBeTruthy();
         expect(res.json().user).toEqual({ id: 'u9', email: 'novo@b.com', nome: 'Novo' });
@@ -122,7 +129,7 @@ describe('POST /auth/register (unit)', () => {
     it('409 quando o e-mail já existe', async () => {
         repo.findByEmail.mockResolvedValue({ id: 'u1', email: 'a@b.com', nome: 'A', senhaHash: 'h' });
         app = await build();
-        const res = await app.inject({ method: 'POST', url: '/auth/register', payload: { email: 'a@b.com', password: 'segredo', nome: 'A' } });
+        const res = await app.inject({ method: 'POST', url: '/auth/register', payload: { email: 'a@b.com', password: 'segredo8', nome: 'A' } });
         expect(res.statusCode).toBe(409);
         expect(res.json().error).toBe('EMAIL_IN_USE');
         expect(repo.createUser).not.toHaveBeenCalled();
