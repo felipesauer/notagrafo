@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-EPIC-30
   kind: epic
-  state: OPEN
+  state: CLOSED
   title: Melhorias de Exportação e Grafo (UX + formatos + bug da rede)
   description: >-
     Pedidos do usuário + melhorias de UX/API sugeridas. Frentes: (1) BUG: aba
@@ -24,6 +24,6 @@ mnema:
     /stats/network e /empresa/:cnpj/graph.
   metadata: {}
   created_at: '2026-07-08T21:45:49.551Z'
-  closed_at: null
+  closed_at: '2026-07-09T01:03:27.522Z'
 ---
 # Melhorias de Exportação e Grafo (UX + formatos + bug da rede)
