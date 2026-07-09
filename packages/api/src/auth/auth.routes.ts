@@ -28,6 +28,16 @@ interface UpdatePasswordBody {
 /** Janela de tolerância para refresh de token recém-expirado (contrato §1: 24h). */
 const REFRESH_GRACE_MS = 24 * 60 * 60 * 1000;
 
+/**
+ * Teto dedicado de rate-limit para /auth/login e /auth/register, por IP e por
+ * minuto. Mais estrito que o global (100/min) para conter brute-force de
+ * credencial, mas GENEROSO o suficiente para não punir uso legítimo nem a suíte
+ * e2e (que faz ~16-19 logins do mesmo IP em <1min). Configurável por
+ * AUTH_RATE_LIMIT_MAX (NOTA-211: 10/min estourava a suíte → 429 → login falhava).
+ */
+const AUTH_RATE_LIMIT_MAX = Number(process.env.AUTH_RATE_LIMIT_MAX ?? '60');
+const AUTH_RATE_LIMIT_WINDOW_MS = 60_000;
+
 /** Calcula a data de expiração de um token recém-assinado (a partir do exp). */
 function expiresAtFromToken(app: FastifyInstance, token: string): string {
     const decoded = app.jwt.decode<{ exp?: number }>(token);
@@ -42,8 +52,8 @@ export async function authRoutes(app: FastifyInstance, driver: Driver): Promise<
         '/auth/login',
         {
             // Teto dedicado, mais estrito que o global (100/min), contra brute-force
-            // de credencial: 10 tentativas/min por IP (NOTA-205).
-            config: { rateLimit: { max: 10, timeWindow: 60_000 } },
+            // de credencial (AUTH_RATE_LIMIT_MAX, default 60/min por IP — NOTA-205/211).
+            config: { rateLimit: { max: AUTH_RATE_LIMIT_MAX, timeWindow: AUTH_RATE_LIMIT_WINDOW_MS } },
             schema: {
                 tags: ['auth'],
                 summary: 'Autentica e retorna um JWT',
@@ -134,7 +144,7 @@ export async function authRoutes(app: FastifyInstance, driver: Driver): Promise<
         '/auth/register',
         {
             // Teto dedicado contra abuso de criação de contas (NOTA-205).
-            config: { rateLimit: { max: 10, timeWindow: 60_000 } },
+            config: { rateLimit: { max: AUTH_RATE_LIMIT_MAX, timeWindow: AUTH_RATE_LIMIT_WINDOW_MS } },
             schema: {
                 tags: ['auth'],
                 summary: 'Cria uma conta e retorna um JWT',
