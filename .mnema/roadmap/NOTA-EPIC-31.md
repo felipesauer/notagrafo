@@ -2,7 +2,7 @@
 mnema:
   key: NOTA-EPIC-31
   kind: epic
-  state: OPEN
+  state: CLOSED
   title: Auditoria abrangente + correções (2026-07-09)
   description: >-
     Auditoria de 7 dimensões (correção, segurança, cobertura, consistência
@@ -57,6 +57,6 @@ mnema:
     Neo4j/Redis/storage → 503).
   metadata: {}
   created_at: '2026-07-09T18:22:41.410Z'
-  closed_at: null
+  closed_at: '2026-07-09T19:15:48.579Z'
 ---
 # Auditoria abrangente + correções (2026-07-09)

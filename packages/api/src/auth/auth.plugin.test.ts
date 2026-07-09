@@ -4,7 +4,12 @@ import { errorHandler } from '../errors.js';
 import { authPlugin, isAuthRequired } from './auth.plugin.js';
 
 let app: FastifyInstance;
-const SAVED = { AUTH_ENABLED: process.env.AUTH_ENABLED, DEMO: process.env.DEMO, DEMO_AUTH_ENABLED: process.env.DEMO_AUTH_ENABLED };
+const SAVED = {
+    AUTH_ENABLED: process.env.AUTH_ENABLED,
+    DEMO: process.env.DEMO,
+    DEMO_AUTH_ENABLED: process.env.DEMO_AUTH_ENABLED,
+    NODE_ENV: process.env.NODE_ENV,
+};
 afterEach(async () => {
     await app?.close();
     // restaura flags para não vazar entre testes/arquivos
@@ -13,6 +18,27 @@ afterEach(async () => {
         else process.env[k] = v;
     }
 });
+
+/** Constrói o app capturando os logs (spy no logger do Fastify). */
+async function buildComLogSpy(): Promise<{ app: FastifyInstance; errors: string[]; warns: string[] }> {
+    process.env.AUTH_SECRET = 'test-secret';
+    const errors: string[] = [];
+    const warns: string[] = [];
+    const push = (arr: string[]) => (o: unknown) => arr.push(typeof o === 'string' ? o : JSON.stringify(o));
+    const logger = {
+        error: push(errors),
+        warn: push(warns),
+        info: () => {}, debug: () => {}, fatal: () => {}, trace: () => {}, silent: () => {},
+        level: 'info',
+    };
+    // O factory de child logger devolve o mesmo espião (o plugin loga no logger raiz).
+    (logger as unknown as { child: () => unknown }).child = () => logger;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const a = Fastify({ loggerInstance: logger as any });
+    await a.register(authPlugin);
+    await a.ready();
+    return { app: a, errors, warns };
+}
 
 async function build(): Promise<FastifyInstance> {
     process.env.AUTH_SECRET = 'test-secret';
@@ -67,6 +93,36 @@ describe('authPlugin (unit)', () => {
         app = await build();
         const res = await app.inject({ method: 'GET', url: '/protegido' });
         expect(res.statusCode).toBe(200);
+    });
+
+    it('auth desligada + NODE_ENV=production → banner de aviso em nível error (NOTA-208)', async () => {
+        process.env.AUTH_ENABLED = 'false';
+        delete process.env.DEMO;
+        process.env.NODE_ENV = 'production';
+        const built = await buildComLogSpy();
+        app = built.app;
+        expect(built.errors.join('\n')).toMatch(/AUTENTICAÇÃO DESABILITADA EM PRODUÇÃO/);
+        expect(built.warns.join('\n')).not.toMatch(/DESABILITADA/); // é error, não warn
+    });
+
+    it('auth desligada fora de produção → apenas warn discreto, sem banner de error (NOTA-208)', async () => {
+        process.env.AUTH_ENABLED = 'false';
+        delete process.env.DEMO;
+        process.env.NODE_ENV = 'development';
+        const built = await buildComLogSpy();
+        app = built.app;
+        expect(built.warns.join('\n')).toMatch(/Autenticação DESABILITADA/);
+        expect(built.errors.join('\n')).not.toMatch(/PRODUÇÃO/);
+    });
+
+    it('auth LIGADA → nenhum aviso de desabilitada (NOTA-208)', async () => {
+        process.env.AUTH_ENABLED = 'true';
+        delete process.env.DEMO;
+        process.env.NODE_ENV = 'production';
+        const built = await buildComLogSpy();
+        app = built.app;
+        expect(built.errors.join('\n')).not.toMatch(/DESABILITADA/);
+        expect(built.warns.join('\n')).not.toMatch(/DESABILITADA/);
     });
 });
 

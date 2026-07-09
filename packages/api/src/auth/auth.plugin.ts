@@ -56,7 +56,21 @@ export const authPlugin = fp(async (app) => {
 
     const authRequired = isAuthRequired();
     if (!authRequired) {
-        app.log.warn('Autenticação DESABILITADA por env (AUTH_ENABLED/DEMO_AUTH_ENABLED) — rotas protegidas estão abertas.');
+        if (process.env.NODE_ENV === 'production') {
+            // Caso perigoso: subir ABERTO em produção. Banner destacado em nível
+            // error (aparece mesmo com log level alto), impossível de ignorar.
+            const linha = '='.repeat(72);
+            app.log.error(
+                `\n${linha}\n` +
+                    '  ⚠  ATENÇÃO: AUTENTICAÇÃO DESABILITADA EM PRODUÇÃO (NODE_ENV=production)\n' +
+                    '     Todas as rotas protegidas estão ABERTAS — qualquer um pode ler,\n' +
+                    '     enviar e exportar NF-e sem token. NUNCA rode assim em produção.\n' +
+                    '     Defina AUTH_ENABLED=true (e DEMO_AUTH_ENABLED=true se DEMO=true).\n' +
+                    linha,
+            );
+        } else {
+            app.log.warn('Autenticação DESABILITADA por env (AUTH_ENABLED/DEMO_AUTH_ENABLED) — rotas protegidas estão abertas.');
+        }
     }
 
     app.decorate('authenticate', async (request: FastifyRequest) => {
