@@ -16,6 +16,18 @@ export class NotaFiscalDuplicadaError extends Error {
     }
 }
 
+/** Erro: o XML excede o teto de tamanho aceito no enqueue (→ 413 na API). */
+export class XmlMuitoGrandeError extends Error {
+    readonly bytes: number;
+    readonly maxBytes: number;
+    constructor(bytes: number, maxBytes: number) {
+        super(`XML de ${bytes} bytes excede o limite de ${maxBytes} bytes (MAX_XML_BYTES).`);
+        this.name = 'XmlMuitoGrandeError';
+        this.bytes = bytes;
+        this.maxBytes = maxBytes;
+    }
+}
+
 export interface EnqueueResult {
     jobId: string;
     chaveAcesso: string;
@@ -38,13 +50,21 @@ export async function enqueueNFe(
     xml: string,
     opts?: { origem?: string; config?: WorkerConfig },
 ): Promise<EnqueueResult> {
+    const config = opts?.config ?? workerConfigFromEnv();
+
+    // Teto de tamanho ANTES de parsear/enfileirar: o XML cru vai no payload do job
+    // (em Redis) e é mantido em memória (xml+gzip+json+parsed) durante o
+    // processamento × concorrência. Rejeitar cedo evita acumular payloads gigantes
+    // (NOTA-209). Byte length (não .length) porque o XML é UTF-8.
+    const bytes = Buffer.byteLength(xml, 'utf8');
+    if (bytes > config.maxXmlBytes) throw new XmlMuitoGrandeError(bytes, config.maxXmlBytes);
+
     const parsed = parseNFe(xml, new Date());
     const chaveAcesso = parsed.nota.chaveAcesso;
 
     const existente = await getInvoice(driver, chaveAcesso);
     if (existente) throw new NotaFiscalDuplicadaError(chaveAcesso);
 
-    const config = opts?.config ?? workerConfigFromEnv();
     const job = await queue.add(
         'process-nfe',
         { xml, ...(opts?.origem ? { origem: opts.origem } : {}) },

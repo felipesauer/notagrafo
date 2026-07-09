@@ -9,8 +9,8 @@ import type { Queue } from 'bullmq';
 const { getInvoice } = vi.hoisted(() => ({ getInvoice: vi.fn() }));
 vi.mock('@notagrafo/graph', () => ({ getInvoice }));
 
-import { enqueueNFe, NotaFiscalDuplicadaError } from './nf.queue.js';
-import { workerConfigFromEnv, defaultJobOptions, NF_QUEUE } from './config.js';
+import { enqueueNFe, NotaFiscalDuplicadaError, XmlMuitoGrandeError } from './nf.queue.js';
+import { workerConfigFromEnv, defaultJobOptions, NF_QUEUE, DEFAULT_MAX_XML_BYTES } from './config.js';
 import type { ProcessNFeJobData } from '../jobs/process-nfe.job.js';
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'core', 'src', '__fixtures__');
@@ -22,16 +22,17 @@ beforeEach(() => getInvoice.mockReset());
 
 describe('config (unit)', () => {
     it('workerConfigFromEnv usa defaults e respeita o ambiente', () => {
-        expect(workerConfigFromEnv({})).toEqual({ concurrency: 4, maxRetries: 3, backoffDelay: 5000 });
-        expect(workerConfigFromEnv({ WORKER_CONCURRENCY: '8', JOB_MAX_RETRIES: '5', JOB_BACKOFF_DELAY: '1000' })).toEqual({
+        expect(workerConfigFromEnv({})).toEqual({ concurrency: 4, maxRetries: 3, backoffDelay: 5000, maxXmlBytes: DEFAULT_MAX_XML_BYTES });
+        expect(workerConfigFromEnv({ WORKER_CONCURRENCY: '8', JOB_MAX_RETRIES: '5', JOB_BACKOFF_DELAY: '1000', MAX_XML_BYTES: '1000' })).toEqual({
             concurrency: 8,
             maxRetries: 5,
             backoffDelay: 1000,
+            maxXmlBytes: 1000,
         });
     });
 
     it('defaultJobOptions deriva attempts e backoff do config', () => {
-        const opts = defaultJobOptions({ concurrency: 4, maxRetries: 5, backoffDelay: 2000 });
+        const opts = defaultJobOptions({ concurrency: 4, maxRetries: 5, backoffDelay: 2000, maxXmlBytes: DEFAULT_MAX_XML_BYTES });
         expect(opts.attempts).toBe(5);
         expect(opts.backoff).toEqual({ type: 'exponential', delay: 2000 });
         expect(opts.removeOnFail).toBe(false);
@@ -59,5 +60,25 @@ describe('enqueueNFe (unit)', () => {
         const queue = { add } as unknown as Queue<ProcessNFeJobData>;
         await expect(enqueueNFe(queue, fakeDriver, xml)).rejects.toBeInstanceOf(NotaFiscalDuplicadaError);
         expect(add).not.toHaveBeenCalled();
+    });
+
+    it('XML acima do teto → XmlMuitoGrandeError e não enfileira (nem consulta o grafo) — NOTA-209', async () => {
+        getInvoice.mockResolvedValue(null);
+        const add = vi.fn();
+        const queue = { add } as unknown as Queue<ProcessNFeJobData>;
+        const config = { concurrency: 4, maxRetries: 3, backoffDelay: 5000, maxXmlBytes: 100 };
+        await expect(enqueueNFe(queue, fakeDriver, xml, { config })).rejects.toBeInstanceOf(XmlMuitoGrandeError);
+        expect(add).not.toHaveBeenCalled();
+        expect(getInvoice).not.toHaveBeenCalled(); // rejeita ANTES de parsear/consultar
+    });
+
+    it('XML dentro do teto enfileira normalmente — NOTA-209', async () => {
+        getInvoice.mockResolvedValue(null);
+        const add = vi.fn(async () => ({ id: CHAVE }));
+        const queue = { add, name: NF_QUEUE } as unknown as Queue<ProcessNFeJobData>;
+        const config = { concurrency: 4, maxRetries: 3, backoffDelay: 5000, maxXmlBytes: DEFAULT_MAX_XML_BYTES };
+        const res = await enqueueNFe(queue, fakeDriver, xml, { config });
+        expect(res.chaveAcesso).toBe(CHAVE);
+        expect(add).toHaveBeenCalledTimes(1);
     });
 });
