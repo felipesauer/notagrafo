@@ -135,6 +135,18 @@ services:
         condition: service_healthy
       neo4j:
         condition: service_healthy
+    healthcheck:
+      # Probe honesto: o worker escreve um heartbeat no Redis a cada 10s; o script
+      # sai 0 se a chave existe e é recente, 1 caso contrário. Não há redis-cli na
+      # imagem alpine — usamos node + ioredis (dep do worker). Se o worker travar
+      # ou perder o Redis (de onde consome a fila), o heartbeat expira → unhealthy.
+      test: ["CMD", "node", "dist/healthcheck.js"]
+      interval: 15s
+      timeout: 5s
+      retries: 4
+      # start_period: o worker roda migrations e conecta no Redis/Neo4j antes de
+      # escrever o 1º heartbeat; falhas aqui não contam para o retries.
+      start_period: 40s
     deploy:
       # 1 worker por padrão (sobe rápido em dev); escale com WORKER_REPLICAS=N.
       replicas: ${WORKER_REPLICAS:-1}

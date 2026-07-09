@@ -7,6 +7,13 @@ import { createDLQ, moveToDeadLetter, type DeadLetterJobData } from './queue/dlq
 import { processNFe, type ProcessNFeJobData } from './jobs/process-nfe.job.js';
 import { createXmlStorage } from './storage/factory.js';
 
+/** Chave Redis do heartbeat de liveness do worker (lida pelo healthcheck). */
+export const WORKER_HEARTBEAT_KEY = 'worker:heartbeat';
+/** Intervalo de escrita do heartbeat (ms). */
+export const HEARTBEAT_INTERVAL_MS = 10_000;
+/** TTL da chave de heartbeat (s): ~3 intervalos de folga antes de expirar. */
+export const HEARTBEAT_TTL_SECONDS = 30;
+
 /** Recursos abertos pelo worker que precisam ser liberados no shutdown. */
 export interface WorkerHandle {
     worker: Worker<ProcessNFeJobData>;
@@ -15,6 +22,19 @@ export interface WorkerHandle {
     dlq: Queue<DeadLetterJobData>;
     /** Handlers `failed` em voo (DLQ/remove); aguardados antes de fechar conexões. */
     pendingFailures: Set<Promise<void>>;
+    /** Timer do heartbeat de liveness (parado no shutdown). */
+    heartbeat: ReturnType<typeof setInterval>;
+}
+
+/**
+ * Escreve o heartbeat de liveness numa chave Redis com TTL. O healthcheck do
+ * container lê essa chave: se o worker travar ou perder o Redis (de onde consome a
+ * fila), a chave expira e o container fica unhealthy. É um probe honesto — valida
+ * processo vivo E conexão Redis ativa, sem depender de porta HTTP (NOTA-210).
+ */
+export async function writeHeartbeat(connection: Redis): Promise<void> {
+    // SET key <timestamp> EX <ttl>: renova o TTL a cada escrita.
+    await connection.set(WORKER_HEARTBEAT_KEY, String(Date.now()), 'EX', HEARTBEAT_TTL_SECONDS);
 }
 
 /**
@@ -44,7 +64,18 @@ export async function startWorker(): Promise<WorkerHandle> {
         pendingFailures.add(p);
     });
 
-    return { worker, connection, driver, dlq, pendingFailures };
+    // Heartbeat de liveness: escreve já no boot e depois a cada intervalo. unref()
+    // para o timer não impedir a saída do processo por si só.
+    await writeHeartbeat(connection).catch(() => {});
+    const heartbeat = setInterval(() => {
+        void writeHeartbeat(connection).catch((err) => {
+            // eslint-disable-next-line no-console
+            console.error('[worker] falha ao escrever heartbeat:', (err as Error).message);
+        });
+    }, HEARTBEAT_INTERVAL_MS);
+    heartbeat.unref();
+
+    return { worker, connection, driver, dlq, pendingFailures, heartbeat };
 }
 
 /** Job BullMQ mínimo que o handler de falha precisa inspecionar/mover. */
@@ -106,6 +137,9 @@ export async function handleFailedJob(
 export async function shutdownWorker(handle: WorkerHandle): Promise<void> {
     // eslint-disable-next-line no-console
     console.error('[worker] shutdown iniciado — aguardando job ativo…');
+    // Para o heartbeat e apaga a chave: um shutdown gracioso não deve parecer vivo.
+    clearInterval(handle.heartbeat);
+    await handle.connection.del(WORKER_HEARTBEAT_KEY).catch(() => {});
     await handle.worker.close();
     // Aguarda os handlers `failed` disparados na parada (gravação na DLQ + remove)
     // ANTES de fechar a DLQ/conexão que eles usam.
