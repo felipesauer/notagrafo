@@ -147,7 +147,7 @@ do [`.env.example`](.env.example); `REDIS_PORT` é configurável):
 | neo4j | `7474`, `7687` | `7474`, `7687` | HTTP (browser) e Bolt |
 | redis | `6379` | `6379` | `REDIS_PORT` no host; `redis:6379` na rede interna |
 | minio | `9000`, `9001` | `9000`, `9001` | API S3 e console |
-| mailpit | `8035`, `1035` | `8025`, `1025` | captura de e-mail em dev (UI em `8035`) |
+| mailpit | `8025`, `1025` | `8025`, `1025` | captura de e-mail em dev (UI em `8025`) |
 
 > No modo de **desenvolvimento** (`pnpm dev`) o dashboard **não** usa a `8080` —
 > ele roda pelo Vite em **http://localhost:5173**. Veja abaixo.

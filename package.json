@@ -12,7 +12,7 @@
     "infra": "docker compose up -d --wait",
     "dev": "pnpm infra && pnpm dev:libs && pnpm dev:seed && pnpm dev:packages",
     "dev:libs": "pnpm --filter @notagrafo/core --filter @notagrafo/graph build",
-    "dev:seed": "dotenv -e .env -- tsx packages/worker/src/seed/index.ts || true",
+    "dev:seed": "dotenv -e .env -- tsx packages/worker/src/seed/index.ts || echo '[dev:seed] seed falhou ou foi pulado (não bloqueia o pnpm dev)'",
     "dev:packages": "pnpm --parallel --filter @notagrafo/api --filter @notagrafo/worker --filter @notagrafo/dashboard dev",
     "stack": "docker compose --profile app up -d --build --wait",
     "stack:logs": "docker compose --profile app logs -f",
