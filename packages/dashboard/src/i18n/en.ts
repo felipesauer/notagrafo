@@ -245,6 +245,7 @@ export const en = {
     },
     exportacoes: {
         nova: 'New export', formato: 'Format', campos: 'Fields', gerar: 'Generate export',
+        incluirXml: 'Include original XML files (.zip)',
         historico: 'History', acoes: 'Actions', baixar: 'Download', vazio: 'No exports yet.',
         subtitulo: 'Generate extracts of the invoice base as CSV, XLSX or JSON.',
         registros: 'Records', tamanho: 'Size', selecioneCampos: 'Select the fields to export.',

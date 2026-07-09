@@ -7,6 +7,8 @@ interface ExportBody {
     formato: ExportFormato;
     filtros?: NFFilters;
     campos?: string[];
+    /** Empacota os XMLs originais das NF-e num .zip junto com os dados (NOTA-198). */
+    incluirXml?: boolean;
 }
 
 export async function exportRoutes(app: FastifyInstance, service: ExportService): Promise<void> {
@@ -25,18 +27,20 @@ export async function exportRoutes(app: FastifyInstance, service: ExportService)
                         formato: { type: 'string', enum: ['csv', 'xlsx', 'json'] },
                         filtros: { type: 'object', additionalProperties: true },
                         campos: { type: 'array', items: { type: 'string' } },
+                        incluirXml: { type: 'boolean' },
                     },
                 },
                 security: [{ bearerAuth: [] }],
             },
         },
         async (request, reply) => {
-            const { formato, filtros, campos } = request.body;
-            const job = service.create(formato, filtros, campos);
+            const { formato, filtros, campos, incluirXml } = request.body;
+            const job = service.create(formato, filtros, campos, incluirXml);
             reply.status(202).send({
                 exportId: job.exportId,
                 status: job.status,
                 formato: job.formato,
+                incluirXml: job.incluirXml ?? false,
                 estimativa: 'A exportação será processada em segundo plano.',
             });
         },
@@ -70,6 +74,7 @@ export async function exportRoutes(app: FastifyInstance, service: ExportService)
                                         expiresAt: { type: 'string' },
                                         erro: { type: 'string' },
                                         downloadUrl: { type: 'string' },
+                                        incluirXml: { type: 'boolean' },
                                     },
                                 },
                             },
@@ -86,6 +91,7 @@ export async function exportRoutes(app: FastifyInstance, service: ExportService)
                 totalRegistros: job.totalRegistros,
                 tamanhoBytes: job.tamanhoBytes,
                 expiresAt: new Date(job.expiresAt).toISOString(),
+                incluirXml: job.incluirXml ?? false,
                 // progresso/total úteis para jobs em andamento (paridade com GET /export/:id).
                 ...(job.status === 'queued' || job.status === 'processing' ? { progresso: job.progresso, total: job.total } : {}),
                 ...(job.erro ? { erro: job.erro } : {}),
@@ -115,6 +121,7 @@ export async function exportRoutes(app: FastifyInstance, service: ExportService)
                     totalRegistros: job.totalRegistros,
                     expiresAt: new Date(job.expiresAt).toISOString(),
                     downloadUrl: `/api/v1/export/${job.exportId}/download`,
+                    incluirXml: job.incluirXml ?? false,
                 };
             }
             // queued/processing/failed: inclui progresso e total (contrato §6).
@@ -143,9 +150,10 @@ export async function exportRoutes(app: FastifyInstance, service: ExportService)
 
             const data = await service.read(job);
             const date = new Date().toISOString().slice(0, 10);
+            const ext = job.incluirXml ? 'zip' : job.formato;
             reply
-                .header('Content-Type', service.contentType(job.formato))
-                .header('Content-Disposition', `attachment; filename="nf-export-${date}.${job.formato}"`);
+                .header('Content-Type', service.contentType(job))
+                .header('Content-Disposition', `attachment; filename="nf-export-${date}.${ext}"`);
             return data;
         },
     );

@@ -3,7 +3,9 @@ import { mkdtempSync } from 'node:fs';
 import { writeFile, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import AdmZip from 'adm-zip';
 import type { Driver } from 'neo4j-driver';
+import type { XmlStorage } from '@notagrafo/worker';
 import { listInvoices, countInvoices, type NFFilters } from '@notagrafo/graph';
 
 export type ExportFormato = 'csv' | 'xlsx' | 'json';
@@ -27,6 +29,8 @@ export interface ExportJob {
     expiresAt: number; // epoch ms
     filePath?: string;
     erro?: string;
+    /** Quando true, o arquivo baixado é um .zip com os dados + os XMLs originais (NOTA-198). */
+    incluirXml?: boolean;
 }
 
 const CONTENT_TYPES: Record<ExportFormato, string> = {
@@ -34,6 +38,7 @@ const CONTENT_TYPES: Record<ExportFormato, string> = {
     json: 'application/json',
     xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 };
+const ZIP_CONTENT_TYPE = 'application/zip';
 
 /**
  * Gerência de exportações assíncronas, com arquivos em disco e TTL.
@@ -50,12 +55,14 @@ export class ExportService {
         ttlHours = Number(process.env.EXPORT_TTL_HOURS ?? '24'),
         /** Conexão Redis opcional: persiste os metadados do job (sobrevive a restart). */
         private readonly redis?: RedisLike,
+        /** Storage de XML opcional: necessário para incluirXml (NOTA-198). */
+        private readonly storage?: XmlStorage,
     ) {
         this.ttlMs = ttlHours * 60 * 60 * 1000;
     }
 
-    contentType(formato: ExportFormato): string {
-        return CONTENT_TYPES[formato];
+    contentType(job: Pick<ExportJob, 'formato' | 'incluirXml'>): string {
+        return job.incluirXml ? ZIP_CONTENT_TYPE : CONTENT_TYPES[job.formato];
     }
 
     private redisKey(exportId: string): string {
@@ -85,7 +92,7 @@ export class ExportService {
     }
 
     /** Cria o job e dispara a geração em background. Retorna o id imediatamente. */
-    create(formato: ExportFormato, filters?: NFFilters, fields?: string[]): ExportJob {
+    create(formato: ExportFormato, filters?: NFFilters, fields?: string[], incluirXml?: boolean): ExportJob {
         const exportId = `exp_${randomUUID().slice(0, 12)}`;
         const job: ExportJob = {
             exportId,
@@ -96,6 +103,10 @@ export class ExportService {
             totalRegistros: 0,
             tamanhoBytes: 0,
             expiresAt: Date.now() + this.ttlMs,
+            // Só ativa incluirXml se houver storage configurado — sem ele, não há
+            // como buscar os XMLs originais; degrada silenciosamente para o
+            // formato tabular puro (melhor que falhar o export inteiro).
+            incluirXml: incluirXml && !!this.storage,
         };
         this.jobs.set(exportId, job);
         void this.persist(job);
@@ -170,18 +181,50 @@ export class ExportService {
             // chave plana — senão cnpjEmitente/cnpjDestinatario saem vazios.
             const flatRows = rows.map(flattenRow);
             const content = this.serialize(job.formato, flatRows, fields);
-            const filePath = join(this.dir, `${job.exportId}.${job.formato}`);
-            await writeFile(filePath, content);
+
+            let filePath: string;
+            let fileSize: number;
+            if (job.incluirXml && this.storage) {
+                const chaves = rows.map((r) => String(r.chaveAcesso ?? '')).filter(Boolean);
+                const zipBuffer = await this.buildZip(job.formato, content, chaves);
+                filePath = join(this.dir, `${job.exportId}.zip`);
+                await writeFile(filePath, zipBuffer);
+                fileSize = zipBuffer.length;
+            } else {
+                filePath = join(this.dir, `${job.exportId}.${job.formato}`);
+                await writeFile(filePath, content);
+                fileSize = Buffer.byteLength(content);
+            }
 
             job.filePath = filePath;
             job.totalRegistros = rows.length;
-            job.tamanhoBytes = Buffer.byteLength(content);
+            job.tamanhoBytes = fileSize;
             job.status = 'ready';
         } catch (err) {
             job.status = 'failed';
             job.erro = (err as Error).message;
         }
         await this.persist(job);
+    }
+
+    /**
+     * Monta o .zip do export com XMLs: o arquivo de dados (csv/xlsx/json) na
+     * raiz + os XMLs originais das NF-e em xmls/<chaveAcesso>.xml. Tolerante a
+     * XMLs ausentes no storage (NF antiga, storage trocado) — pula em vez de
+     * falhar o export inteiro; a ausência é só um arquivo a menos no zip.
+     */
+    private async buildZip(formato: ExportFormato, dataContent: string, chaves: string[]): Promise<Buffer> {
+        const zip = new AdmZip();
+        zip.addFile(`dados.${formato}`, Buffer.from(dataContent, 'utf-8'));
+        for (const chave of chaves) {
+            try {
+                const xml = await this.storage!.get(chave);
+                zip.addFile(`xmls/${chave}.xml`, xml);
+            } catch {
+                // XML ausente/inacessível: segue sem ele, não interrompe o export.
+            }
+        }
+        return zip.toBuffer();
     }
 
     private serialize(formato: ExportFormato, rows: Record<string, unknown>[], fields?: string[]): string {

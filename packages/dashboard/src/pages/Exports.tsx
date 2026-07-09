@@ -39,6 +39,8 @@ interface ExportRegistro {
     totalRegistros?: number;
     tamanhoBytes?: number;
     expiresAt?: string;
+    /** Quando true, o download é um .zip com dados + XMLs originais (NOTA-198). */
+    incluirXml?: boolean;
 }
 
 /**
@@ -67,6 +69,7 @@ export function ExportsPage(): JSX.Element {
     const setJob = useExportStore((s) => s.setJob);
     const [formato, setFormato] = useState<Formato>('csv');
     const [campos, setCampos] = useState<string[]>(CAMPOS_PADRAO);
+    const [incluirXml, setIncluirXml] = useState(false);
     const [registros, setRegistros] = useState<ExportRegistro[]>([]);
     const [erro, setErro] = useState<string | null>(null);
     const density = useDensityStore((s) => s.density);
@@ -95,11 +98,11 @@ export function ExportsPage(): JSX.Element {
     async function gerar(): Promise<void> {
         setErro(null);
         try {
-            const res = await apiFetch<{ exportId: string; status: string; formato: Formato }>('/export', {
+            const res = await apiFetch<{ exportId: string; status: string; formato: Formato; incluirXml: boolean }>('/export', {
                 method: 'POST',
-                body: { formato, campos },
+                body: { formato, campos, incluirXml },
             });
-            const novo: ExportRegistro = { exportId: res.exportId, formato: res.formato, status: res.status };
+            const novo: ExportRegistro = { exportId: res.exportId, formato: res.formato, status: res.status, incluirXml: res.incluirXml };
             setRegistros((rs) => [novo, ...rs]);
             setJob({ exportId: res.exportId, formato: res.formato, status: 'queued' });
         } catch {
@@ -122,13 +125,19 @@ export function ExportsPage(): JSX.Element {
                     <CardHeader className="flex flex-col gap-3 px-4 pb-0 sm:flex-row sm:items-end sm:justify-between">
                         <div className="flex flex-col gap-1.5">
                             <CardTitle className="text-base">{t('exportacoes.nova')}</CardTitle>
-                            <div className="flex items-center gap-2">
-                                <Label htmlFor="export-formato" className="text-xs text-muted-foreground">{t('exportacoes.formato')}</Label>
-                                <NativeSelect id="export-formato" data-testid="export-format" wrapperClassName="w-32" value={formato} onChange={(e) => setFormato(e.target.value as Formato)}>
-                                    <option value="csv">CSV</option>
-                                    <option value="xlsx">XLSX</option>
-                                    <option value="json">JSON</option>
-                                </NativeSelect>
+                            <div className="flex flex-wrap items-center gap-4">
+                                <div className="flex items-center gap-2">
+                                    <Label htmlFor="export-formato" className="text-xs text-muted-foreground">{t('exportacoes.formato')}</Label>
+                                    <NativeSelect id="export-formato" data-testid="export-format" wrapperClassName="w-32" value={formato} onChange={(e) => setFormato(e.target.value as Formato)}>
+                                        <option value="csv">CSV</option>
+                                        <option value="xlsx">XLSX</option>
+                                        <option value="json">JSON</option>
+                                    </NativeSelect>
+                                </div>
+                                <Label className="flex cursor-pointer items-center gap-2 text-sm font-normal">
+                                    <Checkbox checked={incluirXml} onCheckedChange={(v) => setIncluirXml(v === true)} data-testid="export-incluir-xml" />
+                                    {t('exportacoes.incluirXml')}
+                                </Label>
                             </div>
                         </div>
                         <Button type="button" disabled={campos.length === 0} onClick={() => void gerar()}>
@@ -226,14 +235,19 @@ function ExportRow({ registro, onUpdate }: { registro: ExportRegistro; onUpdate:
     }, [query.data, registro, onUpdate]);
     if (query.isError) return <TableRow><TableCell colSpan={5}><InlineError onRetry={() => void query.refetch()} /></TableCell></TableRow>;
 
+    const ext = registro.incluirXml ? 'zip' : registro.formato;
+
     function baixar(): void {
-        void downloadFile(`/export/${registro.exportId}/download`, `export-${registro.exportId}.${registro.formato}`)
+        void downloadFile(`/export/${registro.exportId}/download`, `export-${registro.exportId}.${ext}`)
             .then(() => toast.success(t('exportacoes.baixar')));
     }
 
     return (
         <TableRow>
-            <TableCell className="font-medium">{registro.formato.toUpperCase()}</TableCell>
+            <TableCell className="font-medium">
+                {registro.formato.toUpperCase()}
+                {registro.incluirXml && <span className="ml-1.5 rounded-full bg-muted px-1.5 py-0 text-3xs font-semibold text-muted-foreground">+XML</span>}
+            </TableCell>
             <TableCell><NFStatusBadge status={registro.status} /></TableCell>
             <TableCell className="text-right font-mono tabular-nums text-muted-foreground">{registro.totalRegistros ?? '—'}</TableCell>
             <TableCell className="text-right font-mono tabular-nums text-muted-foreground">{fmtBytes(registro.tamanhoBytes)}</TableCell>

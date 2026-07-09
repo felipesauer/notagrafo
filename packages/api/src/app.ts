@@ -79,7 +79,7 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<FastifyInsta
     }
 
     const exportService = opts.driver
-        ? new ExportService(opts.driver, Number(process.env.EXPORT_TTL_HOURS ?? '24'), opts.redis)
+        ? new ExportService(opts.driver, Number(process.env.EXPORT_TTL_HOURS ?? '24'), opts.redis, opts.storage)
         : undefined;
 
     // Rotas sob o prefixo /api/v1.
