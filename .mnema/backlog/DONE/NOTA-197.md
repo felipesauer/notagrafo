@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-197
-  state: IN_PROGRESS
+  state: DONE
   title: 'Export UX: form no topo (horizontal) + agrupamento de campos'
   description: >-
     Mover o form de export da coluna esquerda (grid 320px_1fr) para o topo,
@@ -25,6 +25,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-09T00:02:14.833Z'
+  updated_at: '2026-07-09T00:18:57.498Z'
 ---
 # Export UX: form no topo (horizontal) + agrupamento de campos
