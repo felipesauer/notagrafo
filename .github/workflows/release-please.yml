@@ -1,0 +1,109 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+# Needed so release-please can open PRs and create releases/tags, and so the
+# publish jobs can push to npm (OIDC provenance) and to GHCR.
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      releases_created: ${{ steps.release.outputs.releases_created }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  # Publishes every package whose Release PR was just merged. release-please
+  # only tags the packages that actually changed, but `pnpm publish -r` skips
+  # versions already present on the registry, so publishing the whole set is safe.
+  publish-npm:
+    needs: release-please
+    if: needs.release-please.outputs.releases_created == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # npm provenance via OIDC
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @notagrafo/core build
+      - run: pnpm --filter @notagrafo/graph build
+      - run: pnpm --filter @notagrafo/worker build
+      - run: pnpm --filter @notagrafo/api build
+      - name: Publish public packages
+        run: >-
+          pnpm publish -r
+          --filter '@notagrafo/core'
+          --filter '@notagrafo/graph'
+          --filter '@notagrafo/worker'
+          --filter '@notagrafo/api'
+          --access public
+          --no-git-checks
+          --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"
+
+  # Builds and pushes the application images to GHCR on every release.
+  publish-ghcr:
+    needs: release-please
+    if: needs.release-please.outputs.releases_created == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - name: api
+            dockerfile: packages/api/Dockerfile
+          - name: worker
+            dockerfile: packages/worker/Dockerfile
+          - name: dashboard
+            dockerfile: packages/dashboard/Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/notagrafo-${{ matrix.name }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=short
+            type=raw,value={{date 'YYYYMMDD-HHmmss'}}
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          target: production
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
