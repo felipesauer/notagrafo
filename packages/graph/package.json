@@ -1,16 +1,38 @@
 {
   "name": "@notagrafo/graph",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0",
+  "description": "Neo4j graph layer for notagrafo: schema, repositories and Cypher queries over NFe data.",
+  "license": "MIT",
+  "author": "Felipe Sauer",
+  "homepage": "https://github.com/felipesauer/notagrafo/tree/main/packages/graph#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/felipesauer/notagrafo.git",
+    "directory": "packages/graph"
+  },
+  "bugs": {
+    "url": "https://github.com/felipesauer/notagrafo/issues"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json --watch"
   },
   "dependencies": {
-    "@notagrafo/core": "workspace:*",
+    "@notagrafo/core": "workspace:^",
     "neo4j-driver": "^6.1.0"
   }
 }
