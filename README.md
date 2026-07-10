@@ -69,6 +69,8 @@ relacionamentos** e abre um **dashboard de BI** para explorar os dados.
 
 - [O que o notagrafo faz](#o-que-o-notagrafo-faz)
 - [Stack](#stack)
+- [Pacotes npm](#pacotes-npm)
+- [Imagens Docker (GHCR)](#imagens-docker-ghcr)
 - [Quickstart (5 minutos)](#quickstart-5-minutos)
 - [Portas e serviços](#portas-e-serviços)
 - [Desenvolvimento](#desenvolvimento)
@@ -96,6 +98,56 @@ relacionamentos** e abre um **dashboard de BI** para explorar os dados.
 | Dashboard | React + Vite + TanStack Router/Query, Recharts, React Flow + dagre |
 | Testes | Vitest + Testcontainers + Playwright |
 | Infra | Docker Compose (profiles) + GitHub Actions |
+
+---
+
+## Pacotes npm
+
+As bibliotecas reutilizáveis são publicadas na org [`@notagrafo`](https://www.npmjs.com/org/notagrafo):
+
+| Pacote | Descrição |
+|---|---|
+| [`@notagrafo/core`](https://www.npmjs.com/package/@notagrafo/core) | Tipos da NFe v4.00, parser, validador XSD e catálogos fiscais (NCM/CFOP). |
+| [`@notagrafo/graph`](https://www.npmjs.com/package/@notagrafo/graph) | Camada Neo4j: schema, repositórios e queries Cypher sobre os dados de NFe. |
+| [`@notagrafo/worker`](https://www.npmjs.com/package/@notagrafo/worker) | Processadores BullMQ, storage de XML (local/S3) e utilitários de seed. |
+| [`@notagrafo/api`](https://www.npmjs.com/package/@notagrafo/api) | App Fastify: upload, consulta, exportação e auth sobre o grafo. |
+
+> O `@notagrafo/dashboard` é uma SPA e **não** é publicado no npm — use a imagem Docker.
+
+```bash
+pnpm add @notagrafo/core
+```
+
+```ts
+import { validateNFe } from '@notagrafo/core';
+
+const result = validateNFe(xmlString); // valida contra o XSD oficial da NFe v4.00
+```
+
+Os pacotes são publicados com [provenance](https://docs.npmjs.com/generating-provenance-statements)
+(supply-chain attestation via OIDC).
+
+---
+
+## Imagens Docker (GHCR)
+
+As aplicações são publicadas como imagens no GitHub Container Registry a cada release:
+
+| Imagem | Conteúdo |
+|---|---|
+| `ghcr.io/felipesauer/notagrafo-api` | API Fastify (produção) |
+| `ghcr.io/felipesauer/notagrafo-worker` | Worker BullMQ (produção) |
+| `ghcr.io/felipesauer/notagrafo-dashboard` | Dashboard servido via nginx |
+
+Cada imagem recebe as tags `latest`, o short SHA do commit e um timestamp.
+
+```bash
+docker pull ghcr.io/felipesauer/notagrafo-api:latest
+```
+
+Para subir a stack a partir das imagens do registry (em vez de buildar localmente),
+aponte o Compose para elas via variáveis de imagem — veja
+[Comandos e modos de execução](#comandos-e-modos-de-execução).
 
 ---
 

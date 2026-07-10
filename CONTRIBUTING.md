@@ -70,6 +70,32 @@ test(worker): cobre o seed contra o XSD oficial
 5. O CI (GitHub Actions) roda lint, testes unit/integration/e2e e o build das imagens.
 6. Após aprovação na revisão, o PR é mergeado.
 
+## Releases e publicação
+
+Os releases são automatizados com [release-please](https://github.com/googleapis/release-please),
+em **versionamento independente por pacote**. Você não edita `version` nem
+`CHANGELOG` manualmente — quem faz isso são os Conventional Commits:
+
+- `fix(...)` → bump de **patch** no(s) pacote(s) afetado(s).
+- `feat(...)` → bump de **minor**.
+- `feat(...)!` ou rodapé `BREAKING CHANGE:` → bump de **major**.
+- `docs`/`chore`/`test`/`refactor`/`ci` → não geram release.
+
+O **escopo** do commit deve mapear para o pacote (`core`, `graph`, `worker`, `api`),
+pois é ele que decide qual pacote versiona. Ao mudar uma lib que outras consomem
+(ex.: `core`), o plugin `node-workspace` encadeia o bump das dependências internas.
+
+Fluxo:
+
+1. Commits em `main` alimentam um **Release PR** por pacote, que o release-please
+   mantém atualizado (versão + `CHANGELOG.md`).
+2. Ao **mergear** o Release PR, ele cria a tag/release (ex.: `core-v0.2.0`) e dispara:
+   - **npm** — publica os pacotes públicos em [`@notagrafo`](https://www.npmjs.com/org/notagrafo) com provenance.
+   - **GHCR** — builda e publica as imagens `notagrafo-{api,worker,dashboard}`.
+
+> Requer o secret **`NPM_TOKEN`** (automation token com permissão de publish na org)
+> configurado no repositório. O push para o GHCR usa o `GITHUB_TOKEN` padrão.
+
 ## Reportando bugs e sugerindo funcionalidades
 
 Use os templates de issue (**bug report** / **feature request**) ao abrir uma issue.

@@ -95,6 +95,8 @@ jobs:
           name: playwright-report
           path: packages/dashboard/playwright-report/
 
+  # Smoke build of the app images to catch Dockerfile regressions on main.
+  # The actual push to GHCR happens on release (see release-please.yml).
   build:
     runs-on: ubuntu-latest
     needs: [test-unit, test-integration]
