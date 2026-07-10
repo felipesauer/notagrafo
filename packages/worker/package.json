@@ -1,6 +1,6 @@
 {
   "name": "@notagrafo/worker",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "notagrafo worker: BullMQ NFe processors, XML storage adapters (local/S3) and seed utilities.",
   "license": "MIT",
   "author": "Felipe Sauer",
