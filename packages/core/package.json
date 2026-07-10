@@ -1,6 +1,6 @@
 {
   "name": "@notagrafo/core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Core domain for notagrafo: NFe v4.00 types, parser, XSD validator and fiscal catalogs (NCM/CFOP).",
   "license": "MIT",
   "author": "Felipe Sauer",
@@ -17,8 +17,14 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
-    "./lgpd": { "types": "./dist/utils/lgpd.utils.d.ts", "default": "./dist/utils/lgpd.utils.js" }
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./lgpd": {
+      "types": "./dist/utils/lgpd.utils.d.ts",
+      "default": "./dist/utils/lgpd.utils.js"
+    }
   },
   "files": [
     "dist"
