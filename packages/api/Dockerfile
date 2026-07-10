@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # ── Stage 1: deps (com toolchain nativo p/ libxmljs2) ────────
-FROM node:22-alpine AS deps
+FROM node:24-alpine AS deps
 WORKDIR /app
 RUN apk add --no-cache python3 make g++ && corepack enable
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
@@ -34,7 +34,7 @@ RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
     pnpm --filter @notagrafo/api --legacy deploy --prod /out
 
 # ── Stage 3: runtime (enxuto, sem toolchain nem devDeps) ─────
-FROM node:22-alpine AS production
+FROM node:24-alpine AS production
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=build /out ./

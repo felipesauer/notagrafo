@@ -3,8 +3,15 @@
 <img src="assets/notagrafo-logo.png" alt="notagrafo" width="360" />
 
 <p>
+  <a href="https://www.npmjs.com/package/@notagrafo/core"><img alt="npm version" src="https://img.shields.io/npm/v/@notagrafo/core?logo=npm&label=%40notagrafo%2Fcore" /></a>
+  <a href="https://www.npmjs.com/package/@notagrafo/core"><img alt="npm downloads" src="https://img.shields.io/npm/dm/@notagrafo/core?logo=npm&color=cb3837" /></a>
+  <a href="https://github.com/felipesauer/notagrafo/pkgs/container/notagrafo-api"><img alt="GHCR images" src="https://img.shields.io/badge/GHCR-images-2496ED?logo=docker&logoColor=white" /></a>
+  <a href="https://github.com/felipesauer/notagrafo/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/felipesauer/notagrafo/actions/workflows/ci.yml/badge.svg" /></a>
+</p>
+
+<p>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg" /></a>
-  <img alt="Node.js 20+" src="https://img.shields.io/badge/Node.js-20+-339933?logo=nodedotjs&logoColor=white" />
+  <img alt="Node.js 22+" src="https://img.shields.io/badge/Node.js-22+-339933?logo=nodedotjs&logoColor=white" />
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" />
   <img alt="React" src="https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB" />
   <img alt="Fastify" src="https://img.shields.io/badge/Fastify-000000?logo=fastify&logoColor=white" />
@@ -30,6 +37,26 @@ emitentes e destinatários.
 <sub>Documento suportado: <strong>NF-e v4.00</strong> · Licença <strong>MIT</strong></sub>
 
 </div>
+
+---
+
+## 📦 Disponível no npm e Docker
+
+O notagrafo é publicado em dois formatos, prontos para uso:
+
+- **Bibliotecas no npm** — instale os pacotes da org [`@notagrafo`](https://www.npmjs.com/org/notagrafo) e use o parser/validador de NF-e, a camada de grafo ou o worker no seu próprio projeto:
+
+  ```bash
+  pnpm add @notagrafo/core        # tipos, parser e validador XSD da NF-e v4.00
+  ```
+
+- **Imagens Docker no GHCR** — rode a aplicação completa (API, worker e dashboard) sem buildar nada:
+
+  ```bash
+  docker pull ghcr.io/felipesauer/notagrafo-api:latest
+  ```
+
+Detalhes em [Pacotes npm](#pacotes-npm) e [Imagens Docker (GHCR)](#imagens-docker-ghcr).
 
 ---
 
