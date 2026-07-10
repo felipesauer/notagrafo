@@ -2,5 +2,5 @@
   "packages/core": "0.2.0",
   "packages/graph": "0.2.0",
   "packages/worker": "0.2.0",
-  "packages/api": "0.1.0"
+  "packages/api": "0.2.0"
 }

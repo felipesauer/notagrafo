@@ -1,6 +1,6 @@
 {
   "name": "@notagrafo/api",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "notagrafo REST API: Fastify app exposing NFe upload, query, export and auth over the graph.",
   "license": "MIT",
   "author": "Felipe Sauer",
@@ -17,8 +17,14 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
-    "./server": { "types": "./dist/server.d.ts", "default": "./dist/server.js" }
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "default": "./dist/server.js"
+    }
   },
   "files": [
     "dist"
