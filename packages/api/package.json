@@ -1,9 +1,32 @@
 {
   "name": "@notagrafo/api",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0",
+  "description": "notagrafo REST API: Fastify app exposing NFe upload, query, export and auth over the graph.",
+  "license": "MIT",
+  "author": "Felipe Sauer",
+  "homepage": "https://github.com/felipesauer/notagrafo/tree/main/packages/api#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/felipesauer/notagrafo.git",
+    "directory": "packages/api"
+  },
+  "bugs": {
+    "url": "https://github.com/felipesauer/notagrafo/issues"
+  },
   "type": "module",
-  "main": "./dist/server.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
+    "./server": { "types": "./dist/server.d.ts", "default": "./dist/server.js" }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "dotenv -e ../../.env -- tsx watch src/server.ts"
@@ -16,9 +39,9 @@
     "@fastify/request-context": "^7.0.0",
     "@fastify/swagger": "^9.7.0",
     "@fastify/swagger-ui": "^6.0.0",
-    "@notagrafo/core": "workspace:*",
-    "@notagrafo/graph": "workspace:*",
-    "@notagrafo/worker": "workspace:*",
+    "@notagrafo/core": "workspace:^",
+    "@notagrafo/graph": "workspace:^",
+    "@notagrafo/worker": "workspace:^",
     "@opentelemetry/api": "^1.9.1",
     "@opentelemetry/exporter-trace-otlp-grpc": "^0.219.0",
     "@opentelemetry/resources": "^2.8.0",

@@ -1,18 +1,39 @@
 {
   "name": "@notagrafo/worker",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0",
+  "description": "notagrafo worker: BullMQ NFe processors, XML storage adapters (local/S3) and seed utilities.",
+  "license": "MIT",
+  "author": "Felipe Sauer",
+  "homepage": "https://github.com/felipesauer/notagrafo/tree/main/packages/worker#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/felipesauer/notagrafo.git",
+    "directory": "packages/worker"
+  },
+  "bugs": {
+    "url": "https://github.com/felipesauer/notagrafo/issues"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "dotenv -e ../../.env -- tsx watch src/worker.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1075.0",
-    "@notagrafo/core": "workspace:*",
-    "@notagrafo/graph": "workspace:*",
+    "@notagrafo/core": "workspace:^",
+    "@notagrafo/graph": "workspace:^",
     "bcryptjs": "^3.0.3",
     "bullmq": "^5.79.1",
     "ioredis": "^5.10.1",
