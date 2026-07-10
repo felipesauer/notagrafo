@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.1](https://github.com/felipesauer/notagrafo/compare/worker-v0.2.0...worker-v0.2.1) (2026-07-10)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @notagrafo/graph bumped to 0.2.0
+
 ## [0.2.0](https://github.com/felipesauer/notagrafo/compare/worker-v0.1.0...worker-v0.2.0) (2026-07-10)
 
 
