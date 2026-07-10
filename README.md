@@ -4,7 +4,6 @@
 
 <p>
   <a href="https://www.npmjs.com/package/@notagrafo/core"><img alt="npm version" src="https://img.shields.io/npm/v/@notagrafo/core?logo=npm&label=%40notagrafo%2Fcore" /></a>
-  <a href="https://www.npmjs.com/package/@notagrafo/core"><img alt="npm downloads" src="https://img.shields.io/npm/dm/@notagrafo/core?logo=npm&color=cb3837" /></a>
   <a href="https://github.com/felipesauer/notagrafo/pkgs/container/notagrafo-api"><img alt="GHCR images" src="https://img.shields.io/badge/GHCR-images-2496ED?logo=docker&logoColor=white" /></a>
   <a href="https://github.com/felipesauer/notagrafo/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/felipesauer/notagrafo/actions/workflows/ci.yml/badge.svg" /></a>
 </p>
