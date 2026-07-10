@@ -1,6 +1,6 @@
 {
   "name": "@notagrafo/graph",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Neo4j graph layer for notagrafo: schema, repositories and Cypher queries over NFe data.",
   "license": "MIT",
   "author": "Felipe Sauer",
@@ -17,7 +17,10 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" }
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
   "files": [
     "dist"
