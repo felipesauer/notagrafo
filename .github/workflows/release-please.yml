@@ -26,9 +26,11 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-  # Publishes every package whose Release PR was just merged. release-please
-  # only tags the packages that actually changed, but `pnpm publish -r` skips
-  # versions already present on the registry, so publishing the whole set is safe.
+  # Publishes the public packages on every release. `pnpm publish -r` does NOT
+  # skip versions already on the registry — it errors with E403 and fails the
+  # job — so we publish package-by-package and skip any version that already
+  # exists. This keeps the step idempotent regardless of which/how many Release
+  # PRs were merged (independent versioning means the set is rarely uniform).
   publish-npm:
     needs: release-please
     if: needs.release-please.outputs.releases_created == 'true'
@@ -49,16 +51,19 @@ jobs:
       - run: pnpm --filter @notagrafo/graph build
       - run: pnpm --filter @notagrafo/worker build
       - run: pnpm --filter @notagrafo/api build
-      - name: Publish public packages
-        run: >-
-          pnpm publish -r
-          --filter '@notagrafo/core'
-          --filter '@notagrafo/graph'
-          --filter '@notagrafo/worker'
-          --filter '@notagrafo/api'
-          --access public
-          --no-git-checks
-          --provenance
+      - name: Publish public packages (skip versions already on npm)
+        run: |
+          set -euo pipefail
+          for pkg in core graph worker api; do
+            name="@notagrafo/$pkg"
+            version="$(node -p "require('./packages/$pkg/package.json').version")"
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "· $name@$version already published — skipping"
+            else
+              echo "↑ publishing $name@$version"
+              pnpm --filter "$name" publish --access public --no-git-checks --provenance
+            fi
+          done
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: "true"
