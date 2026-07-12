@@ -30,6 +30,7 @@ mnema:
     - area:graph
     - dim:correcao
     - tipo:bug
+  depends_on: []
   estimate: 3
   priority: 1
   assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
@@ -38,6 +39,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-09T18:33:51.677Z'
+  updated_at: '2026-07-12T20:46:32.799Z'
 ---
 # Fix: listInvoices duplica NF na página com filtro NCM (falta DISTINCT)

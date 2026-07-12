@@ -1,24 +1,18 @@
 ---
 mnema:
   key: NOTA-201
-  state: DRAFT
+  state: READY
   title: 'Fix: filtro devolução/stub inconsistente em flow/alert/company/graph.metrics'
   description: >-
     O filtro F1/F3 (coalesce(nf.finalidade,'')<>'devolucao' e status IS NOT
     NULL) é aplicado em tax/product/duplicate mas NÃO em: flow.queries
-    getFluxoEmpresas (:35-37) e getRedeGlobal arestas (:104-106); alert.rules
-    ruleHighValue (:91), ruleSupplierConcentration (:121), ruleVolumeSpike
-    (:157); company.queries getCompanyStats (:91-95) e getCompanyGraph
-    nós/arestas (:145-171); graph.metrics getCentrality/getUndirectedEdges
-    (:49,98). Efeito: devoluções contam como transação comercial — inflam
-    Sankey/rede, disparam alertas de alto valor/concentração/spike, e distorcem
-    centralidade/comunidades. Inconsistência INTERNA gritante: getRedeGlobal
-    exclui stub nos nós mas não nas arestas; getCompanyGraph exclui no ramo
-    notas (:214-215) mas não em stats. CONFIRMADO: base seed tem 7 devoluções
-    ativas (valor até R$8.222) que hoje entram nessas agregações. Extrair um
-    predicado reutilizável (ex.: buildActiveNFPredicate) e aplicar de forma
-    consistente. Decidir caso a caso: numbering-gaps pode manter devolução
-    (numera); period-comparison é discutível.
+    getFluxoEmpresas e getRedeGlobal arestas; alert.rules ruleHighValue,
+    ruleSupplierConcentration, ruleVolumeSpike; company.queries getCompanyStats
+    e getCompanyGraph nós/arestas; graph.metrics
+    getCentrality/getUndirectedEdges. Efeito: devoluções contam como transação
+    comercial — inflam Sankey/rede, disparam alertas e distorcem centralidade.
+    Extrair um predicado reutilizável e aplicar de forma consistente. Exceção
+    intencional: numbering-gaps mantém devolução (numera).
   acceptance_criteria:
     - >-
       predicado de NF ativa (exclui stub e devolução) reutilizável e aplicado em
@@ -36,6 +30,7 @@ mnema:
     - area:graph
     - dim:correcao
     - tipo:bug
+  depends_on: []
   estimate: 5
   priority: 1
   assignee: null
@@ -44,6 +39,6 @@ mnema:
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-09T18:24:02.555Z'
+  updated_at: '2026-07-12T20:49:22.735Z'
 ---
 # Fix: filtro devolução/stub inconsistente em flow/alert/company/graph.metrics
