@@ -1,7 +1,7 @@
 ---
 mnema:
   key: NOTA-202
-  state: READY
+  state: DONE
   title: 'Fix: parser aceita chaveAcesso malformada'
   description: >-
     extractAccessKey (nfe.parser.ts) fazia apenas id.replace(/^NFe/,''),
@@ -22,14 +22,15 @@ mnema:
     - area:core
     - dim:correcao
     - tipo:bug
+  depends_on: []
   estimate: 3
   priority: 2
-  assignee: null
+  assignee: 019f03ba-735c-725c-b52a-22a88c9abe61
   reporter: 019f0164-3101-76bc-af75-94e9b1380134
   epic_key: NOTA-EPIC-31
   sprint_key: null
   reopen_count: 0
   metadata: {}
-  updated_at: '2026-07-09T18:52:02.037Z'
+  updated_at: '2026-07-12T20:51:56.576Z'
 ---
-# Fix: parser aceita chaveAcesso malformada
+# Fix: parser aceita chaveAcesso malformada; DV mod-11 nunca conferido
