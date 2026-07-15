@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "mnema_version": "^0.12.0-alpha.0",
+  "mnema_version": "^0.13.0-alpha.0",
   "project": {
     "key": "NOTA",
     "name": "notagrafo"
@@ -12,8 +12,10 @@
     "sprints": ".mnema/sprints",
     "roadmap": ".mnema/roadmap",
     "memory": ".mnema/memory",
+    "observations": ".mnema/observations",
     "skills": ".mnema/skills",
     "commands": ".mnema/commands",
+    "templates": ".mnema/templates",
     "workflows": ".mnema/workflows"
   },
   "workflow": "default",
@@ -31,6 +33,7 @@
     }
   },
   "enforcement_mode": "advisory",
+  "enforcement_field_severity": {},
   "sync": {
     "mode": "hybrid",
     "agent_buffer_flush_seconds": 30,
@@ -49,14 +52,22 @@
     "sla_days": {},
     "wip_limits": {}
   },
+  "claims": {
+    "lease_minutes": 30,
+    "require_to_start": false
+  },
   "github": {
     "done_pr_policy": "off"
+  },
+  "git": {
+    "watch": false
   },
   "hooks": {
     "on_task_done": [],
     "on_task_transitioned": [],
     "on_decision_accepted": [],
     "on_sprint_closed": [],
+    "on_sprint_canceled": [],
     "on_epic_closed": []
   }
 }
